@@ -1,0 +1,225 @@
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Caveat:wght@600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-be-vietnam-pro: 'Be Vietnam Pro', sans-serif;
+  --font-caveat: 'Caveat', cursive;
+  --font-hand: 'Patrick Hand', cursive;
+  --font-jetbrains-mono: 'JetBrains Mono', monospace;
+
+  --color-paper: #FBF6EC;
+  --color-panel: #FFFDF8;
+  --color-sticky: #FFF6DC;
+  --color-text-main: #2E2A22;
+  --color-text-muted: #57503F;
+  --color-border: #E7D9A8;
+  --color-border-dashed: #DED2AE;
+  --color-accent-red: #D64545;
+  --color-accent-dark: #2E2A22;
+  --color-accent-yellow: #F3D34A;
+}
+
+html {
+  scroll-behavior: smooth;
+  color: var(--color-text-main);
+  background-color: var(--color-paper);
+  font-family: var(--font-be-vietnam-pro);
+}
+
+body {
+  background-color: #FBF6EC;
+  background-image: radial-gradient(circle, #E9E0CB 1.2px, transparent 1.2px);
+  background-size: 26px 26px;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  color: #2E2A22;
+}
+
+/* Chú thích viết tay chuẩn tiếng Việt (Patrick Hand) */
+.font-hand {
+  font-family: var(--font-hand);
+}
+
+.hand-note {
+  font-family: var(--font-hand);
+  color: #D64545;
+  display: inline-block;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F4ECE0;
+}
+::-webkit-scrollbar-thumb {
+  background: #D9CB9E;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C4B485;
+}
+
+/* Selection */
+::selection {
+  background-color: #F3D34A;
+  color: #2E2A22;
+}
+
+/* Paper card subtle texture and shadow */
+.paper-card {
+  background-color: #FFFDF8;
+  border: 1px solid #E7D9A8;
+  box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.04);
+  border-radius: 10px;
+}
+
+.paper-card-sticky {
+  background-color: #FFF6DC;
+  border: 1px solid #E7D9A8;
+  box-shadow: 2px 3px 6px rgba(46, 42, 34, 0.08), 1px 2px 0 rgba(0,0,0,0.03);
+}
+
+/* Dashed borders */
+.border-hand-dashed {
+  border: 1.5px dashed #DED2AE;
+}
+
+/* Page flip 3D */
+.page-flip-container {
+  perspective: 1200px;
+}
+
+.page-flip-card {
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.page-flip-card:hover {
+  transform: rotateY(-8deg) translateY(-2px);
+  box-shadow: 8px 12px 20px rgba(46, 42, 34, 0.12);
+}
+
+/* Notebook Prose Markdown Styling */
+.notebook-prose {
+  font-family: var(--font-be-vietnam-pro);
+  color: #2E2A22;
+  line-height: 1.75;
+}
+
+.notebook-prose p {
+  margin-bottom: 0.85rem;
+}
+
+.notebook-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.notebook-prose blockquote {
+  background-color: #FAF4E6;
+  border-left: 3.5px solid #DED2AE;
+  padding: 0.8rem 1rem;
+  border-radius: 0.375rem;
+  font-style: italic;
+  color: #57503F;
+  margin: 1rem 0;
+}
+
+.notebook-prose blockquote strong {
+  font-style: normal;
+  color: #2E2A22;
+  font-family: var(--font-jetbrains-mono);
+  font-size: 0.85em;
+  background: #FFFDF8;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+  border: 1px solid #E7D9A8;
+  margin-right: 0.25rem;
+}
+
+.notebook-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.25rem 0;
+  border: 1px solid #E7D9A8;
+  background: #FDFBF7;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 0.875rem;
+}
+
+.notebook-prose th {
+  background-color: #F5EEDC;
+  border-bottom: 1px solid #E7D9A8;
+  padding: 0.65rem 0.85rem;
+  font-weight: 600;
+  text-align: left;
+  color: #2E2A22;
+}
+
+.notebook-prose td {
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px dashed #DED2AE;
+  color: #2E2A22;
+}
+
+.notebook-prose tr:last-child td {
+  border-bottom: none;
+}
+
+.notebook-prose tr:hover td {
+  background-color: #FAF4E4;
+}
+
+.notebook-prose pre {
+  background-color: #29251F;
+  color: #F3EED9;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid #D5C698;
+  overflow-x: auto;
+  font-family: var(--font-jetbrains-mono);
+  font-size: 0.85rem;
+  margin: 1rem 0;
+  line-height: 1.6;
+}
+
+.notebook-prose code {
+  font-family: var(--font-jetbrains-mono);
+  font-size: 0.85em;
+  background-color: #FAF4E4;
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.25rem;
+  border: 1px solid #E7D9A8;
+  color: #2E2A22;
+}
+
+.notebook-prose pre code {
+  background-color: transparent;
+  padding: 0;
+  border: none;
+  color: inherit;
+  font-size: inherit;
+}
+
+.notebook-prose ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 0.75rem 0;
+}
+
+.notebook-prose li {
+  margin-bottom: 0.4rem;
+}
+
+.notebook-prose strong {
+  font-weight: 600;
+  color: #2E2A22;
+}

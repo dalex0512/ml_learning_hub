@@ -1,0 +1,58 @@
+{
+  "source": "Data Science, Machine Learning, Python course — mục lục gốc (slide 2)",
+  "modules": [
+    {
+      "id": "01-machine-learning",
+      "order": 1,
+      "title": "Machine Learning",
+      "subtitle": "Tổng quan về Machine Learning",
+      "topics": [
+        { "id": "what-is-ml", "order": 1, "title": "AI, Machine Learning, Deep Learning và Data Science là gì", "file": "01-what-is-ml.md" },
+        { "id": "feature-and-data-types", "order": 2, "title": "Dataset, Feature và các loại dữ liệu", "file": "02-feature-and-data-types.md" },
+        { "id": "learning-paradigms", "order": 3, "title": "Các phương thức học trong Machine Learning", "file": "03-learning-paradigms.md" },
+        { "id": "labeled-data", "order": 4, "title": "Labeled Data — feature matrix (X) và label vector (y)", "file": "04-labeled-data.md" },
+        { "id": "model-training-pipeline", "order": 5, "title": "Model Training (Huấn luyện mô hình)", "file": "05-model-training-pipeline.md" },
+        { "id": "loss-function", "order": 6, "title": "Loss Function (Hàm mất mát)", "file": "06-loss-function.md" },
+        { "id": "train-test-split", "order": 7, "title": "Train / Validation / Test Split", "file": "07-train-test-split.md" },
+        { "id": "classification-vs-regression", "order": 8, "title": "Classification vs Regression", "file": "08-classification-vs-regression.md" },
+        { "id": "data-preprocessing", "order": 9, "title": "Tiền xử lý dữ liệu", "file": "09-data-preprocessing.md" },
+        { "id": "evaluation-basics", "order": 10, "title": "Metrics cơ bản (Confusion Matrix)", "file": "10-evaluation-basics.md" }
+      ]
+    },
+    {
+      "id": "02-supervised-learning",
+      "order": 2,
+      "title": "Supervised Learning",
+      "subtitle": "Các mô hình cơ bản",
+      "topics": []
+    },
+    {
+      "id": "03-unsupervised-learning",
+      "order": 3,
+      "title": "Unsupervised Learning",
+      "subtitle": "Các mô hình cơ bản",
+      "topics": []
+    },
+    {
+      "id": "04-data-visualization",
+      "order": 4,
+      "title": "Data Visualization",
+      "subtitle": "Trực quan hóa dữ liệu",
+      "topics": []
+    },
+    {
+      "id": "05-model-evaluation",
+      "order": 5,
+      "title": "Model Evaluation",
+      "subtitle": "Đánh giá mô hình",
+      "topics": []
+    },
+    {
+      "id": "06-projects",
+      "order": 6,
+      "title": "Projects",
+      "subtitle": "Xây dựng mô hình với các datasets",
+      "topics": []
+    }
+  ]
+}
