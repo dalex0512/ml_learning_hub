@@ -94,13 +94,29 @@ code.
 
 ## 6. Câu hỏi tự kiểm tra
 
-- Bài toán "gợi ý sản phẩm nên mua tiếp theo cho khách hàng" thuộc
-  Supervised hay Unsupervised? Vì sao?
-- Vì sao Reinforcement Learning không cần dữ liệu có nhãn (labeled data)
-  như Supervised learning?
+**Câu 1:** Bài toán "gợi ý sản phẩm nên mua tiếp theo cho khách hàng"
+thuộc Supervised hay Unsupervised? Vì sao?
+> **Đáp án:** Thường là Unsupervised (Association) — hệ thống tìm quan hệ
+> giữa các mục hàng dựa trên hành vi mua sắm chung, không có nhãn "đúng"
+> sẵn cho biết khách hàng nên mua gì tiếp theo.
+
+**Câu 2:** Vì sao Reinforcement Learning không cần dữ liệu có nhãn
+(labeled data) như Supervised learning?
+> **Đáp án:** Vì RL học qua **thử-sai** (trial and error) để tối đa hoá
+> phần thưởng (reward) nhận được từ môi trường, thay vì học từ các cặp
+> (input, label) đã biết trước như Supervised learning.
 
 > **EN:**
-> - Is "recommend the next product a customer should buy" Supervised or
->   Unsupervised? Why?
-> - Why doesn't Reinforcement Learning need labeled data the way
->   Supervised learning does?
+>
+> **Q1:** Is "recommend the next product a customer should buy" Supervised
+> or Unsupervised? Why?
+> > **A:** Usually Unsupervised (Association) — the system finds
+> > relationships between items based on shared purchasing behavior, with
+> > no pre-existing "correct" label telling it what the customer should
+> > buy next.
+>
+> **Q2:** Why doesn't Reinforcement Learning need labeled data the way
+> Supervised learning does?
+> > **A:** Because RL learns through **trial and error** to maximize the
+> > reward received from the environment, instead of learning from known
+> > (input, label) pairs like Supervised learning.

@@ -60,10 +60,39 @@ order: <số thứ tự trong module>
 3. **Công thức / cách hoạt động**
 4. **Ví dụ tay** — số liệu cụ thể, tính tay được
 5. **Code** — cài đặt lại từ đầu bằng Python
-6. **Câu hỏi tự kiểm tra** — chỉ ghi câu hỏi, KHÔNG ghi đáp án ngay dưới (ẩn/thu gọn)
+6. **Câu hỏi tự kiểm tra** — MỖI câu hỏi phải có đáp án đi kèm ngay bên dưới
+   (không ẩn/thu gọn nữa — hiển thị trực tiếp câu hỏi + đáp án)
 
 Nếu 1 topic có đồ thị/sơ đồ minh họa, nhúng ảnh/SVG **bên trong** phần 1 hoặc 3
 ở trên — không tạo thêm phần thứ 7 riêng, giữ đúng 6 phần cho mọi topic.
+
+**Quan trọng — không cắt bớt kiến thức để vừa khung 6 phần:** 6 tiêu đề lớn
+ở trên là khung cố định cho GIAO DIỆN (sidebar 6 mục), không phải giới hạn
+lượng kiến thức. Nếu 1 topic có nhiều nội dung con không khớp gọn vào 1
+trong 6 mục, KHÔNG được lược bớt — thêm heading phụ (`###`) bên trong đúng
+mục lớn phù hợp nhất để chứa đủ chi tiết. Ưu tiên số 1 luôn là đầy đủ, chi
+tiết, đúng nội dung gốc; khung 6 phần chỉ là cách tổ chức hiển thị, không
+phải bộ lọc kiến thức.
+
+### Song ngữ Việt – Anh (bắt buộc cho mọi đoạn văn giải thích)
+
+Tiếng Việt là chính. Ngay dưới mỗi đoạn văn tiếng Việt (không áp dụng cho
+bảng số liệu, công thức, code — những phần đó vốn đã trung lập ngôn ngữ),
+thêm 1 khối dịch tiếng Anh, dùng **đúng thuật ngữ chuẩn ngành** (không dịch
+word-by-word) — dùng cú pháp blockquote để phân biệt với đoạn chính:
+
+```
+[Đoạn tiếng Việt giải thích khái niệm]
+
+> **EN:** [Bản tiếng Anh, viết như tài liệu kỹ thuật thật, giữ đúng thuật
+> ngữ ngành — Loss, Gradient Descent, overfitting... không phiên âm/dịch nghĩa]
+```
+
+Không làm nút chuyển đổi ngôn ngữ (language switcher) — cả 2 khối luôn hiển
+thị cùng lúc. Khối EN hiển thị nhỏ hơn khối VI (khoảng 13px so với 14–15px),
+màu chữ nhạt hơn (`text-muted`), có thể thêm 1 nhãn nhỏ "EN" viết hoa,
+letter-spacing rộng, font `JetBrains Mono`, đặt ngay trước đoạn dịch. Giữ
+khoảng cách trên (`margin-top`) rõ ràng với đoạn tiếng Việt để không bị dính.
 
 Có sẵn 1 file ví dụ đầy đủ theo đúng template này: `content-example/loss-function.md`
 — dùng làm mẫu tham chiếu khi dựng component hiển thị 1 topic.

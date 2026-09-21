@@ -90,16 +90,47 @@ print("L2 loss:", l2)   # 0.4568
 
 ## 6. Câu hỏi tự kiểm tra
 
-- Nếu đổi sai lệch dòng Huế từ +0.60 thành +2.0, L1 loss tăng thêm đúng bao
-  nhiêu? Còn L2 loss thì sao — tăng đúng bằng phần chênh lệch hay nhiều hơn?
-- Tại sao nói L2 loss "nhạy với outlier" hơn L1 loss?
-- Nếu dữ liệu của bạn có nhiều điểm nhiễu/sai số đo đạc (nhiều outlier
-  không đáng tin), nên ưu tiên dùng L1 hay L2?
+**Câu 1:** Nếu đổi sai lệch dòng Huế từ +0.60 thành +2.0, L1 loss tăng
+thêm đúng bao nhiêu? Còn L2 loss thì sao — tăng đúng bằng phần chênh lệch
+hay nhiều hơn?
+> **Đáp án:** L1 tăng đúng 1.40 (từ 0.60 lên 2.0, cộng thẳng vào tổng —
+> L1 mới = 1.20 − 0.60 + 2.0 = 2.60). L2 tăng **nhiều hơn** phần chênh
+> lệch tuyệt đối, vì bị bình phương: 0.60² = 0.36 → 2.0² = 4.0, tăng 3.64
+> (L2 mới = 0.4568 − 0.36 + 4.0 = 4.0968) — chênh lệch input chỉ gấp
+> ~3.3 lần nhưng phần đóng góp vào loss tăng gấp hơn 10 lần.
+
+**Câu 2:** Tại sao nói L2 loss "nhạy với outlier" hơn L1 loss?
+> **Đáp án:** Vì L2 bình phương sai lệch trước khi cộng — 1 điểm sai lệch
+> lớn (outlier) sẽ bị khuếch đại mạnh trong tổng, kéo loss lên rất nhiều
+> chỉ vì 1 điểm. L1 chỉ cộng trị tuyệt đối, không khuếch đại, nên ít bị
+> chi phối bởi riêng 1 điểm sai lệch lớn.
+
+**Câu 3:** Nếu dữ liệu của bạn có nhiều điểm nhiễu/sai số đo đạc (nhiều
+outlier không đáng tin), nên ưu tiên dùng L1 hay L2?
+> **Đáp án:** Nên ưu tiên L1. Vì L2 sẽ để model bị outlier "kéo lệch" quá
+> mức (dồn sức sửa những điểm nhiễu không đáng tin), trong khi L1 đối xử
+> công bằng hơn giữa các điểm, ít bị vài outlier chi phối.
 
 > **EN:**
-> - If the Huế row's error changed from +0.60 to +2.0, how much would L1
->   loss increase by? What about L2 — does it increase by the same amount,
->   or more?
-> - Why is L2 loss described as more "sensitive to outliers" than L1 loss?
-> - If your dataset has a lot of noisy/unreliable outliers, should you
->   prefer L1 or L2?
+>
+> **Q1:** If the Huế row's error changed from +0.60 to +2.0, how much
+> would L1 loss increase by? What about L2 — does it increase by the same
+> amount, or more?
+> > **A:** L1 increases by exactly 1.40 (added straight into the sum —
+> > new L1 = 1.20 − 0.60 + 2.0 = 2.60). L2 increases by **more** than the
+> > raw difference, because it's squared: 0.60² = 0.36 → 2.0² = 4.0, an
+> > increase of 3.64 (new L2 = 0.4568 − 0.36 + 4.0 = 4.0968) — the input
+> > only grew ~3.3x but its contribution to the loss grew over 10x.
+>
+> **Q2:** Why is L2 loss described as more "sensitive to outliers" than
+> L1 loss?
+> > **A:** Because L2 squares each error before summing — one large error
+> > (outlier) gets amplified sharply in the total, pulling the loss up a
+> > lot because of a single point. L1 just sums absolute values with no
+> > amplification, so it's less dominated by any one large error.
+>
+> **Q3:** If your dataset has a lot of noisy/unreliable outliers, should
+> you prefer L1 or L2?
+> > **A:** Prefer L1. L2 would let outliers "pull" the model too much
+> > (forcing it to chase unreliable noisy points), while L1 treats points
+> > more evenly and is less dominated by a few outliers.

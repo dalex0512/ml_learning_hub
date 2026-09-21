@@ -74,13 +74,27 @@ y = df["Outcome"]                  # label/target vector
 
 ## 6. Câu hỏi tự kiểm tra
 
-- Nếu 1 dataset không có cột kết quả nào (không có `Outcome`), dữ liệu đó
-  gọi là gì — labeled hay unlabeled?
-- Nếu dataset có 500 sample, feature matrix `X` có bao nhiêu dòng? Label
-  vector `y` có bao nhiêu phần tử?
+**Câu 1:** Nếu 1 dataset không có cột kết quả nào (không có `Outcome`),
+dữ liệu đó gọi là gì — labeled hay unlabeled?
+> **Đáp án:** Unlabeled — không có giá trị đúng đã biết trước đi kèm mỗi
+> sample thì không thể gọi là labeled data, và cũng không dùng được cho
+> Supervised learning.
+
+**Câu 2:** Nếu dataset có 500 sample, feature matrix `X` có bao nhiêu
+dòng? Label vector `y` có bao nhiêu phần tử?
+> **Đáp án:** `X` có 500 dòng (mỗi dòng là feature vector của 1 sample),
+> `y` có 500 phần tử (mỗi phần tử là label tương ứng của đúng sample đó).
 
 > **EN:**
-> - If a dataset has no outcome column at all, is it called labeled or
->   unlabeled data?
-> - If a dataset has 500 samples, how many rows does feature matrix `X`
->   have? How many elements does label vector `y` have?
+>
+> **Q1:** If a dataset has no outcome column at all, is it called labeled
+> or unlabeled data?
+> > **A:** Unlabeled — without a known correct value attached to each
+> > sample, it can't be called labeled data, and it can't be used for
+> > Supervised learning.
+>
+> **Q2:** If a dataset has 500 samples, how many rows does feature matrix
+> `X` have? How many elements does label vector `y` have?
+> > **A:** `X` has 500 rows (each row is one sample's feature vector), `y`
+> > has 500 elements (each one the corresponding label for that exact
+> > sample).

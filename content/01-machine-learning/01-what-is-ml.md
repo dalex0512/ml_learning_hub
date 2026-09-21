@@ -82,13 +82,28 @@ mối quan hệ giữa chúng. Đoạn code đầu tiên sẽ xuất hiện ở 
 
 ## 6. Câu hỏi tự kiểm tra
 
-- Deep Learning có phải là một nhánh hoàn toàn tách biệt với Machine
-  Learning không? Vì sao?
-- Một chatbot trả lời câu hỏi hoàn toàn theo kịch bản lập trình sẵn
-  (if-else, không học từ dữ liệu) có được coi là Machine Learning không?
+**Câu 1:** Deep Learning có phải là một nhánh hoàn toàn tách biệt với
+Machine Learning không? Vì sao?
+> **Đáp án:** Không. Deep Learning là **tập con** của Machine Learning —
+> nó vẫn là học từ dữ liệu, chỉ khác ở chỗ dùng mạng nơ-ron nhiều lớp và
+> cần lượng dữ liệu rất lớn.
+
+**Câu 2:** Một chatbot trả lời câu hỏi hoàn toàn theo kịch bản lập trình
+sẵn (if-else, không học từ dữ liệu) có được coi là Machine Learning không?
+> **Đáp án:** Không. Vì nó không *học* gì từ dữ liệu — chỉ chạy theo luật
+> lập trình sẵn. Nó có thể được coi là AI (theo nghĩa rộng: hệ thống tự
+> đưa ra hành động), nhưng không phải Machine Learning.
 
 > **EN:**
-> - Is Deep Learning a completely separate branch from Machine Learning?
->   Why or why not?
-> - Is a chatbot that answers questions purely through hardcoded if-else
->   rules (learning nothing from data) considered Machine Learning?
+>
+> **Q1:** Is Deep Learning a completely separate branch from Machine
+> Learning? Why or why not?
+> > **A:** No. Deep Learning is a **subset** of Machine Learning — it
+> > still learns from data, just using multi-layer neural networks and
+> > requiring a very large amount of data.
+>
+> **Q2:** Is a chatbot that answers questions purely through hardcoded
+> if-else rules (learning nothing from data) considered Machine Learning?
+> > **A:** No. It doesn't *learn* anything from data — it just follows
+> > hardcoded rules. It could be considered AI (in the broad sense: a
+> > system that takes action), but not Machine Learning.

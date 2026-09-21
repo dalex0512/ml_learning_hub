@@ -57,11 +57,29 @@ Chưa có code ở bài này — xem bài **Loss Function** tiếp theo.
 
 ## 6. Câu hỏi tự kiểm tra
 
-- Vì sao chỉ có `prediction` và `label` thôi chưa đủ để biết model tốt
-  hay không — cần thêm bước nào nữa?
-- Loss value cao thể hiện model đang dự đoán tốt hơn hay tệ hơn?
+**Câu 1:** Vì sao chỉ có `prediction` và `label` thôi chưa đủ để biết
+model tốt hay không — cần thêm bước nào nữa?
+> **Đáp án:** Cần thêm bước tính **loss value** thông qua một **Loss
+> Function** — nhận vào `prediction` và `label`, trả về 1 con số cụ thể
+> đo mức độ sai lệch, từ đó mới đánh giá được model đang tốt hay tệ.
+
+**Câu 2:** Loss value cao thể hiện model đang dự đoán tốt hơn hay tệ hơn?
+> **Đáp án:** Tệ hơn. Loss đo mức độ sai lệch giữa prediction và label —
+> loss càng cao nghĩa là dự đoán càng lệch xa giá trị thật, loss càng
+> thấp thì model dự đoán càng gần đúng.
 
 > **EN:**
-> - Why aren't `prediction` and `label` alone enough to know if a model is
->   good — what extra step is needed?
-> - Does a high loss value mean the model is predicting better or worse?
+>
+> **Q1:** Why aren't `prediction` and `label` alone enough to know if a
+> model is good — what extra step is needed?
+> > **A:** You need the extra step of computing a **loss value** through a
+> > **Loss Function** — it takes in `prediction` and `label` and returns a
+> > concrete number measuring how far apart they are, which is what lets
+> > you judge whether the model is good or bad.
+>
+> **Q2:** Does a high loss value mean the model is predicting better or
+> worse?
+> > **A:** Worse. Loss measures how far off the prediction is from the
+> > label — the higher the loss, the further the prediction is from the
+> > true value; the lower the loss, the closer the prediction is to
+> > correct.

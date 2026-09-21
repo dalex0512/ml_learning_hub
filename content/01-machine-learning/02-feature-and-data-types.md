@@ -98,13 +98,30 @@ print(df["education"].unique())      # các giá trị duy nhất của 1 cột 
 
 ## 6. Câu hỏi tự kiểm tra
 
-- Cột `hours.per.week` (số giờ làm việc/tuần) thuộc Numerical hay
-  Categorical? Nếu là Numerical thì Integer hay Float?
-- Một cột "mã bưu điện" (zip code) chứa toàn chữ số — nó có nên được coi
-  là Numerical feature không? Vì sao?
+**Câu 1:** Cột `hours.per.week` (số giờ làm việc/tuần) thuộc Numerical hay
+Categorical? Nếu là Numerical thì Integer hay Float?
+> **Đáp án:** Numerical, Integer — số giờ làm việc/tuần thường được ghi
+> nhận theo số nguyên (VD: 40, 45), và phép cộng/trừ giữa các giá trị này
+> có ý nghĩa toán học thật sự.
+
+**Câu 2:** Một cột "mã bưu điện" (zip code) chứa toàn chữ số — nó có nên
+được coi là Numerical feature không? Vì sao?
+> **Đáp án:** Không nên. Dù toàn chữ số, mã bưu điện không có quan hệ
+> thứ bậc/toán học — cộng hoặc trừ hai mã bưu điện không có ý nghĩa gì.
+> Đây là trường hợp ngoại lệ: về hình thức là số nhưng bản chất là
+> Categorical (Nominal).
 
 > **EN:**
-> - Is `hours.per.week` Numerical or Categorical? If Numerical, is it
->   Integer or Float?
-> - A "zip code" column contains only digits — should it be treated as a
->   Numerical feature? Why or why not?
+>
+> **Q1:** Is `hours.per.week` Numerical or Categorical? If Numerical, is
+> it Integer or Float?
+> > **A:** Numerical, Integer — weekly working hours are typically
+> > recorded as whole numbers (e.g. 40, 45), and adding/subtracting these
+> > values has real arithmetic meaning.
+>
+> **Q2:** A "zip code" column contains only digits — should it be treated
+> as a Numerical feature? Why or why not?
+> > **A:** No. Despite being all digits, zip codes have no
+> > order/arithmetic relationship — adding or subtracting two zip codes
+> > is meaningless. This is the exception case: numeric in form but
+> > Categorical (Nominal) in nature.
