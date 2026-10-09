@@ -23,9 +23,6 @@ module.exports = {
         "accent-sticky-yellow": "#F3D34A",
       },
       fontFamily: {
-        sans: ["var(--font-be-vietnam-pro)", "sans-serif"],
-        hand: ["var(--font-caveat)", "cursive"],
-        mono: ["var(--font-jetbrains-mono)", "monospace"],
         sans: ["var(--font-be-vietnam-pro)", "'Be Vietnam Pro'", "sans-serif"],
         hand: ["var(--font-hand)", "'Patrick Hand'", "'Pangolin'", "cursive"],
         mono: ["var(--font-jetbrains-mono)", "'JetBrains Mono'", "monospace"],

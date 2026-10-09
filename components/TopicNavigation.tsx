@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import FlipLink from "./FlipLink";
 import { ArrowLeft, ArrowRight, BookOpen } from "lucide-react";
 import { ModuleItem, TopicItem } from "@/lib/roadmap";
 
@@ -14,7 +15,8 @@ export default function TopicNavigation({ prev, next }: Props) {
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
         {/* Prev Button: Viền đứt nét */}
         {prev ? (
-          <Link
+          <FlipLink
+            flip={-1}
             href={`/${prev.module.id}/${prev.topic.id}`}
             className="page-flip-card group flex-1 p-4 rounded-xl border-2 border-dashed border-paper-dashed hover:border-paper-border bg-panel hover:bg-sticky/50 transition-all flex items-center gap-3 shadow-xs"
           >
@@ -29,7 +31,7 @@ export default function TopicNavigation({ prev, next }: Props) {
                 {prev.topic.title}
               </span>
             </div>
-          </Link>
+          </FlipLink>
         ) : (
           <div className="flex-1 p-4 rounded-xl border border-dashed border-paper-dashed/50 opacity-40 flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-paper flex items-center justify-center text-text-sub shrink-0">
@@ -50,7 +52,8 @@ export default function TopicNavigation({ prev, next }: Props) {
 
         {/* Next Button: Nền tối đặc */}
         {next ? (
-          <Link
+          <FlipLink
+            flip={1}
             href={`/${next.module.id}/${next.topic.id}`}
             className="page-flip-card group flex-1 p-4 rounded-xl bg-accent-dark text-panel hover:bg-black transition-all flex items-center justify-end gap-3 shadow-paper-md"
           >
@@ -65,7 +68,7 @@ export default function TopicNavigation({ prev, next }: Props) {
             <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-panel group-hover:translate-x-1 transition-transform shrink-0">
               <ArrowRight className="w-4 h-4" />
             </div>
-          </Link>
+          </FlipLink>
         ) : (
           <div className="flex-1 p-4 rounded-xl bg-panel border border-paper-border opacity-60 flex items-center justify-end gap-3">
             <span className="text-xs text-text-sub font-mono">Hết danh sách module</span>

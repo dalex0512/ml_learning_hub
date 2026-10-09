@@ -131,7 +131,7 @@ export default function TopicPage({ params }: PageProps) {
           {/* Eyebrow Patrick Hand đỏ */}
           <div className="flex items-center gap-2 mb-2">
             <span className="font-hand text-accent-red text-xl sm:text-2xl font-bold transform -rotate-1">
-              Module 0{currentModule.order} · {currentModule.title} · Bài 0{topicOrderInModule + 1}
+              Module {String(currentModule.order).padStart(2, "0")} · {currentModule.title} · Bài {String(topicOrderInModule + 1).padStart(2, "0")}
             </span>
           </div>
 

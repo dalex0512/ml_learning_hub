@@ -41,6 +41,7 @@ feature matrix → [Model] → prediction ─┐
 ```
 L1 = Σ |y_prediction − y_actual|
 ```
+<!-- note: bậc 1 → phạt đều -->
 Cộng đều trị tuyệt đối các sai lệch — không khuếch đại sai lệch lớn. Model có
 xu hướng sửa đều ở nhiều điểm thay vì dồn sức vào 1 điểm sai nặng.
 
@@ -52,6 +53,7 @@ xu hướng sửa đều ở nhiều điểm thay vì dồn sức vào 1 điểm
 ```
 L2 = Σ (y_prediction − y_actual)²
 ```
+<!-- note: bậc 2 → phạt nặng outlier -->
 Bình phương sai lệch → sai lệch lớn bị khuếch đại mạnh. Model nhạy với
 outlier hơn, ưu tiên sửa điểm sai nhiều nhất trước.
 
@@ -71,7 +73,7 @@ Dự đoán giá nhà (đơn vị: tỉ VND):
 | 50 | Huế | 2.9 | 2.3 | **+0.60** (outlier) |
 
 → L1 = 0.30 + 0.22 + 0.08 + 0.60 = **1.20**
-→ L2 = 0.30² + 0.22² + 0.08² + 0.60² = **0.4568**
+→ L2 = 0.30² + 0.22² + 0.08² + 0.60² = **0.5048**
 
 ## 5. Code
 
@@ -85,7 +87,7 @@ l1 = np.sum(np.abs(pred - actual))
 l2 = np.sum((pred - actual) ** 2)
 
 print("L1 loss:", l1)   # 1.20
-print("L2 loss:", l2)   # 0.4568
+print("L2 loss:", l2)   # 0.5048
 ```
 
 ## 6. Câu hỏi tự kiểm tra
@@ -96,7 +98,7 @@ hay nhiều hơn?
 > **Đáp án:** L1 tăng đúng 1.40 (từ 0.60 lên 2.0, cộng thẳng vào tổng —
 > L1 mới = 1.20 − 0.60 + 2.0 = 2.60). L2 tăng **nhiều hơn** phần chênh
 > lệch tuyệt đối, vì bị bình phương: 0.60² = 0.36 → 2.0² = 4.0, tăng 3.64
-> (L2 mới = 0.4568 − 0.36 + 4.0 = 4.0968) — chênh lệch input chỉ gấp
+> (L2 mới = 0.5048 − 0.36 + 4.0 = 4.1448) — chênh lệch input chỉ gấp
 > ~3.3 lần nhưng phần đóng góp vào loss tăng gấp hơn 10 lần.
 
 **Câu 2:** Tại sao nói L2 loss "nhạy với outlier" hơn L1 loss?
@@ -119,7 +121,7 @@ outlier không đáng tin), nên ưu tiên dùng L1 hay L2?
 > > **A:** L1 increases by exactly 1.40 (added straight into the sum —
 > > new L1 = 1.20 − 0.60 + 2.0 = 2.60). L2 increases by **more** than the
 > > raw difference, because it's squared: 0.60² = 0.36 → 2.0² = 4.0, an
-> > increase of 3.64 (new L2 = 0.4568 − 0.36 + 4.0 = 4.0968) — the input
+> > increase of 3.64 (new L2 = 0.5048 − 0.36 + 4.0 = 4.1448) — the input
 > > only grew ~3.3x but its contribution to the loss grew over 10x.
 >
 > **Q2:** Why is L2 loss described as more "sensitive to outliers" than

@@ -137,9 +137,18 @@ Nền trang có lưới chấm nhẹ (mô phỏng giấy kẻ chấm):
 
 ### Font (Google Fonts — đều hỗ trợ tiếng Việt)
 - **Be Vietnam Pro** (400/500/600/700) — font chính cho toàn bộ body text, nav, nút
-- **Caveat** (600/700) — CHỈ dùng cho chú thích tay ngắn, màu đỏ, hơi xoay nhẹ
+- **Patrick Hand** (thay Caveat vì Caveat không có subset tiếng Việt trên Google Fonts, thiếu dấu U+1EA0–1EF9) — CHỈ dùng cho chú thích tay ngắn, màu đỏ, hơi xoay nhẹ
   (`rotate(-1deg)` đến `rotate(1.5deg)`) — không dùng cho đoạn văn dài
 - **JetBrains Mono** (400/500) — công thức, code snippet
+
+### Cú pháp markdown mở rộng
+
+- Khối EN: blockquote mở đầu `> **EN:** ...` → class `en-block` (13px, nhạt, badge "EN").
+- Khối đáp án: blockquote mở đầu `> **Đáp án:**` hoặc `> **A:**` → class `answer-block`
+  (viền trái đỏ 3px, nền xanh lá nhạt). Lồng được trong khối EN (`> > **A:**`).
+- Chú thích tay cho công thức (phần 3): đặt ngay SAU code block của công thức một dòng
+  `<!-- note: bậc 1 → phạt đều -->`. Mỗi công thức = 1 dòng in đậm tên (`**L1 loss** (...)`)
+  + 1 code block (+ note tùy chọn). Từ 2 công thức trở lên → layout 2 cột; ít hơn → 1 cột.
 
 ### Bố cục trang chủ (Home)
 Lấy nguyên bản thiết kế **C — Sổ tay (Notebook)**:

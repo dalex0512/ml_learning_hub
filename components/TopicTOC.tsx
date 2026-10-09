@@ -80,7 +80,7 @@ export default function TopicTOC({ sections: customSections }: Props) {
               <button
                 key={sec.id}
                 onClick={() => scrollToSection(sec.id)}
-                className={`text-left px-3 py-2 rounded-lg text-xs font-medium transition-all flex items-center gap-2 border ${
+                className={`text-left px-3 py-2 rounded-lg text-xs font-medium transition-all flex items-start gap-2 border ${
                   isActive
                     ? "bg-sticky border-paper-border text-text-main shadow-xs font-semibold"
                     : "border-transparent text-text-muted hover:bg-panel/70 hover:text-text-main"
@@ -88,11 +88,11 @@ export default function TopicTOC({ sections: customSections }: Props) {
               >
                 {/* Red dot indicator when active */}
                 <span
-                  className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
+                  className={`w-2 h-2 mt-[5px] rounded-full shrink-0 transition-colors ${
                     isActive ? "bg-accent-red scale-110" : "bg-[#D8CDB3]"
                   }`}
                 />
-                <span className="truncate">
+                <span className="min-w-0 leading-snug">
                   {sec.number}. {sec.label}
                 </span>
               </button>

@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Caveat:wght@600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
@@ -7,7 +6,6 @@
 
 :root {
   --font-be-vietnam-pro: 'Be Vietnam Pro', sans-serif;
-  --font-caveat: 'Caveat', cursive;
   --font-hand: 'Patrick Hand', cursive;
   --font-jetbrains-mono: 'JetBrains Mono', monospace;
 
@@ -127,21 +125,54 @@ body {
   border-left: 3.5px solid #DED2AE;
   padding: 0.8rem 1rem;
   border-radius: 0.375rem;
-  font-style: italic;
   color: #57503F;
   margin: 1rem 0;
 }
 
-.notebook-prose blockquote strong {
+/* Khối tiếng Anh: nhỏ, nhạt, không nghiêng */
+.notebook-prose blockquote.en-block {
+  margin-top: 1.25rem;
+  font-size: 13px;
+  line-height: 1.65;
   font-style: normal;
-  color: #2E2A22;
+  color: #8A8172;
+}
+
+.notebook-prose .en-badge {
+  display: inline-block;
   font-family: var(--font-jetbrains-mono);
-  font-size: 0.85em;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: #57503F;
   background: #FFFDF8;
-  padding: 0.1rem 0.35rem;
+  padding: 0.1rem 0.4rem;
   border-radius: 0.25rem;
   border: 1px solid #E7D9A8;
-  margin-right: 0.25rem;
+  margin-right: 0.4rem;
+  vertical-align: 1px;
+}
+
+/* Khối đáp án: chữ thường, đậm màu, viền trái đỏ */
+.notebook-prose blockquote.answer-block {
+  background-color: #F3F7EC;
+  border-left: 3px solid #D64545;
+  font-style: normal;
+  color: #2E2A22;
+}
+
+.notebook-prose blockquote.en-block blockquote.answer-block {
+  font-size: inherit;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.notebook-prose blockquote p {
+  margin-bottom: 0.5rem;
+}
+
+.notebook-prose blockquote p:last-child {
+  margin-bottom: 0;
 }
 
 .notebook-prose table {
@@ -222,4 +253,65 @@ body {
 .notebook-prose strong {
   font-weight: 600;
   color: #2E2A22;
+}
+
+/* Phần 3 Công thức: viền đỏ 2px */
+.paper-card.paper-card-emph {
+  border: 2px solid #D64545;
+}
+
+.notebook-prose pre.formula-code,
+pre.formula-code {
+  background-color: #29251F;
+  color: #F3EED9;
+  padding: 0.85rem 1rem;
+  border-radius: 0.6rem;
+  overflow-x: auto;
+  font-family: var(--font-jetbrains-mono);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0 0 0.5rem;
+}
+
+pre.formula-code code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* Nút copy trên từng code block */
+.notebook-prose .code-block {
+  position: relative;
+  margin: 1rem 0;
+}
+
+.notebook-prose .code-block pre {
+  margin: 0;
+}
+
+.notebook-prose .code-copy-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 1;
+  font-family: var(--font-jetbrains-mono);
+  font-size: 11px;
+  padding: 0.2rem 0.6rem;
+  border-radius: 0.375rem;
+  color: #F3EED9;
+  background: rgba(255, 253, 248, 0.12);
+  border: 1px solid rgba(243, 238, 217, 0.3);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.notebook-prose .code-copy-btn:hover {
+  background: rgba(255, 253, 248, 0.25);
+}
+
+.notebook-prose .code-copy-btn.copied {
+  color: #A7E3A0;
+  border-color: #A7E3A0;
 }

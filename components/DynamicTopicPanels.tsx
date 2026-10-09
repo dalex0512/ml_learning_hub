@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import { marked } from "marked";
+import React, { useMemo } from "react";
 import {
   Lightbulb,
   GitBranch,
@@ -9,53 +8,108 @@ import {
   Table,
   Terminal,
   HelpCircle,
-  Copy,
-  Check,
-  ChevronDown,
-  ChevronUp,
 } from "lucide-react";
-import { TopicData } from "@/lib/markdown";
+import { TopicData, SectionContent } from "@/lib/markdown";
+import { renderMarkdown, parseFormulaLayout } from "@/lib/renderMarkdown";
 
 interface Props {
   topicData: TopicData;
 }
 
-const ICONS = [
-  Lightbulb,
-  GitBranch,
-  Layers,
-  Table,
-  Terminal,
-  HelpCircle,
-];
+const ICONS = [Lightbulb, GitBranch, Layers, Table, Terminal, HelpCircle];
+
+// Xoay nhẹ cho chú thích tay: −1° đến 1.5°
+const NOTE_ROTATIONS = [-1, 1.2, -0.6, 1.5];
+
+function handleProseClick(e: React.MouseEvent<HTMLDivElement>) {
+  const btn = (e.target as HTMLElement).closest<HTMLButtonElement>(".code-copy-btn");
+  if (!btn) return;
+  const code = btn.closest(".code-block")?.querySelector("code");
+  if (!code) return;
+  navigator.clipboard.writeText(code.textContent ?? "");
+  btn.textContent = "Đã chép!";
+  btn.classList.add("copied");
+  window.setTimeout(() => {
+    btn.textContent = "Sao chép";
+    btn.classList.remove("copied");
+  }, 2000);
+}
+
+function FormulaSection({ section }: { section: SectionContent }) {
+  const layout = useMemo(() => parseFormulaLayout(section.rawContent), [section.rawContent]);
+
+  if (!layout) {
+    return (
+      <div
+        className="notebook-prose text-sm sm:text-base"
+        dangerouslySetInnerHTML={{ __html: renderMarkdown(section.rawContent) }}
+      />
+    );
+  }
+
+  return (
+    <>
+      {layout.introHtml && (
+        <div
+          className="notebook-prose text-sm sm:text-base mb-5"
+          dangerouslySetInnerHTML={{ __html: layout.introHtml }}
+        />
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {layout.groups.map((g, i) => (
+          <div
+            key={g.name}
+            className="min-w-0 rounded-lg bg-[#FDFBF3] border border-paper-dashed p-4 flex flex-col"
+          >
+            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 mb-3">
+              <span className="inline-block px-2.5 py-0.5 rounded-full bg-sticky border border-paper-border text-xs font-mono font-semibold uppercase tracking-wide text-text-main">
+                {g.name}
+              </span>
+              {g.subtitleHtml && (
+                <span
+                  className="text-[11px] text-text-sub"
+                  dangerouslySetInnerHTML={{ __html: g.subtitleHtml }}
+                />
+              )}
+            </div>
+            <pre className="formula-code">
+              <code>{g.code}</code>
+            </pre>
+            {g.note && (
+              <p
+                className="hand-note text-lg sm:text-xl font-bold mt-1 mb-3 self-start"
+                style={{ transform: `rotate(${NOTE_ROTATIONS[i % NOTE_ROTATIONS.length]}deg)` }}
+              >
+                {g.note}
+              </p>
+            )}
+            <div
+              className="notebook-prose text-sm"
+              dangerouslySetInnerHTML={{ __html: g.restHtml }}
+            />
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
 
 export default function DynamicTopicPanels({ topicData }: Props) {
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const [expandedQuiz, setExpandedQuiz] = useState(false);
-
-  const handleCopy = (text: string, index: number) => {
-    navigator.clipboard.writeText(text);
-    setCopiedIndex(index);
-    setTimeout(() => setCopiedIndex(null), 2000);
-  };
-
   return (
     <div className="flex-1 min-w-0 space-y-8">
       {topicData.sections.map((section, idx) => {
         const IconComponent = ICONS[idx % ICONS.length];
+        const isFormulaSection = section.number === 3;
         const isCodeSection = section.number === 5;
-        const isQuizSection = section.number === 6;
-
-        // Render markdown HTML
-        const htmlContent = marked.parse(section.rawContent) as string;
 
         return (
           <section
             key={section.id || idx}
             id={section.id}
-            className="paper-card p-6 sm:p-7 relative transition-all duration-300"
+            className={`${
+              isFormulaSection ? "paper-card paper-card-emph" : "paper-card"
+            } p-6 sm:p-7 relative transition-all duration-300`}
           >
-            {/* Section Header */}
             <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-paper-dashed">
               <div className="w-8 h-8 rounded-lg bg-sticky flex items-center justify-center text-text-main border border-paper-border shrink-0">
                 <IconComponent className="w-4 h-4 text-accent-red" />
@@ -63,65 +117,18 @@ export default function DynamicTopicPanels({ topicData }: Props) {
               <h2 className="text-xl font-bold text-text-main font-sans">
                 {section.title}
               </h2>
-              {isCodeSection && (
-                <button
-                  onClick={() => handleCopy(section.rawContent, idx)}
-                  className="ml-auto inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-mono font-medium bg-panel border border-paper-border hover:bg-sticky transition-colors"
-                >
-                  {copiedIndex === idx ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-green-600" />
-                      <span className="text-green-600">Đã chép!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5 text-text-muted" />
-                      <span>Sao chép</span>
-                    </>
-                  )}
-                </button>
-              )}
             </div>
 
-            {/* Section Content formatted as notebook prose */}
-            <div
-              className="notebook-prose text-sm sm:text-base"
-              dangerouslySetInnerHTML={{ __html: htmlContent }}
-            />
-
-            {/* If Quiz Section: provide an interactive reflection note */}
-            {isQuizSection && (
-              <div className="mt-5 pt-3 border-t border-paper-dashed">
-                <button
-                  onClick={() => setExpandedQuiz(!expandedQuiz)}
-                  className="w-full flex items-center justify-between p-3 rounded-lg bg-sticky/60 hover:bg-sticky border border-paper-border text-xs text-text-main font-medium transition-colors"
-                >
-                  <span className="font-hand text-accent-red text-base font-bold">
-                    💡 Hướng dẫn tự kiểm tra & thảo luận
-                  </span>
-                  <div className="flex items-center gap-1 text-text-sub">
-                    <span className="text-[11px]">
-                      {expandedQuiz ? "Thu gọn" : "Xem gợi ý phương pháp"}
-                    </span>
-                    {expandedQuiz ? (
-                      <ChevronUp className="w-3.5 h-3.5 text-accent-red" />
-                    ) : (
-                      <ChevronDown className="w-3.5 h-3.5" />
-                    )}
-                  </div>
-                </button>
-
-                {expandedQuiz && (
-                  <div className="mt-2 p-3.5 rounded-lg bg-panel border border-paper-border text-xs text-text-muted space-y-2">
-                    <p>
-                      <strong>Gợi ý ôn tập:</strong> Hãy thử tự viết câu trả lời ra giấy nháp trước khi đối chiếu lại các phần lý thuyết 1, 2 và 3 ở trên.
-                    </p>
-                    <p className="italic text-text-sub">
-                      Phần câu hỏi tiếng Anh kèm theo (EN) giúp bạn làm quen với các thuật ngữ phỏng vấn và tài liệu chuẩn quốc tế.
-                    </p>
-                  </div>
-                )}
-              </div>
+            {isFormulaSection ? (
+              <FormulaSection section={section} />
+            ) : (
+              <div
+                className="notebook-prose text-sm sm:text-base"
+                onClick={isCodeSection ? handleProseClick : undefined}
+                dangerouslySetInnerHTML={{
+                  __html: renderMarkdown(section.rawContent, { copyButtons: isCodeSection }),
+                }}
+              />
             )}
           </section>
         );
@@ -129,4 +136,3 @@ export default function DynamicTopicPanels({ topicData }: Props) {
     </div>
   );
 }
-

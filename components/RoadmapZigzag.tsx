@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { motion, useScroll, useSpring } from "framer-motion";
+import { motion, useReducedMotion, useScroll, useSpring } from "framer-motion";
 import { ModuleItem } from "@/lib/roadmap";
 import { ChevronRight, Sparkles, BookOpen, Clock } from "lucide-react";
 
@@ -10,8 +10,53 @@ interface Props {
   modules: ModuleItem[];
 }
 
+// Nối tâm cạnh dưới thẻ i với tâm cạnh trên thẻ i+1 bằng cubic bezier (tọa độ pixel thật)
+function buildPath(cards: DOMRect[], origin: DOMRect) {
+  const pts = cards.map((r) => ({
+    cx: r.left - origin.left + r.width / 2,
+    top: r.top - origin.top,
+    bottom: r.bottom - origin.top,
+  }));
+  let d = "";
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i];
+    const b = pts[i + 1];
+    const dy = (b.top - a.bottom) * 0.5;
+    if (i === 0) d += `M ${a.cx} ${a.bottom} `;
+    d += `C ${a.cx} ${a.bottom + dy}, ${b.cx} ${b.top - dy}, ${b.cx} ${b.top} `;
+  }
+  return d.trim();
+}
+
 export default function RoadmapZigzag({ modules }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const zigzagRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const maskId = useId();
+  const reduceMotion = useReducedMotion();
+  const [geom, setGeom] = useState<{ w: number; h: number; d: string } | null>(null);
+
+  const measure = useCallback(() => {
+    const zig = zigzagRef.current;
+    if (!zig) return;
+    const origin = zig.getBoundingClientRect();
+    const rects = cardRefs.current
+      .filter((el): el is HTMLDivElement => !!el)
+      .map((el) => el.getBoundingClientRect());
+    if (rects.length < 2) {
+      setGeom(null);
+      return;
+    }
+    setGeom({ w: origin.width, h: origin.height, d: buildPath(rects, origin) });
+  }, []);
+
+  useEffect(() => {
+    measure();
+    const ro = new ResizeObserver(measure);
+    if (zigzagRef.current) ro.observe(zigzagRef.current);
+    cardRefs.current.forEach((el) => el && ro.observe(el));
+    return () => ro.disconnect();
+  }, [measure, modules.length]);
 
   // Scroll-based SVG dashed curve progress
   const { scrollYProgress } = useScroll({
@@ -46,36 +91,55 @@ export default function RoadmapZigzag({ modules }: Props) {
         </div>
 
         {/* Zigzag Container */}
-        <div className="relative">
-          {/* Connecting SVG Curved Dashed Path for Desktop (hidden on mobile for responsive layout) */}
-          <div className="hidden md:block absolute top-0 left-0 w-full h-full pointer-events-none -z-0">
-            <svg
-              className="w-full h-full"
-              viewBox="0 0 800 1350"
-              fill="none"
-              preserveAspectRatio="none"
-            >
-              {/* Background faint guide line */}
-              <path
-                d="M 220 80 C 220 220, 580 180, 580 320 C 580 460, 220 420, 220 560 C 220 700, 580 660, 580 800 C 580 940, 220 900, 220 1040 C 220 1180, 580 1140, 580 1280"
-                stroke="#E7D9A8"
-                strokeWidth="3"
-                strokeDasharray="6 6"
-                strokeLinecap="round"
-              />
-              {/* Animated hand-drawn connecting dashed stroke */}
-              <motion.path
-                d="M 220 80 C 220 220, 580 180, 580 320 C 580 460, 220 420, 220 560 C 220 700, 580 660, 580 800 C 580 940, 220 900, 220 1040 C 220 1180, 580 1140, 580 1280"
-                stroke="#D64545"
-                strokeWidth="3.5"
-                strokeDasharray="8 8"
-                strokeLinecap="round"
-                style={{
-                  pathLength: pathLength,
-                }}
-              />
-            </svg>
-          </div>
+        <div className="relative" ref={zigzagRef}>
+          {/* Đường cong nối các thẻ, đo từ vị trí thật (ẩn trên mobile) */}
+          {geom && (
+            <div className="hidden md:block absolute top-0 left-0 w-full h-full pointer-events-none -z-0">
+              <svg
+                width={geom.w}
+                height={geom.h}
+                viewBox={`0 0 ${geom.w} ${geom.h}`}
+                fill="none"
+                className="overflow-visible"
+              >
+                <defs>
+                  <mask
+                    id={maskId}
+                    maskUnits="userSpaceOnUse"
+                    x={0}
+                    y={0}
+                    width={geom.w}
+                    height={geom.h}
+                  >
+                    <motion.path
+                      d={geom.d}
+                      stroke="white"
+                      strokeWidth={10}
+                      strokeLinecap="round"
+                      style={{ pathLength: reduceMotion ? 1 : pathLength }}
+                    />
+                  </mask>
+                </defs>
+                {/* Nét mờ làm nền */}
+                <path
+                  d={geom.d}
+                  stroke="#E7D9A8"
+                  strokeWidth="3"
+                  strokeDasharray="6 6"
+                  strokeLinecap="round"
+                />
+                {/* Nét đỏ đứt, tự vẽ dần theo cuộn */}
+                <path
+                  d={geom.d}
+                  stroke="#D64545"
+                  strokeWidth="3.5"
+                  strokeDasharray="8 8"
+                  strokeLinecap="round"
+                  mask={`url(#${maskId})`}
+                />
+              </svg>
+            </div>
+          )}
 
           {/* Module Stations Grid */}
           <div className="flex flex-col gap-12 sm:gap-16 relative z-10">
@@ -92,7 +156,12 @@ export default function RoadmapZigzag({ modules }: Props) {
                     isLeft ? "md:items-start" : "md:items-end"
                   }`}
                 >
-                  <div className="w-full md:w-[500px] relative">
+                  <div
+                    ref={(el) => {
+                      cardRefs.current[index] = el;
+                    }}
+                    className="w-full md:w-[500px] relative"
+                  >
                     {/* Chú thích tay "bạn đang ở đây ↓" cho Module 01 */}
                     {isCurrent && (
                       <div className="absolute -top-12 sm:-top-14 left-4 sm:left-8 z-20 flex items-center gap-2">
