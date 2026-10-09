@@ -17,8 +17,10 @@
         { "id": "k-fold-cross-validation", "order": 8, "title": "K-fold Cross Validation", "file": "08-k-fold-cross-validation.md" },
         { "id": "stratified-k-fold", "order": 9, "title": "Stratified K-fold", "file": "09-stratified-k-fold.md" },
         { "id": "classification-vs-regression", "order": 10, "title": "Classification vs Regression", "file": "10-classification-vs-regression.md" },
-        { "id": "data-preprocessing", "order": 11, "title": "Tiền xử lý dữ liệu", "file": "11-data-preprocessing.md" },
-        { "id": "evaluation-basics", "order": 12, "title": "Metrics cơ bản (Confusion Matrix)", "file": "12-evaluation-basics.md" }
+        { "id": "confusion-matrix", "order": 11, "title": "Confusion Matrix (Ma trận nhầm lẫn)", "file": "11-confusion-matrix.md" },
+        { "id": "classification-metrics", "order": 12, "title": "Accuracy, Precision, Recall và F1-score", "file": "12-classification-metrics.md" },
+        { "id": "roc-auc", "order": 13, "title": "ROC curve và AUC", "file": "13-roc-auc.md" },
+        { "id": "regression-metrics", "order": 14, "title": "Metric cho Regression — MAE và RMSE", "file": "14-regression-metrics.md" }
       ]
     },
     {
