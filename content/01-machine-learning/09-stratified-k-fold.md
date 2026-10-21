@@ -78,13 +78,20 @@ Dataset: 90 Cat, 10 Dog (tổng 100 mẫu), chia K = 4 fold.
 
 | Fold | Số Cat | Số Dog |
 |---|---|---|
-| Fold 1 | 23 | 0 |
+| Fold 1 | 25 | 0 |
 | Fold 2 | 20 | 5 |
-| Fold 3 | 24 | 0 |
-| Fold 4 | 23 | 5 |
+| Fold 3 | 30 | 0 |
+| Fold 4 | 15 | 3 |
 
 → Fold 1 và Fold 3 **không có mẫu Dog nào** — nếu dùng 1 trong 2 fold này
 làm Validation, model hoàn toàn không được đánh giá trên lớp Dog.
+
+*(Nhận xét của Claude)* Bảng trên chép đúng số liệu slide 24. Cột Cat cộng
+lại đủ 90, nhưng cột Dog chỉ cộng ra 0 + 5 + 0 + 3 = **8** thay vì 10 — có lẽ
+slide ghi nhầm (ví dụ Fold 4 lẽ ra là 5 Dog). Ý chính không đổi: chia ngẫu
+nhiên có thể để lại fold không có Dog nào. Các fold ở đây cũng không đều
+nhau về kích thước (25, 25, 30, 18 mẫu), trong khi K-fold thật chia gần
+bằng nhau; slide chỉ minh họa ý tưởng.
 
 **Nếu chia bằng Stratified K-fold** — tỉ lệ Cat:Dog ~90:10 được giữ đều ở
 mọi fold:
@@ -92,8 +99,8 @@ mọi fold:
 | Fold | Số Cat | Số Dog |
 |---|---|---|
 | Fold 1 | 22 | 3 |
-| Fold 2 | 23 | 2 |
-| Fold 3 | 22 | 3 |
+| Fold 2 | 22 | 3 |
+| Fold 3 | 23 | 2 |
 | Fold 4 | 23 | 2 |
 
 → Fold nào cũng có cả Cat lẫn Dog theo đúng tỉ lệ ~90:10, đảm bảo mọi
@@ -104,6 +111,9 @@ lượt Validation đều đánh giá được cả 2 class công bằng.
 > **With standard (random) K-fold**, the result can be skewed, e.g. Fold
 > 1 and Fold 3 end up with **zero Dog samples** — using either as
 > Validation means the model is never evaluated on the Dog class at all.
+> *(Claude's note)* The table copies slide 24 (Cat 25/20/30/15, Dog
+> 0/5/0/3). The Dog column only sums to 8 instead of 10 — likely a slide
+> typo; the point still stands.
 >
 > **With Stratified K-fold**, the ~90:10 Cat:Dog ratio is preserved evenly
 > across every fold, so every Validation round fairly evaluates both

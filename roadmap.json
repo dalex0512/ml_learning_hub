@@ -20,7 +20,9 @@
         { "id": "confusion-matrix", "order": 11, "title": "Confusion Matrix (Ma trận nhầm lẫn)", "file": "11-confusion-matrix.md" },
         { "id": "classification-metrics", "order": 12, "title": "Accuracy, Precision, Recall và F1-score", "file": "12-classification-metrics.md" },
         { "id": "roc-auc", "order": 13, "title": "ROC curve và AUC", "file": "13-roc-auc.md" },
-        { "id": "regression-metrics", "order": 14, "title": "Metric cho Regression — MAE và RMSE", "file": "14-regression-metrics.md" }
+        { "id": "regression-metrics", "order": 14, "title": "Metric cho Regression — MAE và RMSE", "file": "14-regression-metrics.md" },
+        { "id": "ml-pipeline", "order": 15, "title": "Machine Learning Pipeline — 7 bước của một dự án ML", "file": "15-ml-pipeline.md" },
+        { "id": "descriptive-statistics", "order": 16, "title": "Step 2 — Thống kê mô tả để hiểu dữ liệu", "file": "16-descriptive-statistics.md" }
       ]
     },
     {
