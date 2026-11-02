@@ -22,7 +22,12 @@
         { "id": "roc-auc", "order": 13, "title": "ROC curve và AUC", "file": "13-roc-auc.md" },
         { "id": "regression-metrics", "order": 14, "title": "Metric cho Regression — MAE và RMSE", "file": "14-regression-metrics.md" },
         { "id": "ml-pipeline", "order": 15, "title": "Machine Learning Pipeline — 7 bước của một dự án ML", "file": "15-ml-pipeline.md" },
-        { "id": "descriptive-statistics", "order": 16, "title": "Step 2 — Thống kê mô tả để hiểu dữ liệu", "file": "16-descriptive-statistics.md" }
+        { "id": "descriptive-statistics", "order": 16, "title": "Step 2 — Thống kê mô tả để hiểu dữ liệu", "file": "16-descriptive-statistics.md" },
+        { "id": "missing-values-outliers", "order": 17, "title": "Step 3.1–3.2 — Xử lý dữ liệu thiếu và Outliers", "file": "17-missing-values-outliers.md" },
+        { "id": "feature-scaling", "order": 18, "title": "Step 3.3 — Feature scaling với MinMaxScaler và StandardScaler", "file": "18-feature-scaling.md" },
+        { "id": "categorical-encoding", "order": 19, "title": "Step 3.3 — Mã hóa categorical features (Ordinal, One-hot, Hash, Embedding)", "file": "19-categorical-encoding.md" },
+        { "id": "correlation-multicollinearity", "order": 20, "title": "Step 3.4 — Correlation và Multicollinearity", "file": "20-correlation-multicollinearity.md" },
+        { "id": "imbalanced-data", "order": 21, "title": "Step 3.5 — Cân bằng dữ liệu (Imbalanced data)", "file": "21-imbalanced-data.md" }
       ]
     },
     {
