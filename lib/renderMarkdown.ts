@@ -12,7 +12,12 @@ function escapeHtml(s: string) {
     .replace(/"/g, "&quot;");
 }
 
-export function createRenderer(opts: { copyButtons?: boolean } = {}) {
+export interface RenderOpts {
+  /** true: nút copy cho mọi code block; "lang": chỉ block có ghi ngôn ngữ */
+  copyButtons?: boolean | "lang";
+}
+
+export function createRenderer(opts: RenderOpts = {}) {
   const instance = new Marked();
   instance.use({
     renderer: {
@@ -41,7 +46,7 @@ export function createRenderer(opts: { copyButtons?: boolean } = {}) {
       code({ text, lang }: Tokens.Code) {
         const cls = lang ? ` class="language-${escapeHtml(lang)}"` : "";
         const pre = `<pre><code${cls}>${escapeHtml(text)}</code></pre>`;
-        if (!opts.copyButtons) return pre + "\n";
+        if (!opts.copyButtons || (opts.copyButtons === "lang" && !lang)) return pre + "\n";
         return (
           `<div class="code-block">` +
           `<button type="button" class="code-copy-btn" aria-label="Sao chép code">Sao chép</button>` +
@@ -54,7 +59,7 @@ export function createRenderer(opts: { copyButtons?: boolean } = {}) {
   return instance;
 }
 
-export function renderMarkdown(src: string, opts: { copyButtons?: boolean } = {}) {
+export function renderMarkdown(src: string, opts: RenderOpts = {}) {
   return createRenderer(opts).parse(src) as string;
 }
 

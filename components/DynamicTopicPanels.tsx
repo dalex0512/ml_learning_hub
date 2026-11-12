@@ -8,21 +8,48 @@ import {
   Table,
   Terminal,
   HelpCircle,
+  BookOpen,
+  Presentation,
+  ListChecks,
+  Calculator,
 } from "lucide-react";
 import { TopicData, SectionContent } from "@/lib/markdown";
 import { renderMarkdown, parseFormulaLayout } from "@/lib/renderMarkdown";
+import type { Block, BoxKind } from "@/lib/blocks";
+import SlideViewer, { openSlides } from "./SlideViewer";
+import Quiz from "./Quiz";
 
 interface Props {
   topicData: TopicData;
 }
 
-const ICONS = [Lightbulb, GitBranch, Layers, Table, Terminal, HelpCircle];
+const LEGACY_ICONS = [Lightbulb, GitBranch, Layers, Table, Terminal, HelpCircle];
 
 // Xoay nhẹ cho chú thích tay: −1° đến 1.5°
 const NOTE_ROTATIONS = [-1, 1.2, -0.6, 1.5];
 
-function handleProseClick(e: React.MouseEvent<HTMLDivElement>) {
-  const btn = (e.target as HTMLElement).closest<HTMLButtonElement>(".code-copy-btn");
+const BOX_STYLE: Record<BoxKind, { label: string; wrap: string; tag: string }> = {
+  intro: { label: "Mở đầu", wrap: "bg-sticky border-paper-border", tag: "bg-accent-sticky-yellow/70" },
+  worked: { label: "Ví dụ tay", wrap: "bg-[#FDFBF3] border-paper-dashed", tag: "bg-sticky" },
+  compare: { label: "So sánh", wrap: "bg-[#FDFBF3] border-paper-dashed", tag: "bg-sticky" },
+  pitfall: { label: "Bẫy hay gặp", wrap: "bg-[#FFF1EE] border-[#E9B5AC]", tag: "bg-[#F6C9C1]" },
+  recap: { label: "Tóm tắt 1 phút", wrap: "bg-[#F3F7EC] border-[#C9D9B5]", tag: "bg-[#DCE9C8]" },
+  next: { label: "Nối sang bài sau", wrap: "bg-sticky border-paper-border", tag: "bg-accent-sticky-yellow/70" },
+  note: { label: "Ghi chú", wrap: "bg-[#FDFBF3] border-paper-dashed", tag: "bg-sticky" },
+};
+
+function handleProseClick(e: React.MouseEvent<HTMLElement>) {
+  const target = e.target as HTMLElement;
+
+  const chip = target.closest<HTMLButtonElement>(".slide-chip");
+  if (chip) {
+    const from = parseInt(chip.dataset.slide ?? "", 10);
+    const to = parseInt(chip.dataset.to ?? "", 10);
+    if (!Number.isNaN(from)) openSlides({ from, to: Number.isNaN(to) ? from : to });
+    return;
+  }
+
+  const btn = target.closest<HTMLButtonElement>(".code-copy-btn");
   if (!btn) return;
   const code = btn.closest(".code-block")?.querySelector("code");
   if (!code) return;
@@ -35,17 +62,21 @@ function handleProseClick(e: React.MouseEvent<HTMLDivElement>) {
   }, 2000);
 }
 
-function FormulaSection({ section }: { section: SectionContent }) {
-  const layout = useMemo(() => parseFormulaLayout(section.rawContent), [section.rawContent]);
+function Prose({ md, copy }: { md: string; copy?: boolean | "lang" }) {
+  const html = useMemo(() => renderMarkdown(md, { copyButtons: copy }), [md, copy]);
+  return (
+    <div
+      className="notebook-prose text-sm sm:text-base"
+      onClick={handleProseClick}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+}
 
-  if (!layout) {
-    return (
-      <div
-        className="notebook-prose text-sm sm:text-base"
-        dangerouslySetInnerHTML={{ __html: renderMarkdown(section.rawContent) }}
-      />
-    );
-  }
+function FormulaSection({ md }: { md: string }) {
+  const layout = useMemo(() => parseFormulaLayout(md), [md]);
+
+  if (!layout) return <Prose md={md} />;
 
   return (
     <>
@@ -83,10 +114,7 @@ function FormulaSection({ section }: { section: SectionContent }) {
                 {g.note}
               </p>
             )}
-            <div
-              className="notebook-prose text-sm"
-              dangerouslySetInnerHTML={{ __html: g.restHtml }}
-            />
+            <div className="notebook-prose text-sm" dangerouslySetInnerHTML={{ __html: g.restHtml }} />
           </div>
         ))}
       </div>
@@ -94,41 +122,83 @@ function FormulaSection({ section }: { section: SectionContent }) {
   );
 }
 
+function BlockView({ block }: { block: Block }) {
+  switch (block.type) {
+    case "md":
+      return <Prose md={block.md} copy="lang" />;
+    case "formula":
+      return (
+        <div className="my-4 rounded-lg border-2 border-accent-red p-4">
+          <FormulaSection md={block.md} />
+        </div>
+      );
+    case "slides":
+      return <SlideViewer from={block.from} to={block.to} caption={block.caption} />;
+    case "quiz":
+      return <Quiz tiers={block.tiers} />;
+    case "box": {
+      const s = BOX_STYLE[block.kind];
+      return (
+        <aside className={`my-5 rounded-lg border p-4 sm:p-5 ${s.wrap}`}>
+          <div className="mb-2.5 flex items-center gap-2">
+            <span className={`px-2 py-0.5 rounded text-[11px] font-mono font-semibold uppercase tracking-wide text-text-main ${s.tag}`}>
+              {s.label}
+            </span>
+            {block.title && <span className="text-sm font-semibold text-text-main">{block.title}</span>}
+          </div>
+          <Prose md={block.md} copy="lang" />
+        </aside>
+      );
+    }
+  }
+}
+
+function sectionIcon(section: SectionContent, idx: number, legacy: boolean) {
+  if (legacy) return LEGACY_ICONS[idx % LEGACY_ICONS.length];
+  const types = new Set(section.blocks.map((b) => (b.type === "box" ? b.kind : b.type)));
+  if (types.has("quiz")) return HelpCircle;
+  if (types.has("recap")) return ListChecks;
+  if (types.has("slides") && types.size === 1) return Presentation;
+  if (types.has("formula")) return Calculator;
+  if (types.has("intro")) return Lightbulb;
+  return BookOpen;
+}
+
 export default function DynamicTopicPanels({ topicData }: Props) {
+  const { legacy } = topicData;
   return (
     <div className="flex-1 min-w-0 space-y-8">
       {topicData.sections.map((section, idx) => {
-        const IconComponent = ICONS[idx % ICONS.length];
-        const isFormulaSection = section.number === 3;
-        const isCodeSection = section.number === 5;
+        const Icon = sectionIcon(section, idx, legacy);
+        const emphasise = legacy
+          ? section.number === 3
+          : section.blocks.some((b) => b.type === "formula") && !section.blocks.some((b) => b.type === "quiz");
 
         return (
           <section
             key={section.id || idx}
             id={section.id}
-            className={`${
-              isFormulaSection ? "paper-card paper-card-emph" : "paper-card"
-            } p-6 sm:p-7 relative transition-all duration-300`}
+            className={`${emphasise && legacy ? "paper-card paper-card-emph" : "paper-card"} p-6 sm:p-7 relative transition-all duration-300 scroll-mt-28`}
           >
             <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-paper-dashed">
               <div className="w-8 h-8 rounded-lg bg-sticky flex items-center justify-center text-text-main border border-paper-border shrink-0">
-                <IconComponent className="w-4 h-4 text-accent-red" />
+                <Icon className="w-4 h-4 text-accent-red" />
               </div>
-              <h2 className="text-xl font-bold text-text-main font-sans">
-                {section.title}
-              </h2>
+              <h2 className="text-xl font-bold text-text-main font-sans">{section.title}</h2>
             </div>
 
-            {isFormulaSection ? (
-              <FormulaSection section={section} />
+            {legacy ? (
+              section.number === 3 ? (
+                <FormulaSection md={section.rawContent} />
+              ) : (
+                <Prose md={section.rawContent} copy={section.number === 5 ? true : undefined} />
+              )
             ) : (
-              <div
-                className="notebook-prose text-sm sm:text-base"
-                onClick={isCodeSection ? handleProseClick : undefined}
-                dangerouslySetInnerHTML={{
-                  __html: renderMarkdown(section.rawContent, { copyButtons: isCodeSection }),
-                }}
-              />
+              <div className="space-y-1">
+                {section.blocks.map((b, i) => (
+                  <BlockView key={i} block={b} />
+                ))}
+              </div>
             )}
           </section>
         );

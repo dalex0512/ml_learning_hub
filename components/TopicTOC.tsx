@@ -6,6 +6,7 @@ interface SectionItem {
   id: string;
   number: number;
   label: string;
+  numbered?: boolean;
 }
 
 const DEFAULT_SECTIONS: SectionItem[] = [
@@ -18,7 +19,7 @@ const DEFAULT_SECTIONS: SectionItem[] = [
 ];
 
 interface Props {
-  sections?: { id: string; number: number; title: string }[];
+  sections?: { id: string; number: number; title: string; numbered?: boolean }[];
 }
 
 export default function TopicTOC({ sections: customSections }: Props) {
@@ -27,6 +28,7 @@ export default function TopicTOC({ sections: customSections }: Props) {
         id: s.id,
         number: s.number,
         label: s.title.replace(/^\d+\.\s*/, ""),
+        numbered: s.numbered !== false,
       }))
     : DEFAULT_SECTIONS;
 
@@ -67,9 +69,9 @@ export default function TopicTOC({ sections: customSections }: Props) {
         <div className="px-2">
           <div className="flex items-center gap-1.5 font-hand text-accent-red text-base font-bold">
             <span>✎</span>
-            <span>Mục lục {sections.length} phần</span>
+            <span>Mục lục · {sections.length} phần</span>
           </div>
-          <p className="text-[11px] text-text-sub">Cấu trúc sổ tay cố định</p>
+          <p className="text-[11px] text-text-sub">Bấm để nhảy tới phần</p>
         </div>
 
         {/* Section Items */}
@@ -93,7 +95,7 @@ export default function TopicTOC({ sections: customSections }: Props) {
                   }`}
                 />
                 <span className="min-w-0 leading-snug">
-                  {sec.number}. {sec.label}
+                  {sec.numbered ? `${sec.number}. ` : ""}{sec.label}
                 </span>
               </button>
             );

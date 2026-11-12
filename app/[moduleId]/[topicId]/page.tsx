@@ -1,11 +1,15 @@
 import React from "react";
+import fs from "fs";
+import path from "path";
 import { notFound } from "next/navigation";
 import { getRoadmap, getModule, getAdjacentTopics } from "@/lib/roadmap";
-import { getTopicContent } from "@/lib/markdown";
+import { getTopicContent, getBacklinks, getLessonLookup } from "@/lib/markdown";
 import TopicBreadcrumb from "@/components/TopicBreadcrumb";
 import TopicTOC from "@/components/TopicTOC";
 import DynamicTopicPanels from "@/components/DynamicTopicPanels";
 import TopicNavigation from "@/components/TopicNavigation";
+import LessonMap from "@/components/LessonMap";
+import { SlideButton, SlideLightbox } from "@/components/SlideViewer";
 import { TopicHeroIllustration } from "@/components/TopicIllustrations";
 
 interface PageProps {
@@ -93,7 +97,15 @@ export default function TopicPage({ params }: PageProps) {
     );
   }
 
-  // Descriptions for subhead
+  const hasIllustration = fs.existsSync(
+    path.join(process.cwd(), "public", "illustrations", `${topicItem.id}.png`)
+  );
+  const backlinks = getBacklinks(topicId);
+  const needs = getLessonLookup(topicData.needs);
+  const toItem = (x: { module: { id: string }; topic: { id: string; title: string } } | null) =>
+    x ? { moduleId: x.module.id, topicId: x.topic.id, title: x.topic.title } : null;
+
+  // Fallback subhead cho bài cũ chưa có `description` trong frontmatter
   const getSubhead = (id: string) => {
     switch (id) {
       case "what-is-ml":
@@ -124,6 +136,7 @@ export default function TopicPage({ params }: PageProps) {
         totalTopics={totalTopicsInModule}
       />
 
+      <SlideLightbox />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10">
         {/* Title Block theo Bản F */}
         <div className="mb-10 max-w-3xl">
@@ -142,11 +155,22 @@ export default function TopicPage({ params }: PageProps) {
 
           {/* Subhead in nghiêng */}
           <p className="text-sm sm:text-base text-text-muted italic font-sans mt-2 leading-relaxed">
-            {getSubhead(topicItem.id)}
+            {topicData.description ?? getSubhead(topicItem.id)}
           </p>
 
+          <div className="mt-4 space-y-3">
+            <LessonMap
+              needs={needs}
+              prev={toItem(prev)}
+              current={topicItem.title}
+              next={toItem(next)}
+              backlinks={backlinks}
+            />
+            {topicData.slides && <SlideButton from={topicData.slides.from} to={topicData.slides.to} />}
+          </div>
+
           <div className="mt-5">
-            <TopicHeroIllustration topicId={topicItem.id} />
+            {hasIllustration && <TopicHeroIllustration topicId={topicItem.id} />}
           </div>
         </div>
 
