@@ -1,9 +1,24 @@
 ---
 title: Stratified K-fold
 order: 9
+description: "Giữ xấp xỉ tỷ lệ class trong mỗi fold, đọc đúng ví dụ Cat/Dog và biết giới hạn khi lớp thiểu số quá ít hoặc dữ liệu có thời gian/nhóm."
+slides: 24
+needs: [k-fold-cross-validation]
+tags: [stratified, imbalanced, cross-validation]
 ---
 
-## 1. Ý tưởng
+## Nếu validation không có Dog thì sao?
+
+:::intro Đọc xong bài này bạn làm được
+- Giải thích fold thiếu class thiểu số làm đánh giá khó thế nào.
+- Tính lại bảng stratified Cat/Dog.
+- Phân biệt giữ tỷ lệ class với cân bằng số mẫu.
+:::
+
+Nền để đọc bài này: [[bài:k-fold-cross-validation]].
+
+:::slides 24 | Slide gốc — Stratified K-fold
+:::
 
 Stratified K-fold là 1 biến thể của K-fold Cross Validation, sinh ra để
 giải quyết vấn đề **dataset mất cân bằng** (imbalanced dataset) — khi các
@@ -13,7 +28,7 @@ lớp (class) trong bài toán Classification có số lượng mẫu chênh l�
 > designed to handle **imbalanced datasets** — when the classes in a
 > Classification problem have very unequal sample counts.
 
-## 2. Vị trí trong bức tranh lớn
+## Bài toán 90 Cat và 10 Dog
 
 Giả sử giải quyết 1 bài toán Classification: dataset có 2 class `Cat` và
 `Dog`, với số lượng lần lượt là **90 Cat** và chỉ **10 Dog** → đây là 1
@@ -39,7 +54,7 @@ như không có mẫu `Dog` nào, việc dùng fold đó làm Validation khiến
 > evaluation for the `Dog` class **completely wrong** — the model never
 > gets properly tested on this minority class.
 
-## 3. Cách hoạt động
+## Giữ tỷ lệ thay vì chia đều class
 
 **Stratified K-fold giúp giữ tỉ lệ giống tỉ lệ ở dataset gốc trong MỌI
 fold.** Với ví dụ trên: dataset gốc có tỉ lệ Cat 90% / Dog 10%, thì
@@ -70,8 +85,9 @@ Regression không có class rời rạc nên không áp dụng được).
 > problems** (it relies on the concept of "class" to preserve ratios —
 > Regression has no discrete classes, so it doesn't apply).
 
-## 4. Ví dụ tay
+## Đối chiếu bảng trên slide
 
+:::worked Ví dụ và số liệu đối chiếu
 Dataset: 90 Cat, 10 Dog (tổng 100 mẫu), chia K = 4 fold.
 
 **Nếu chia K-fold thường (ngẫu nhiên)** — có thể ra kết quả lệch, ví dụ:
@@ -86,7 +102,7 @@ Dataset: 90 Cat, 10 Dog (tổng 100 mẫu), chia K = 4 fold.
 → Fold 1 và Fold 3 **không có mẫu Dog nào** — nếu dùng 1 trong 2 fold này
 làm Validation, model hoàn toàn không được đánh giá trên lớp Dog.
 
-*(Nhận xét của Claude)* Bảng trên chép đúng số liệu slide 24. Cột Cat cộng
+*(Nhận xét của Claude)* Bảng trên chép đúng số liệu [[slide:24]]. Cột Cat cộng
 lại đủ 90, nhưng cột Dog chỉ cộng ra 0 + 5 + 0 + 3 = **8** thay vì 10 — có lẽ
 slide ghi nhầm (ví dụ Fold 4 lẽ ra là 5 Dog). Ý chính không đổi: chia ngẫu
 nhiên có thể để lại fold không có Dog nào. Các fold ở đây cũng không đều
@@ -111,15 +127,16 @@ lượt Validation đều đánh giá được cả 2 class công bằng.
 > **With standard (random) K-fold**, the result can be skewed, e.g. Fold
 > 1 and Fold 3 end up with **zero Dog samples** — using either as
 > Validation means the model is never evaluated on the Dog class at all.
-> *(Claude's note)* The table copies slide 24 (Cat 25/20/30/15, Dog
+> *(Claude's note)* The table copies [[slide:24]] (Cat 25/20/30/15, Dog
 > 0/5/0/3). The Dog column only sums to 8 instead of 10 — likely a slide
 > typo; the point still stands.
 >
 > **With Stratified K-fold**, the ~90:10 Cat:Dog ratio is preserved evenly
 > across every fold, so every Validation round fairly evaluates both
 > classes.
+:::
 
-## 5. Code
+## Truyền cả y cho StratifiedKFold
 
 ```python
 from sklearn.model_selection import StratifiedKFold
@@ -140,45 +157,97 @@ for train_idx, val_idx in skf.split(X_train_val, y_train_val):
 > also takes `y_train_val` as input to `.split()` — this is what lets it
 > preserve the class ratio in every fold.
 
-## 6. Câu hỏi tự kiểm tra
+## Giới hạn của lời hứa giữ tỷ lệ (bổ sung)
 
-**Câu 1:** Vì sao K-fold thường (ngẫu nhiên) có thể gây vấn đề với dataset
+:::note Bảng [[slide:24]] (nhận xét)
+Giữ nguyên bảng Cat 25/20/30/15, Dog 0/5/0/3: tổng Dog là 8 thay vì 10, kích thước các fold cũng không gần bằng nhau. Không tự sửa ô theo phỏng đoán; dùng bảng stratified 22/22/23/23 và 3/3/2/2 để minh họa riêng.
+:::
+
+:::pitfall Không tự tạo thêm dữ liệu thiểu số
+Muốn mọi validation fold có mẫu của từng class thì số mẫu lớp ít nhất phải đủ cho số fold. Stratification không chữa mất cân bằng, không thay kiểm tra group/time. StratifiedKFold chuẩn nhận target classification; chia bin target regression là một thiết kế khác có giả định riêng, không đưa trực tiếp số liên tục vào API.
+:::
+
+> **EN:** Stratification preserves approximate class proportions; it neither balances the dataset nor solves group or temporal leakage.
+
+## Tóm tắt 1 phút
+
+:::recap
+- K-fold thường có thể phân bố class lệch.
+- Stratified dùng y để giữ tỷ lệ xấp xỉ.
+- Không chuyển 90:10 thành 50:50.
+- Ràng buộc số nguyên khiến tỷ lệ từng fold khác nhẹ.
+- Số mẫu thiểu số giới hạn lựa chọn K.
+- Vẫn cần tách test và kiểm tra group/time.
+:::
+
+## Câu hỏi tự kiểm tra
+
+:::quiz
+@tier A | Hiểu bài
+Q: Vì sao K-fold thường (ngẫu nhiên) có thể gây vấn đề với dataset
 mất cân bằng?
-> **Đáp án:** Vì việc chia fold hoàn toàn ngẫu nhiên có thể khiến class
-> thiểu số (như Dog chỉ có 10/100 mẫu) bị phân bố không đều — có fold gần
-> như không chứa mẫu nào của class đó, khiến việc đánh giá (validation)
-> trên fold đó sai hoàn toàn cho class thiểu số.
+A: Vì việc chia fold hoàn toàn ngẫu nhiên có thể khiến class
+thiểu số (như Dog chỉ có 10/100 mẫu) bị phân bố không đều — có fold gần
+như không chứa mẫu nào của class đó, khiến việc đánh giá (validation)
+trên fold đó sai hoàn toàn cho class thiểu số.
+EN: Why can standard (random) K-fold cause problems with an
+imbalanced dataset?
+**A:** Because a fully random fold split can distribute the minority
+> class (e.g. Dog with only 10/100 samples) unevenly — some folds may
+> end up with almost none of that class, making validation on those
+> folds completely wrong for the minority class.
 
-**Câu 2:** Stratified K-fold có dùng được cho bài toán Regression (dự
+Q: Stratified K-fold có dùng được cho bài toán Regression (dự
 đoán giá nhà) không? Vì sao?
-> **Đáp án:** Không. Stratified K-fold cần khái niệm "class" để giữ tỉ lệ
-> giữa các class trong mỗi fold — bài toán Regression có output là số
-> liên tục, không có class rời rạc, nên không áp dụng được.
+A: Không. Stratified K-fold cần khái niệm "class" để giữ tỉ lệ
+giữa các class trong mỗi fold — bài toán Regression có output là số
+liên tục, không có class rời rạc, nên không áp dụng được.
+EN: Can Stratified K-fold be used for a Regression problem (e.g.
+house price prediction)? Why or why not?
+**A:** No. Stratified K-fold relies on the concept of "class" to
+> preserve class ratios in each fold — Regression has a continuous
+> numeric output with no discrete classes, so it doesn't apply.
 
-**Câu 3:** Điểm khác biệt cốt lõi giữa K-fold thường và Stratified K-fold
+Q: Điểm khác biệt cốt lõi giữa K-fold thường và Stratified K-fold
 là gì?
-> **Đáp án:** K-fold thường chia dữ liệu vào các fold hoàn toàn ngẫu
-> nhiên theo số lượng mẫu; Stratified K-fold chia sao cho **tỉ lệ giữa
-> các class** trong mỗi fold xấp xỉ giống tỉ lệ ở dataset gốc.
+A: K-fold thường chia dữ liệu vào các fold hoàn toàn ngẫu
+nhiên theo số lượng mẫu; Stratified K-fold chia sao cho **tỉ lệ giữa
+các class** trong mỗi fold xấp xỉ giống tỉ lệ ở dataset gốc.
+EN: What's the core difference between standard K-fold and
+Stratified K-fold?
+**A:** Standard K-fold splits data into folds completely randomly by
+> sample count; Stratified K-fold splits so that the **ratio between
+> classes** in each fold approximately matches the ratio in the
+> original dataset.
+Q: Bảng stratified Cat 22,22,23,23 và Dog 3,3,2,2 có đúng tổng không?
+A: Cat = 90, Dog = 10; mỗi fold có 25 mẫu, tổng 100. Tỷ lệ Dog là 12%,12%,8%,8%, xấp xỉ 10% vì số lượng phải nguyên *(bổ sung: tính lại)*.
+@tier B | Phỏng vấn lý thuyết
+Q: Stratification có giải quyết mất cân bằng không?
+A: Không. Nó giữ tỷ lệ gốc để các fold đại diện hơn. Class weighting hoặc resampling thay cách học/phân bố train là câu chuyện khác ở [[bài:imbalanced-data]].
+EN: Stratification preserves class ratios across folds; it does not rebalance the training data.
+Q: Khi nào không thể có mọi class trong mọi fold?
+A: Nếu số mẫu của một class ít hơn số fold thì không đủ mẫu để mỗi fold nhận ít nhất một. Giảm K hoặc xem lại phương án đánh giá, không giả định stratification tạo được thông tin mới.
+EN: If a class has fewer samples than folds, every validation fold cannot contain that class.
+Q: Tại sao split cần X và y?
+A: y cung cấp class để phân phối mẫu theo tỷ lệ. X chỉ xác định mẫu và kích thước; không cho biết tỷ lệ nhãn. Vì vậy .split(X, y) khác KFold chỉ cần X.
+EN: Stratified splitting needs target labels to allocate samples according to class proportions.
+Q: Stratified có thay thế time split hoặc group split không?
+A: Không. Giữ tỷ lệ không ngăn cùng khách lọt hai tập hay dùng tương lai dự đoán quá khứ. Ưu tiên cấu trúc triển khai rồi mới cân nhắc tỷ lệ class.
+EN: Class balance constraints do not prevent entity overlap or temporal leakage.
+@tier C | Tình huống doanh nghiệp
+Q: Fraud rất hiếm, random fold không có fraud. Bạn làm gì?
+A: Đếm mẫu dương và kiểm tra loại split theo thời gian/khách trước. Nếu các mẫu độc lập, dùng stratified với K phù hợp số mẫu thiểu số, báo metric từng class. Giữ tỷ lệ không tăng dữ liệu fraud; cần thể hiện độ bất định *(bổ sung)*.
+WANT: Không nhầm việc chia fold với xử lý mất cân bằng.
+Q: Marketing có tỷ lệ churn thay đổi theo tháng. Stratify ngẫu nhiên có đủ?
+A: Không đủ nếu triển khai dự đoán tháng sau. Dùng đánh giá theo thời gian, báo số churn và metric theo giai đoạn. Chấp nhận tỷ lệ validation thay đổi như thực tế, thay vì ép tỷ lệ làm mất mục tiêu kiểm chứng *(bổ sung)*.
+WANT: Đặt tính đại diện triển khai cao hơn sự đẹp của tỷ lệ fold.
+Q: Nhóm muốn oversample trước stratified split cho các fold đều hơn. Bạn phản biện sao?
+A: Split dữ liệu gốc trước, resample chỉ train từng fold. Nếu oversample trước, bản sao hoặc mẫu tổng hợp có thể liên quan trực tiếp tới validation, làm điểm lạc quan. Validation giữ phân bố thật dù metric dao động hơn *(bổ sung)*.
+WANT: Nhận diện leakage từ bản sao và mẫu tổng hợp.
+:::
 
-> **EN:**
->
-> **Q1:** Why can standard (random) K-fold cause problems with an
-> imbalanced dataset?
-> > **A:** Because a fully random fold split can distribute the minority
-> > class (e.g. Dog with only 10/100 samples) unevenly — some folds may
-> > end up with almost none of that class, making validation on those
-> > folds completely wrong for the minority class.
->
-> **Q2:** Can Stratified K-fold be used for a Regression problem (e.g.
-> house price prediction)? Why or why not?
-> > **A:** No. Stratified K-fold relies on the concept of "class" to
-> > preserve class ratios in each fold — Regression has a continuous
-> > numeric output with no discrete classes, so it doesn't apply.
->
-> **Q3:** What's the core difference between standard K-fold and
-> Stratified K-fold?
-> > **A:** Standard K-fold splits data into folds completely randomly by
-> > sample count; Stratified K-fold splits so that the **ratio between
-> > classes** in each fold approximately matches the ratio in the
-> > original dataset.
+## Nối sang bài sau
+
+:::next
+Tiếp theo, [[bài:classification-vs-regression]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+:::

@@ -1,10 +1,24 @@
 ---
 title: Confusion Matrix (Ma trận nhầm lẫn)
 order: 11
-description: Đặt prediction cạnh label rồi đếm từng kiểu đúng/sai — TP, FP, FN, TN — cái bảng 2×2 làm nền móng cho mọi metric phân loại phía sau.
+description: "Đếm TP, FP, FN, TN từ label và prediction; đọc đúng thứ tự class và nối từng kiểu sai với chi phí thực tế."
+slides: 27-32
+needs: [classification-vs-regression]
+tags: [confusion-matrix, TP, FP, FN, TN]
 ---
 
-## 1. Ý tưởng
+## Sai theo kiểu nào mới là điều quan trọng?
+
+:::intro Đọc xong bài này bạn làm được
+- Giải nghĩa tên từng ô từ dự đoán và thực tế.
+- Tính lại bảng dog/cat của slide.
+- Kiểm tra quy ước class dương trước khi đọc ma trận.
+:::
+
+Nền để đọc bài này: [[bài:classification-vs-regression]].
+
+:::slides 27-32 | Slide gốc — Confusion Matrix (Ma trận nhầm lẫn)
+:::
 
 Với bài toán Regression, ta đo "sai **bao nhiêu**". Với Classification,
 mỗi dự đoán chỉ có thể **đúng hoặc sai** — nhưng **sai theo kiểu nào**
@@ -30,9 +44,9 @@ loại.
 > The **Confusion Matrix** separates every kind of right and wrong answer
 > and counts each one.
 
-## 2. Vị trí trong pipeline
+## Đặt prediction cạnh label
 
-Slide 27 đặt bài toán: **Classification: dog vs cat**. Bảy bức ảnh đi qua
+[[slide:27]] đặt bài toán: **Classification: dog vs cat**. Bảy bức ảnh đi qua
 model, model sinh ra một hàng **prediction** (khung đỏ), và ta đặt nó
 **ngay trên** hàng **label** (khung xanh) để so từng cặp:
 
@@ -42,18 +56,18 @@ model, model sinh ra một hàng **prediction** (khung đỏ), và ta đặt nó
                            label:      dog  dog  cat  dog  cat  dog  dog
 ```
 
-Đây chính là pipeline của bài 05 (Model Training): prediction được so với
+Đây chính là pipeline của [[bài:model-training-pipeline]] (Model Training): prediction được so với
 label. Điểm khác:
 
-- Khi **train**, phép so sánh cho ra **loss** để model tự sửa (bài 06).
-- Khi **đánh giá** (trên tập Validation/Test — bài 07, 08, 09), phép so
+- Khi **train**, phép so sánh cho ra **loss** để model tự sửa ([[bài:loss-function]]).
+- Khi **đánh giá** (trên tập Validation/Test — [[bài:train-test-split]], 08, 09), phép so
   sánh cho ra **metric** để *con người* biết model tốt đến đâu.
 
 Confusion Matrix là bước đầu tiên của việc đánh giá model Classification:
-mọi metric ở bài 12–13 (Accuracy, Precision, Recall, F1, ROC/AUC) đều
+mọi metric ở [[bài:classification-metrics]]–13 (Accuracy, Precision, Recall, F1, ROC/AUC) đều
 được **tính ra từ 4 con số** của bảng này.
 
-> **EN:** Slide 27 sets up **Classification: dog vs cat**. Seven images
+> **EN:** [[slide:27]] sets up **Classification: dog vs cat**. Seven images
 > go through the model, producing a row of **predictions** (red), which
 > is lined up **directly against** the row of **labels** (green) for a
 > pair-by-pair comparison — the same comparison as in lesson 05. During
@@ -62,11 +76,11 @@ mọi metric ở bài 12–13 (Accuracy, Precision, Recall, F1, ROC/AUC) đều
 > yields **metrics** that tell *us* how good the model is. Every metric in
 > lessons 12–13 is computed from the 4 numbers in this matrix.
 
-## 3. Cách hoạt động
+## Chọn class dương rồi đọc bốn ô
 
-### 3.1. Chọn class dương (+) và class âm (−)
+## Chọn class dương (+) và class âm (−)
 
-Slide 28 ghi rõ quy ước:
+[[slide:28]] ghi rõ quy ước:
 
 - **Class +**: class ta quan tâm, ví dụ `dog`.
 - **Class −**: class (hoặc các class) còn lại, ví dụ `cat`.
@@ -76,14 +90,14 @@ bệnh"; trong lọc thư rác, class + là "spam". Class + là class ta **muố
 phát hiện**. Lưu ý chữ "class(es)" trong slide: với bài nhiều class, ta
 vẫn có thể chọn 1 class làm + và **gộp tất cả class còn lại** thành −.
 
-> **EN:** Slide 28's convention: **Class +** is the class we care about
+> **EN:** [[slide:28]]'s convention: **Class +** is the class we care about
 > (e.g. `dog`); **Class −** is the remaining class(es) (e.g. `cat`).
 > "Positive" does **not** mean "good" — in medicine the positive class is
 > usually "has the disease", in spam filtering it's "spam". It's the class
 > we **want to detect**. Note the "(es)": with many classes, we can pick
 > one as + and lump all the others into −.
 
-### 3.2. Bốn ô của ma trận
+## Bốn ô của ma trận
 
 Ma trận trong slide: **hàng = Actual class (label thật)**, **cột =
 Predicted class (dự đoán)**, class + đứng trước:
@@ -116,7 +130,7 @@ hai ô còn lại (FP, FN — màu đỏ) là đoán sai.
 > wrong. TN: predicted −, correct. The main diagonal (TP, TN — green) are
 > correct predictions; the off-diagonal cells (FP, FN — red) are errors.
 
-### 3.3. Type I error và Type II error
+## Type I error và Type II error
 
 Slide ghi thêm hai tên gọi đến từ thống kê:
 
@@ -137,7 +151,7 @@ sói đến thật mà dân làng không tin, coi như "không có sói" → **T
 > boy who cried wolf — crying "wolf!" with no wolf is Type I; the real
 > wolf arriving while the villagers believe there's none is Type II.
 
-### 3.4. Quy trình đếm
+## Quy trình đếm
 
 Với mỗi mẫu, nhìn cặp (label, prediction) và bỏ vào đúng 1 ô:
 
@@ -156,7 +170,7 @@ mẫu (All)**. Ngoài ra:
 - **TP + FP** = số lần model **đoán** + (tổng cột trái)
 - **FN + TN** = số lần model **đoán** − (tổng cột phải)
 
-Bốn tổng này sẽ là mẫu số của các metric ở bài 12, nên hãy nắm chắc chúng.
+Bốn tổng này sẽ là mẫu số của các metric ở [[bài:classification-metrics]], nên hãy nắm chắc chúng.
 
 > **EN:** For each sample, look at the (label, prediction) pair and drop
 > it into exactly one cell. Hence **TP + FP + FN + TN = total samples**.
@@ -165,7 +179,7 @@ Bốn tổng này sẽ là mẫu số của các metric ở bài 12, nên hãy n
 > predicted negatives (right column). These four totals become the
 > denominators of the metrics in lesson 12.
 
-### 3.5. Bẫy: thứ tự hàng/cột trong scikit-learn *(Bổ sung — không có trong slide)*
+## Bẫy: thứ tự hàng/cột trong scikit-learn *(Bổ sung — không có trong slide)*
 
 Slide xếp class + lên **trước**. Nhưng hàm `confusion_matrix` của
 scikit-learn sắp class theo **thứ tự sắp xếp** (0 trước 1, chữ cái a→z).
@@ -188,9 +202,9 @@ tự chỉ định thứ tự, hoặc dùng `.ravel()` theo đúng thứ tự
 > `labels=[...]` explicitly, or unpack with `.ravel()` as
 > `tn, fp, fn, tp`.
 
-## 4. Ví dụ tay
+## Đếm từng ảnh dog/cat
 
-Đây chính là ví dụ của slide 28–32. Class + = `dog`, class − = `cat`.
+Đây chính là ví dụ của [[slide:28-32]]. Class + = `dog`, class − = `cat`.
 
 | Mẫu | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
 |---|---|---|---|---|---|---|---|
@@ -200,12 +214,12 @@ tự chỉ định thứ tự, hoặc dùng `.ravel()` theo đúng thứ tự
 
 Giải thích từng ô (slide khoanh màu theo đúng thứ tự này):
 
-- **TP (slide 29)**: mẫu 1, 4, 7 — label `dog`, đoán `dog`. → **TP = 3**
-- **FP (slide 30)**: mẫu 3 — label `cat` nhưng đoán `dog` (báo nhầm là
+- **TP ([[slide:29]])**: mẫu 1, 4, 7 — label `dog`, đoán `dog`. → **TP = 3**
+- **FP ([[slide:30]])**: mẫu 3 — label `cat` nhưng đoán `dog` (báo nhầm là
   chó). → **FP = 1**
-- **FN (slide 31)**: mẫu 2, 6 — label `dog` nhưng đoán `cat` (bỏ sót chó).
+- **FN ([[slide:31]])**: mẫu 2, 6 — label `dog` nhưng đoán `cat` (bỏ sót chó).
   → **FN = 2**
-- **TN (slide 32)**: mẫu 5 — label `cat`, đoán `cat`. → **TN = 1**
+- **TN ([[slide:32]])**: mẫu 5 — label `cat`, đoán `cat`. → **TN = 1**
 
 Ma trận hoàn chỉnh:
 
@@ -218,7 +232,7 @@ Ma trận hoàn chỉnh:
 Kiểm tra: 3 + 1 + 2 + 1 = 7 ✓. Model đoán đúng 3 + 1 = 4 mẫu, sai
 1 + 2 = 3 mẫu.
 
-### Nếu đổi class + thành `cat` thì sao? *(Bổ sung)*
+## Nếu đổi class + thành `cat` thì sao? *(Bổ sung)*
 
 Không có dữ liệu nào thay đổi, nhưng **các ô đổi vai**:
 
@@ -232,7 +246,7 @@ là: **TP/FP/FN/TN không phải thuộc tính cố định của một mẫu** 
 thuộc vào việc ta chọn class nào là +. Đây là lý do mọi báo cáo metric
 phải ghi rõ class + là gì.
 
-> **EN:** This is the slide 28–32 example, with `dog` as positive. TP:
+> **EN:** This is the [[slide:28-32]] example, with `dog` as positive. TP:
 > samples 1, 4, 7 → 3. FP: sample 3 (a cat predicted as dog) → 1. FN:
 > samples 2, 6 (dogs predicted as cat) → 2. TN: sample 5 → 1. Check:
 > 3 + 1 + 2 + 1 = 7. *(Supplementary)* If `cat` is chosen as positive
@@ -241,9 +255,9 @@ phải ghi rõ class + là gì.
 > fixed properties of a sample; they depend on which class is positive,
 > which is why every metric report must state the positive class.
 
-## 5. Code
+## Tự đếm rồi đối chiếu thư viện
 
-### 5.1. Tự đếm bằng Python thuần
+## Tự đếm bằng Python thuần
 
 ```python
 pred  = ["dog", "cat", "dog", "dog", "cat", "cat", "dog"]
@@ -261,7 +275,7 @@ print(f"TP={tp}  FP={fp}  FN={fn}  TN={tn}  All={tp+fp+fn+tn}")
 # TP=3  FP=1  FN=2  TN=1  All=7
 ```
 
-### 5.2. Dùng NumPy (nhanh hơn với dữ liệu lớn)
+## Dùng NumPy (nhanh hơn với dữ liệu lớn)
 
 ```python
 import numpy as np
@@ -279,7 +293,7 @@ tn = np.sum(~y_pos & ~p_pos)
 print(tp, fp, fn, tn)      # 3 1 2 1
 ```
 
-### 5.3. Dùng scikit-learn — chú ý thứ tự
+## Dùng scikit-learn — chú ý thứ tự
 
 ```python
 from sklearn.metrics import confusion_matrix
@@ -302,62 +316,98 @@ print(confusion_matrix(label, pred))
 > without it, classes are sorted alphabetically and TP lands in the
 > bottom-right corner.
 
-## 6. Câu hỏi tự kiểm tra
+## Tóm tắt 1 phút
 
-**Câu 1:** Giải thích tên "False Negative" mà không cần học thuộc.
-> **Đáp án:** Chữ sau "Negative" = model đã đoán class −. Chữ trước
-> "False" = lời đoán đó sai. Đoán − mà sai nghĩa là mẫu thật ra là +.
-> Vậy FN = mẫu dương thật bị model bỏ sót.
+:::recap
+- Chọn class dương trước khi đếm.
+- Positive/Negative là dự đoán; True/False là đúng/sai.
+- FP là báo động giả, FN là bỏ sót.
+- Tổng bốn ô bằng số mẫu.
+- Đổi class dương thì các ô đổi vai.
+- Kiểm tra labels và thứ tự hàng/cột của thư viện.
+:::
 
-**Câu 2:** Trong ví dụ dog/cat, mẫu 3 (label `cat`, prediction `dog`) rơi
+## Câu hỏi tự kiểm tra
+
+:::quiz
+@tier A | Hiểu bài
+Q: Giải thích tên "False Negative" mà không cần học thuộc.
+A: Chữ sau "Negative" = model đã đoán class −. Chữ trước
+"False" = lời đoán đó sai. Đoán − mà sai nghĩa là mẫu thật ra là +.
+Vậy FN = mẫu dương thật bị model bỏ sót.
+EN: Decode the name "False Negative" without memorising it.
+**A:** "Negative" = the model predicted the negative class. "False" =
+> that prediction was wrong. So the sample was actually positive — an
+> FN is a positive case the model missed.
+
+Q: Trong ví dụ dog/cat, mẫu 3 (label `cat`, prediction `dog`) rơi
 vào ô nào? Nếu đổi class + thành `cat` thì sao?
-> **Đáp án:** Với dog là +: model đoán + (dog) nhưng sai → **FP**. Với cat
-> là +: model đoán − (dog) nhưng mẫu thật là + (cat) → **FN**. Cùng một
-> mẫu nhưng ô thay đổi theo lựa chọn class +.
+A: Với dog là +: model đoán + (dog) nhưng sai → **FP**. Với cat
+là +: model đoán − (dog) nhưng mẫu thật là + (cat) → **FN**. Cùng một
+mẫu nhưng ô thay đổi theo lựa chọn class +.
+EN: In the dog/cat example, which cell does sample 3 (label `cat`,
+prediction `dog`) fall into? What if `cat` is the positive class?
+**A:** With dog as +: predicted + but wrong → **FP**. With cat as +:
+> predicted − (dog) but actually + (cat) → **FN**. Same sample,
+> different cell depending on the positive class.
 
-**Câu 3:** Một hệ thống báo cháy kêu lúc không có cháy. Đây là Type I hay
+Q: Một hệ thống báo cháy kêu lúc không có cháy. Đây là Type I hay
 Type II error? Nếu có cháy thật mà không kêu thì sao? (Class + = có cháy.)
-> **Đáp án:** Kêu khi không có cháy = báo động giả = **FP = Type I
-> error**. Có cháy mà không kêu = bỏ sót = **FN = Type II error**. Với
-> báo cháy, Type II nguy hiểm hơn nhiều.
+A: Kêu khi không có cháy = báo động giả = **FP = Type I
+error**. Có cháy mà không kêu = bỏ sót = **FN = Type II error**. Với
+báo cháy, Type II nguy hiểm hơn nhiều.
+EN: A fire alarm goes off with no fire. Type I or Type II error?
+What if there's a real fire and it stays silent? (Positive = fire.)
+**A:** Alarm without fire = false alarm = **FP = Type I**. Real fire,
+> no alarm = miss = **FN = Type II** — far more dangerous here.
 
-**Câu 4:** Một model phân loại 200 email có TP = 40, FN = 10, FP = 5.
+Q: Một model phân loại 200 email có TP = 40, FN = 10, FP = 5.
 Tính TN, số spam thật, và số lần model báo spam (class + = spam).
-> **Đáp án:** TN = 200 − 40 − 10 − 5 = **145**. Spam thật = TP + FN =
-> **50**. Số lần báo spam = TP + FP = **45**.
+A: TN = 200 − 40 − 10 − 5 = **145**. Spam thật = TP + FN =
+**50**. Số lần báo spam = TP + FP = **45**.
+EN: A model classifying 200 emails has TP = 40, FN = 10, FP = 5.
+Find TN, the number of actual spam emails, and the number flagged as
+spam.
+**A:** TN = 200 − 40 − 10 − 5 = **145**. Actual spam = TP + FN =
+> **50**. Flagged as spam = TP + FP = **45**.
 
-**Câu 5:** Chạy `confusion_matrix(y_true, y_pred)` với label 0/1 (1 là
+Q: Chạy `confusion_matrix(y_true, y_pred)` với label 0/1 (1 là
 class +) ra `[[80, 5], [12, 3]]`. TP bằng bao nhiêu?
-> **Đáp án:** scikit-learn sắp 0 trước 1, nên bố cục là `[[TN, FP], [FN,
-> TP]]`. Vậy **TP = 3** (không phải 80). TN = 80, FP = 5, FN = 12. Đây là
-> model rất tệ trong việc bắt class + dù trông "đúng nhiều": nó bỏ sót 12
-> trên 15 mẫu dương.
+A: scikit-learn sắp 0 trước 1, nên bố cục là `[[TN, FP], [FN,
+TP]]`. Vậy **TP = 3** (không phải 80). TN = 80, FP = 5, FN = 12. Đây là
+model rất tệ trong việc bắt class + dù trông "đúng nhiều": nó bỏ sót 12
+trên 15 mẫu dương.
+EN: `confusion_matrix(y_true, y_pred)` with 0/1 labels (1 =
+positive) returns `[[80, 5], [12, 3]]`. What is TP?
+**A:** scikit-learn sorts 0 before 1, so the layout is `[[TN, FP],
+> [FN, TP]]` → **TP = 3**, not 80. The model misses 12 of 15 positives.
+@tier B | Phỏng vấn lý thuyết
+Q: Class dương có nghĩa là kết quả tốt không?
+A: Không. Đó là class cần quan tâm phát hiện, như fraud hoặc spam. Ghi rõ class dương vì cùng prediction có thể thành FP hay FN khi đổi quy ước.
+EN: The positive class is the class of interest, not necessarily a desirable outcome.
+Q: Vì sao accuracy không thay được confusion matrix?
+A: Accuracy gộp mọi sai vào một tổng. Ma trận cho biết sai là báo động giả hay bỏ sót, cần thiết khi chi phí hai loại khác nhau. Cùng accuracy có thể có phân bố FP/FN rất khác.
+EN: A confusion matrix separates false alarms from misses, which accuracy hides.
+Q: Cách kiểm tra ma trận đếm có hợp lệ?
+A: Tổng bốn ô phải bằng số mẫu; tổng hàng phải khớp số nhãn thật từng class, tổng cột khớp số prediction từng class. Kiểm tra cả thứ tự class trước khi gán tên ô.
+EN: Check total count, row supports, column prediction counts, and explicit class ordering.
+Q: Liên hệ Type I/II error có giả định gì?
+A: Với giả thuyết nền là class âm, FP tương ứng bác bỏ nhầm giả thuyết nền (Type I), FN tương ứng bỏ sót class dương (Type II). Luôn nêu quy ước thay vì học vị trí ô.
+EN: With the negative class as the null, false positives correspond to Type I errors and false negatives to Type II errors.
+@tier C | Tình huống doanh nghiệp
+Q: Bộ lọc spam đẩy thư hợp đồng vào rác. Đây là ô nào và làm gì?
+A: Quy ước spam là dương thì đó là FP. Xem các FP theo nhóm thư, kiểm tra nhãn và ngưỡng; thử giảm báo động giả trên validation rồi đánh giá phần spam lọt tăng thêm. Quyết định cần chi phí hai loại lỗi *(bổ sung)*.
+WANT: Nêu class dương, xác định lỗi và đánh đổi trước khi sửa.
+Q: Hai dashboard cùng dữ liệu nhưng TP trái ngược. Debug thế nào?
+A: Kiểm tra label mapping, thứ tự class và hàng/cột; đếm lại vài cặp label–prediction cụ thể. Chốt một quy ước chung và ghi trên dashboard. Không so giá trị ô khi chưa đồng nhất định nghĩa *(bổ sung)*.
+WANT: Biết lỗi báo cáo có thể đến từ quy ước chứ không phải model.
+Q: Hệ thống cảnh báo lỗi máy bỏ sót nhiều sự cố hiếm. Chỉ tăng số cảnh báo được không?
+A: Trước hết đếm FN/FP theo thời gian và kiểm tra nhãn sự cố. Thử ngưỡng để tăng bắt sự cố trên validation, đồng thời đo tải xử lý cảnh báo giả và thời gian phát hiện. Chấp nhận nhiều FP hơn chỉ khi vận hành chịu được *(bổ sung)*.
+WANT: Nối ma trận với năng lực vận hành và chi phí thay vì tối đa một ô.
+:::
 
-> **EN:**
->
-> **Q1:** Decode the name "False Negative" without memorising it.
-> > **A:** "Negative" = the model predicted the negative class. "False" =
-> > that prediction was wrong. So the sample was actually positive — an
-> > FN is a positive case the model missed.
->
-> **Q2:** In the dog/cat example, which cell does sample 3 (label `cat`,
-> prediction `dog`) fall into? What if `cat` is the positive class?
-> > **A:** With dog as +: predicted + but wrong → **FP**. With cat as +:
-> > predicted − (dog) but actually + (cat) → **FN**. Same sample,
-> > different cell depending on the positive class.
->
-> **Q3:** A fire alarm goes off with no fire. Type I or Type II error?
-> What if there's a real fire and it stays silent? (Positive = fire.)
-> > **A:** Alarm without fire = false alarm = **FP = Type I**. Real fire,
-> > no alarm = miss = **FN = Type II** — far more dangerous here.
->
-> **Q4:** A model classifying 200 emails has TP = 40, FN = 10, FP = 5.
-> Find TN, the number of actual spam emails, and the number flagged as
-> spam.
-> > **A:** TN = 200 − 40 − 10 − 5 = **145**. Actual spam = TP + FN =
-> > **50**. Flagged as spam = TP + FP = **45**.
->
-> **Q5:** `confusion_matrix(y_true, y_pred)` with 0/1 labels (1 =
-> positive) returns `[[80, 5], [12, 3]]`. What is TP?
-> > **A:** scikit-learn sorts 0 before 1, so the layout is `[[TN, FP],
-> > [FN, TP]]` → **TP = 3**, not 80. The model misses 12 of 15 positives.
+## Nối sang bài sau
+
+:::next
+Tiếp theo, [[bài:classification-metrics]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+:::

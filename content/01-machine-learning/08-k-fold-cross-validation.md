@@ -1,9 +1,24 @@
 ---
 title: K-fold Cross Validation
 order: 8
+description: "Xoay vòng validation để so sánh cấu hình, đọc điểm trung bình giữa các fold và huấn luyện lại model cuối mà vẫn giữ riêng test."
+slides: 23-24
+needs: [train-test-split]
+tags: [cross-validation, k-fold, leakage]
 ---
 
-## 1. Ý tưởng
+## Một lần chia có đủ đáng tin?
+
+:::intro Đọc xong bài này bạn làm được
+- Mô tả một vòng và toàn bộ K-fold.
+- Tính kích thước train/validation và loss trung bình.
+- Giải thích chi phí chọn K và fit tiền xử lý trong từng fold.
+:::
+
+Nền để đọc bài này: [[bài:train-test-split]].
+
+:::slides 23-24 | Slide gốc — K-fold Cross Validation
+:::
 
 K-fold Cross Validation là kỹ thuật giúp **tận dụng dữ liệu tốt hơn** khi
 chia Train/Validation/Test theo cách thông thường — thay vì "hy sinh" một
@@ -16,7 +31,7 @@ dữ liệu đều có cơ hội được dùng làm cả dữ liệu train và 
 > Set, we rotate so that every sample gets a turn being used as both
 > training data and validation data.
 
-## 2. Vị trí trong bức tranh lớn — vấn đề cần giải quyết
+## Tận dụng dữ liệu mà vẫn giữ riêng test
 
 Nếu dataset ít dữ liệu, Validation Set (theo cách chia 3 phần thông
 thường) sẽ rất nhỏ. Ví dụ có 100 mẫu dữ liệu, chia Train: 70 / Validation:
@@ -42,7 +57,7 @@ sau khi đã hoàn tất chọn model.
 > does **not** participate in the K-fold process, and it's **used exactly
 > once**, only after the final model has been selected.
 
-## 3. Cách hoạt động
+## Xoay validation rồi refit model cuối
 
 **Bước 1 — chọn số K.** Ví dụ chọn K = 4 → chia phần dữ liệu Train+Validation
 thành 4 phần bằng nhau (4 "fold").
@@ -99,8 +114,9 @@ Train+Validation** (không tách fold nữa) — model này mới là model th�
 > data** (no more folds) — this final model is the one actually evaluated
 > against the Test Set.
 
-## 4. Ví dụ tay
+## Bốn lượt trên 100 mẫu
 
+:::worked Ví dụ và số liệu đối chiếu
 100 mẫu dữ liệu Train+Validation, chọn K = 4 → mỗi fold có 25 mẫu.
 
 | Vòng | Fold làm Validation | Fold làm Train | Loss |
@@ -122,8 +138,9 @@ hơn hẳn.
 > 70/100 samples), here each round trains on 75/100 samples, and **all
 > 100 samples get used as Validation** at least once — a much more
 > thorough use of the data.
+:::
 
-## 5. Code
+## Lặp fold với model khởi tạo mới
 
 ```python
 from sklearn.model_selection import KFold
@@ -147,42 +164,90 @@ average_loss = np.mean(losses)
 > and evaluating on its validation portion, then averages the loss across
 > all K rounds — this average is the final cross-validation score.
 
-## 6. Câu hỏi tự kiểm tra
+## Đọc điểm CV cùng giới hạn (bổ sung)
 
-**Câu 1:** Trong K-fold Cross Validation, Test Set có tham gia vào quá
+:::pitfall Fit lại toàn bộ pipeline trong từng fold
+Model ở các vòng có cùng cấu hình nhưng phải khởi tạo/fit độc lập; không tiếp tục học từ vòng trước. Scaler, imputer, encoder cũng chỉ fit trên phần train của mỗi fold. Báo cáo cả độ dao động giữa các fold; CV không bảo đảm chất lượng triển khai nếu split sai. Ví dụ 70/15/15 và pool 100 mẫu trong bài là hai minh họa khác nhau, không phải so sánh cùng ngân sách test.
+:::
+
+> **EN:** Refit the entire pipeline independently within each fold. Cross-validation measures performance under the chosen splitting assumptions, not guaranteed deployment performance.
+
+## Tóm tắt 1 phút
+
+:::recap
+- Tách test ra khỏi vòng lựa chọn.
+- Mỗi mẫu trong pool làm validation một lần.
+- Mỗi vòng học model mới trên phần train.
+- Tổng hợp điểm và độ dao động giữa fold.
+- K lớn tăng số lần fit.
+- Chọn xong thì refit trên toàn pool và đánh giá test.
+:::
+
+## Câu hỏi tự kiểm tra
+
+:::quiz
+@tier A | Hiểu bài
+Q: Trong K-fold Cross Validation, Test Set có tham gia vào quá
 trình xoay vòng fold không?
-> **Đáp án:** Không. Test Set được tách riêng và giữ cố định ngay từ đầu,
-> hoàn toàn nằm ngoài quá trình K-fold, và chỉ được dùng đúng 1 lần duy
-> nhất sau khi đã chọn xong model cuối cùng.
+A: Không. Test Set được tách riêng và giữ cố định ngay từ đầu,
+hoàn toàn nằm ngoài quá trình K-fold, và chỉ được dùng đúng 1 lần duy
+nhất sau khi đã chọn xong model cuối cùng.
+EN: Does the Test Set take part in the fold-rotation process during
+K-fold Cross Validation?
+**A:** No. The Test Set is separated and kept fixed from the start,
+> entirely outside the K-fold process, and is used exactly once after
+> the final model has already been chosen.
 
-**Câu 2:** Nếu chọn K = 5, cần huấn luyện bao nhiêu model, và mỗi model
+Q: Nếu chọn K = 5, cần huấn luyện bao nhiêu model, và mỗi model
 dùng bao nhiêu phần dữ liệu làm Train (tính theo phân số của phần
 Train+Validation)?
-> **Đáp án:** Cần huấn luyện 5 model. Mỗi model dùng 4/5 dữ liệu làm
-> Train và 1/5 dữ liệu làm Validation (fold còn lại).
+A: Cần huấn luyện 5 model. Mỗi model dùng 4/5 dữ liệu làm
+Train và 1/5 dữ liệu làm Validation (fold còn lại).
+EN: If K = 5, how many models need to be trained, and what fraction
+of the Train+Validation data does each model use for training?
+**A:** 5 models need to be trained. Each one uses 4/5 of the data for
+> training and 1/5 (the remaining fold) for validation.
 
-**Câu 3:** Sau khi có 5 loss (L1 đến L5) từ 5 model, bước tiếp theo là gì?
-> **Đáp án:** Tính loss trung bình (Σ Li / 5) để đánh giá chất lượng
-> tổng thể của cách huấn luyện, sau đó huấn luyện lại 1 model cuối cùng
-> trên toàn bộ dữ liệu Train+Validation (không chia fold nữa) — model
-> này mới đem đi đánh giá trên Test Set.
+Q: Sau khi có 5 loss (L1 đến L5) từ 5 model, bước tiếp theo là gì?
+A: Tính loss trung bình (Σ Li / 5) để đánh giá chất lượng
+tổng thể của cách huấn luyện, sau đó huấn luyện lại 1 model cuối cùng
+trên toàn bộ dữ liệu Train+Validation (không chia fold nữa) — model
+này mới đem đi đánh giá trên Test Set.
+EN: After getting 5 losses (L1 through L5) from 5 models, what's
+the next step?
+**A:** Average the losses (Σ Li / 5) to evaluate the overall quality
+> of the training approach, then retrain one final model on the entire
+> Train+Validation data (no more folds) — this final model is the one
+> evaluated against the Test Set.
+Q: Loss của bốn fold là 2, 4, 3, 3 thì trung bình là gì?
+A: (2 + 4 + 3 + 3) / 4 = 3. Cần nhìn thêm độ dao động, không chỉ một giá trị trung bình *(bổ sung)*.
+@tier B | Phỏng vấn lý thuyết
+Q: K-fold có nghĩa là train tiếp cùng model K lần?
+A: Không. Dùng cùng cấu hình, nhưng fit độc lập trên các phần train khác nhau. Nếu giữ tham số đã học từ fold trước, model có thể đã thấy dữ liệu validation hiện tại.
+EN: Each fold requires an independent fit; carrying learned parameters across folds can leak validation information.
+Q: Chọn K có đánh đổi nào?
+A: K lớn cho mỗi model nhiều dữ liệu train hơn nhưng tăng số lần fit và không đảm bảo ước lượng ít biến động hơn. Chọn theo kích thước dữ liệu, sự phụ thuộc và chi phí, không mặc định K càng lớn càng tốt.
+EN: Larger K increases training data per fit and computational cost; it does not guarantee a better estimate.
+Q: Vì sao scaler phải nằm trong CV?
+A: Mean/std tính ngoài CV đã thấy validation. Đặt scaler và model trong cùng pipeline để mỗi vòng học thống kê trên train của vòng đó.
+EN: Preprocessing must be fitted inside each fold to keep validation statistics out of training.
+Q: Điểm CV được dùng làm gì trước khi triển khai?
+A: So sánh các cấu hình theo cùng split và metric, xem độ ổn định rồi chọn một cấu hình. Refit trên pool train+validation và đánh giá test độc lập; không chọn fold may mắn nhất làm model cuối.
+EN: Use CV for configuration selection, then refit on the development pool and evaluate on a held-out test set.
+@tier C | Tình huống doanh nghiệp
+Q: Dữ liệu ít nhưng mỗi lần train rất đắt. Chọn CV sao?
+A: Giữ một test phù hợp, thử số fold nhỏ và ít cấu hình trên baseline trước, đo độ dao động. Chỉ tăng fold khi sự bất ổn ảnh hưởng quyết định. Có thể đánh đổi độ chắc của ước lượng với thời gian và chi phí; không dùng test để tiết kiệm validation *(bổ sung)*.
+WANT: Có chiến lược phân bổ ngân sách kiểm chứng.
+Q: Team scale toàn bộ dữ liệu rồi mới K-fold. Sửa gì?
+A: Chạy lại CV với scaler trong pipeline, fit riêng trong mỗi fold, giữ nguyên split và metric để so. Điểm có thể giảm vì bỏ leakage; sau chọn cấu hình mới fit toàn pipeline trên development pool *(bổ sung)*.
+WANT: Nêu đúng vị trí leakage và cách đo lại công bằng.
+Q: Một cấu hình thắng trung bình nhưng một fold tệ rõ rệt. Chọn luôn không?
+A: Kiểm tra thành phần và chất lượng fold đó, nhóm khách, thời gian, nhãn và số mẫu. So phân bố điểm với baseline; nếu fold phản ánh phân khúc quan trọng thì phải xử lý hoặc báo rủi ro. Không xóa fold chỉ để nâng trung bình *(bổ sung)*.
+WANT: Quan tâm tính ổn định và ý nghĩa của nhóm bị thất bại.
+:::
 
-> **EN:**
->
-> **Q1:** Does the Test Set take part in the fold-rotation process during
-> K-fold Cross Validation?
-> > **A:** No. The Test Set is separated and kept fixed from the start,
-> > entirely outside the K-fold process, and is used exactly once after
-> > the final model has already been chosen.
->
-> **Q2:** If K = 5, how many models need to be trained, and what fraction
-> of the Train+Validation data does each model use for training?
-> > **A:** 5 models need to be trained. Each one uses 4/5 of the data for
-> > training and 1/5 (the remaining fold) for validation.
->
-> **Q3:** After getting 5 losses (L1 through L5) from 5 models, what's
-> the next step?
-> > **A:** Average the losses (Σ Li / 5) to evaluate the overall quality
-> > of the training approach, then retrain one final model on the entire
-> > Train+Validation data (no more folds) — this final model is the one
-> > evaluated against the Test Set.
+## Nối sang bài sau
+
+:::next
+Tiếp theo, [[bài:stratified-k-fold]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+:::
