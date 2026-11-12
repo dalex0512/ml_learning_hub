@@ -15,7 +15,9 @@ tags: [mae, rmse, r2, regression, outlier]
 - Chọn metric theo chi phí thay vì tên gọi quen thuộc.
 :::
 
-Nền để đọc bài này: [[bài:loss-function]].
+Nền để đọc bài này: [[bài:loss-function]]. Để thấy model học prediction rồi được đánh giá bằng các metric này, đọc [[bài:linear-regression]] ở module 02.
+
+> **EN:** The Linear Regression lesson in module 02 shows how fitted predictions are evaluated with these metrics.
 
 :::slides 38 | Slide gốc — Metric cho Regression — MAE và RMSE
 :::

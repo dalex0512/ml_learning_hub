@@ -15,7 +15,9 @@ tags: [classification, regression, multiclass, multilabel, ordinal]
 - Liên hệ dạng bài với loss và metric.
 :::
 
-Nền để đọc bài này: [[bài:learning-paradigms]].
+Nền để đọc bài này: [[bài:learning-paradigms]]. Ví dụ mô hình hồi quy đầu tiên ở module 02: [[bài:linear-regression]].
+
+> **EN:** Linear Regression in module 02 provides a first concrete regression model.
 
 :::slides 25-26 | Slide gốc — Classification vs Regression
 :::

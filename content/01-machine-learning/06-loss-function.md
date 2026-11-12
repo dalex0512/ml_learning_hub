@@ -87,6 +87,10 @@ Slide dùng tổng (`Σ`). Trong thực tế người ta thường chia cho số
 
 Chia cho `n` không đổi hướng tối ưu, chỉ đổi thang đo. Hai metric MAE/RMSE sẽ được dùng lại ở bài [[bài:regression-metrics]].
 
+Ứng dụng cụ thể ở module 02: [[bài:linear-regression]] học hệ số bằng cách tối thiểu tổng bình phương residual (OLS).
+
+> **EN:** In module 02, Linear Regression applies squared loss to learn coefficients by ordinary least squares.
+
 ### Vì sao L2 "dễ học" hơn về mặt toán
 
 Model học bằng cách đi ngược hướng đạo hàm của loss. Đạo hàm L2 theo sai lệch `e` là `2e`: sai nhỏ thì bước chỉnh nhỏ → hội tụ êm quanh điểm đúng. Đạo hàm L1 là `±1` không đổi và **không xác định tại 0** → bước chỉnh luôn cùng độ lớn, dễ dao động quanh đáy. Đó là lý do L2 phổ biến khi huấn luyện, còn L1 phổ biến khi cần **chống outlier**.
