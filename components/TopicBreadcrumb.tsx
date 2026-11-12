@@ -30,7 +30,7 @@ export default function TopicBreadcrumb({
           </Link>
           <ChevronRight className="w-3.5 h-3.5 text-text-sub/60" />
           <Link
-            href="/#roadmap"
+            href={`/${moduleId}`}
             className="hover:text-text-main transition-colors font-medium text-text-muted"
           >
             {moduleTitle}

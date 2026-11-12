@@ -227,7 +227,7 @@ export default function RoadmapZigzag({ modules }: Props) {
 
                       {/* Module Title */}
                       <h3 className="text-lg sm:text-xl font-bold text-text-main font-sans">
-                        {module.title}
+                        <Link href={`/${module.id}`} className="hover:text-accent-red underline decoration-dashed underline-offset-4">{module.title}</Link>
                       </h3>
                       <p className="text-xs sm:text-sm text-text-muted mt-1 italic font-sans">
                         {module.subtitle}
