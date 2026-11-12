@@ -163,3 +163,52 @@ export function getLessonLookup(ids: string[]): { moduleId: string; topicId: str
     .filter((x): x is NonNullable<typeof x> => !!x)
     .map((x) => ({ moduleId: x.module.id, topicId: x.topic.id, title: x.topic.title }));
 }
+
+export interface BankQuizItem {
+  moduleId: string;
+  topicId: string;
+  topicTitle: string;
+  tags: string[];
+  tier: string;
+  key: string;
+  q: string;
+  a: string;
+  en?: string;
+  want?: string;
+}
+
+/** Reuse parsed lesson blocks, including server-expanded lesson and slide chips. */
+export function getAllQuizItems(): BankQuizItem[] {
+  return getAllFlattenedTopics().flatMap(({ module, topic }) => {
+    const data = getTopicContent(module.id, topic.file, topic.id);
+    if (!data) return [];
+    return data.sections.flatMap((section) => section.blocks.flatMap((block, blockIndex) =>
+      block.type !== "quiz" ? [] : block.tiers.flatMap((tier) => tier.items.map((item, itemIndex) => ({
+        ...item,
+        moduleId: module.id,
+        topicId: topic.id,
+        topicTitle: topic.title,
+        tags: data.tags,
+        tier: tier.key,
+        key: `${module.id}/${topic.id}/${section.id}/${blockIndex}/${tier.key}/${itemIndex}`,
+      })))
+    ));
+  });
+}
+
+export interface DependencyNode {
+  moduleId: string;
+  topicId: string;
+  title: string;
+  order: number;
+  group: string;
+  needs: string[];
+}
+
+export function getDependencyGraph(): DependencyNode[] {
+  return getAllFlattenedTopics().flatMap(({ module, topic }) => {
+    const data = getTopicContent(module.id, topic.file, topic.id);
+    return data ? [{ moduleId: module.id, topicId: topic.id, title: topic.title,
+      order: topic.order, group: topic.group ?? "Khác", needs: data.needs }] : [];
+  });
+}

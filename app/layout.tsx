@@ -24,23 +24,24 @@ export default function RootLayout({
               <span className="font-semibold text-lg sm:text-xl tracking-tight text-text-main font-sans">
                 ml learning hub
               </span>
-              <span className="font-hand text-accent-red text-base ml-1.5 transform -rotate-2">
+              <span className="hidden lg:inline font-hand text-accent-red text-base ml-1.5 transform -rotate-2">
                 notebook
               </span>
             </Link>
 
             {/* Navigation links & CTA */}
-            <nav className="flex items-center gap-4 sm:gap-6">
+            <nav className="flex items-center gap-3 sm:gap-6">
+              <Link href="/phong-van" className="text-xs sm:text-sm font-medium text-text-muted hover:text-accent-red">Phỏng vấn</Link>
               <Link
                 href="/#roadmap"
-                className="text-sm font-medium text-text-muted hover:text-text-main transition-colors"
+                className="hidden md:inline text-sm font-medium text-text-muted hover:text-text-main transition-colors"
               >
                 Roadmap 6 Module
               </Link>
               {/* Nút CTA sticky-note vàng xoay nhẹ */}
               <Link
                 href="/01-machine-learning/what-is-ml"
-                className="inline-flex items-center justify-center px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-md bg-accent-sticky-yellow text-accent-dark border border-[#dfbe35] shadow-sticky-note transform rotate-1 hover:rotate-0 hover:scale-105 transition-all"
+                className="hidden sm:inline-flex items-center justify-center px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-md bg-accent-sticky-yellow text-accent-dark border border-[#dfbe35] shadow-sticky-note transform rotate-1 hover:rotate-0 hover:scale-105 transition-all"
               >
                 Bắt đầu đọc ✏️
               </Link>

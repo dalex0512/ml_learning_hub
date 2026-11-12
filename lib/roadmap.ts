@@ -6,6 +6,7 @@ export interface TopicItem {
   order: number;
   title: string;
   file: string;
+  group?: string;
 }
 
 export interface ModuleItem {

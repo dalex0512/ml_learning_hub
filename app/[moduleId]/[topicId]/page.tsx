@@ -185,6 +185,7 @@ export default function TopicPage({ params }: PageProps) {
 
             {/* Bottom Prev / Next Navigation with 3D Page Flip */}
             <TopicNavigation prev={prev} next={next} />
+            <a href="/phong-van" className="block mt-6 text-center font-hand text-accent-red text-xl underline decoration-dashed underline-offset-4">Ôn lại trong ngân hàng phỏng vấn →</a>
           </div>
         </div>
       </div>

@@ -4,6 +4,13 @@
 @tailwind components;
 @tailwind utilities;
 
+.notebook-input {
+  @apply block w-full min-w-0 mt-2 rounded-lg border border-paper-border bg-panel px-3 py-2 text-sm font-normal text-text-main;
+}
+.notebook-button {
+  @apply rounded-lg border border-paper-border bg-panel px-3 py-2 text-sm font-semibold transition-colors hover:bg-sticky disabled:opacity-50;
+}
+
 :root {
   --font-be-vietnam-pro: 'Be Vietnam Pro', sans-serif;
   --font-hand: 'Patrick Hand', cursive;

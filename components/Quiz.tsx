@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from "react";
 import { renderMarkdown } from "@/lib/renderMarkdown";
 import type { QuizTier } from "@/lib/blocks";
+import { handleMarkdownClick } from "./MarkdownContent";
 
 const TIER_HINT: Record<string, string> = {
   A: "Kiểm tra đã hiểu bài chưa — tự làm trước, đừng nhìn đáp án.",
@@ -15,6 +16,7 @@ function Md({ md, className = "" }: { md: string; className?: string }) {
   return (
     <div
       className={`notebook-prose text-sm sm:text-[15px] ${className}`}
+      onClick={handleMarkdownClick}
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
