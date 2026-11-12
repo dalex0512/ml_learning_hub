@@ -1,37 +1,51 @@
 ---
 title: Step 3.4 — Correlation và Multicollinearity
 order: 20
-description: Hệ số tương quan Pearson đo mức quan hệ tuyến tính giữa hai biến (slide 50) — cách tính, cách đọc, vì sao correlation không phải causation; và hiện tượng đa cộng tuyến giữa các feature với ngưỡng |r| > 0.7 (slide 51).
+description: "Đọc Pearson r và giới hạn tuyến tính, phân biệt tương quan với nhân quả, phát hiện đa cộng tuyến bằng cả cặp feature lẫn VIF."
+slides: 50-51
+needs: [feature-scaling, categorical-encoding]
+tags: [correlation, multicollinearity, vif, pearson, causation]
 ---
 
-## 1. Ý tưởng
+## Hai câu hỏi khác nhau về quan hệ giữa cột
 
-Sau khi làm sạch và biến đổi từng cột riêng lẻ (bài 17–19), Step 3.4 nhìn
-**các cột trong quan hệ với nhau**. Có hai câu hỏi khác nhau, slide 50 và
+:::intro Đọc xong bài này bạn làm được
+- Tính Pearson r và giải thích dấu/độ lớn.
+- Nêu ví dụ r bằng 0 dù có quan hệ rõ.
+- Chẩn đoán hệ số không ổn định mà không tự động xóa feature.
+:::
+
+Nền để đọc bài này: [[bài:feature-scaling]], [[bài:categorical-encoding]].
+
+:::slides 50-51 | Slide gốc — Step 3.4 — Correlation và Multicollinearity
+:::
+
+Sau khi làm sạch và biến đổi từng cột riêng lẻ ([[bài:missing-values-outliers]]–19), Step 3.4 nhìn
+**các cột trong quan hệ với nhau**. Có hai câu hỏi khác nhau, [[slide:50]] và
 51 trả lời lần lượt:
 
-1. **Feature nào liên quan đến target?** (slide 50 — *Mối quan hệ giữa các
+1. **Feature nào liên quan đến target?** ([[slide:50]] — *Mối quan hệ giữa các
    variables (features, target)*) — ví dụ Glucose cao thì khả năng mắc
    tiểu đường có cao hơn không? Liên quan mạnh là **tốt**: feature đó
    hữu ích cho việc dự đoán.
-2. **Các feature có "nói cùng một điều" không?** (slide 51 — *Mối quan hệ
+2. **Các feature có "nói cùng một điều" không?** ([[slide:51]] — *Mối quan hệ
    giữa các features*) — ví dụ diện tích căn hộ và số phòng ngủ gần như
    luôn đi cùng nhau. Hai feature quá giống nhau là **xấu** với một số
    model: đó là **(đa) cộng tuyến — multicollinearity**, bước 04 *Remove
-   multicollinearity* trên slide 45.
+   multicollinearity* trên [[slide:45]].
 
 Công cụ chung cho cả hai: **hệ số tương quan (correlation coefficient)**.
 
 > **EN:** After cleaning and transforming single columns (lessons 17–19),
 > step 3.4 looks at **columns in relation to each other**. Two questions:
-> (1) **does a feature relate to the target?** (slide 50) — strong
+> (1) **does a feature relate to the target?** ([[slide:50]]) — strong
 > relation is **good**, the feature is useful; (2) **do features say the
-> same thing?** (slide 51) — e.g. flat area and number of bedrooms; highly
+> same thing?** ([[slide:51]]) — e.g. flat area and number of bedrooms; highly
 > similar features are **bad** for some models — **multicollinearity**,
-> sub-step 04 on slide 45. The shared tool is the **correlation
+> sub-step 04 on [[slide:45]]. The shared tool is the **correlation
 > coefficient**.
 
-## 2. Vị trí trong pipeline
+## Nhìn liên hệ sau khi xử lý từng feature
 
 ```
 3.1 Missing → 3.2 Outliers → 3.3 Scaling, Encoding → [ 3.4 Correlation & Multicollinearity ] → 3.5 Balance (bài 21)
@@ -54,9 +68,9 @@ Công cụ chung cho cả hai: **hệ số tương quan (correlation coefficient
 > Later: correlation heatmaps (module 04), feature selection (P13), PCA
 > (P14), regularization (P12).
 
-## 3. Công thức / cách hoạt động
+## Pearson, nhân quả và cộng tuyến
 
-### 3.1. Correlation là gì (slide 50)
+## Correlation là gì ([[slide:50]])
 
 Ba gạch đầu dòng của slide:
 
@@ -67,16 +81,16 @@ Ba gạch đầu dòng của slide:
 - **Correlation does not imply causation** — tương quan **không** có nghĩa
   là nhân quả (mục 3.4).
 
-Chú ý chữ **variables** ở slide 50 (tô tím) so với **features** ở slide 51
-(tô đỏ): slide 50 nói về mọi biến — cả feature lẫn target; slide 51 chỉ nói
+Chú ý chữ **variables** ở [[slide:50]] (tô tím) so với **features** ở [[slide:51]]
+(tô đỏ): [[slide:50]] nói về mọi biến — cả feature lẫn target; [[slide:51]] chỉ nói
 về quan hệ **giữa các feature**.
 
-> **EN:** Slide 50: correlation is the degree to which two or more
+> **EN:** [[slide:50]]: correlation is the degree to which two or more
 > **variables** relate **linearly**; the coefficient lies in **[−1, 1]**;
 > **correlation does not imply causation**. Note "variables" (features
-> and target) on slide 50 vs "features" on slide 51.
+> and target) on [[slide:50]] vs "features" on [[slide:51]].
 
-### 3.2. Công thức Pearson (slide 50)
+## Công thức Pearson ([[slide:50]])
 
 ```
             Σ (xᵢ − x̄)(yᵢ − ȳ)
@@ -99,16 +113,16 @@ Hiểu công thức theo từng phần *(bổ sung)*:
   **covariance** (hiệp phương sai — P14).
 - **Mẫu số** — tích độ phân tán của từng biến. Chia cho nó để **bỏ đơn vị**
   và ép kết quả vào [−1, 1]. Nhờ vậy r không đổi khi đổi đơn vị (cm hay m,
-  kg hay g) — và **không đổi khi scale** (bài 18).
+  kg hay g) — và **không đổi khi scale** ([[bài:feature-scaling]]).
 
-> **EN:** Pearson's formula (slide 50): r = Σ(xᵢ − x̄)(yᵢ − ȳ) /
+> **EN:** Pearson's formula ([[slide:50]]): r = Σ(xᵢ − x̄)(yᵢ − ȳ) /
 > √[Σ(xᵢ − x̄)² Σ(yᵢ − ȳ)²]. *(Supplementary)* The numerator adds products
 > that are positive when both values sit on the same side of their means
 > — divided by n − 1 it is the **covariance** (P14). The denominator
 > removes units and bounds r to [−1, 1], so r is unchanged by unit changes
 > or scaling (lesson 18).
 
-### 3.3. Đọc hệ số r (hình scatter slide 50)
+## Đọc hệ số r (hình scatter [[slide:50]])
 
 Slide vẽ 6 scatter plot với r = 0.7, 0.3, 0 (hàng trên) và −0.7, −0.3, 0
 (hàng dưới):
@@ -129,9 +143,9 @@ Slide vẽ 6 scatter plot với r = 0.7, 0.3, 0 (hàng trên) và −0.7, −0.3
 
 Thang đọc tham khảo *(bổ sung — quy ước, mỗi lĩnh vực mỗi khác)*: |r| <
 0.3 yếu; 0.3–0.7 trung bình; > 0.7 mạnh — ngưỡng 0.7 trùng với ngưỡng
-multicollinearity của slide 51.
+multicollinearity của [[slide:51]].
 
-**Hình bên dưới slide 50 — doanh số theo nhiệt độ** *(diễn giải của
+**Hình bên dưới [[slide:50]] — doanh số theo nhiệt độ** *(diễn giải của
 Claude; slide không ghi chú thích)*. Trục ngang là nhiệt độ 10–45 °C, trục
 dọc là doanh số ($0–$700). Doanh số **tăng** từ ~$190 ở 12 °C lên đỉnh
 ~$610 ở khoảng 25 °C, rồi **giảm** dần về ~$215 ở 41 °C — đám điểm có hình
@@ -144,7 +158,7 @@ Bài học: **r ≈ 0 chỉ có nghĩa là "không có quan hệ tuyến tính",
 "không có quan hệ".** Luôn **vẽ scatter plot** (module 04) trước khi kết
 luận từ một con số.
 
-> **EN:** Slide 50's six scatter plots (r = ±0.7, ±0.3, 0): the **sign**
+> **EN:** [[slide:50]]'s six scatter plots (r = ±0.7, ±0.3, 0): the **sign**
 > gives direction; **|r|** gives tightness around a line — not the slope.
 > *(Supplementary)* Rough guide: |r| < 0.3 weak, 0.3–0.7 moderate, > 0.7
 > strong. *(Claude's reading of the lower chart)* Sales rise from ~$190 at
@@ -153,7 +167,7 @@ luận từ một con số.
 > give r ≈ +0.96 and −0.94. **r ≈ 0 means no *linear* relationship, not
 > no relationship** — always plot first (module 04).
 
-### 3.4. Correlation does not imply causation
+## Correlation does not imply causation
 
 Hai biến đi cùng nhau **không** chứng minh biến này **gây ra** biến kia. Ba
 khả năng thường gặp *(bổ sung — ví dụ tự soạn)*:
@@ -184,7 +198,7 @@ tuổi đi kèm nhiều yếu tố khác.
 > but don't interpret it causally — Age correlates with Outcome (r =
 > 0.24) without directly causing diabetes.
 
-### 3.5. Correlation trên Diabetes dataset *(Bổ sung)*
+## Correlation trên Diabetes dataset *(Bổ sung)*
 
 **Feature với target** — `data.corr()["Outcome"]`:
 
@@ -212,7 +226,7 @@ correlation**; vẫn dùng được để xếp hạng feature.)
 | SkinThickness – BMI | 0.393 |
 | Glucose – Insulin | 0.331 |
 
-Không cặp nào vượt 0.7 → theo ngưỡng của slide 51, Diabetes dataset
+Không cặp nào vượt 0.7 → theo ngưỡng của [[slide:51]], Diabetes dataset
 **không có** multicollinearity đáng lo. Pregnancies – Age = 0.544 dễ hiểu:
 càng lớn tuổi càng có thời gian mang thai nhiều lần.
 
@@ -222,7 +236,7 @@ càng lớn tuổi càng có thời gian mang thai nhiều lần.
 > pairs: Pregnancies–Age 0.544, SkinThickness–Insulin 0.437 — none above
 > 0.7, so no worrying multicollinearity.
 
-### 3.6. Dữ liệu thiếu trá hình làm sai correlation *(Bổ sung — nối bài 17)*
+## Dữ liệu thiếu trá hình làm sai correlation *(Bổ sung — nối [[bài:missing-values-outliers]])*
 
 Tính lại sau khi đổi các số 0 vô lý thành NaN (pandas tự bỏ NaN theo từng
 cặp):
@@ -235,7 +249,7 @@ cặp):
 | SkinThickness – Outcome | 0.075 | **0.259** |
 
 Những số 0 giả làm các quan hệ trông **yếu hơn thật** rất nhiều — lý do
-phải xử lý dữ liệu thiếu (bài 17) **trước** khi phân tích correlation.
+phải xử lý dữ liệu thiếu ([[bài:missing-values-outliers]]) **trước** khi phân tích correlation.
 
 > **EN:** *(Supplementary — links to lesson 17)* After turning impossible
 > zeros into NaN: SkinThickness–BMI 0.393 → 0.648, Glucose–Insulin
@@ -243,7 +257,7 @@ phải xử lý dữ liệu thiếu (bài 17) **trước** khi phân tích corre
 > relationships look much weaker — clean missing data before analysing
 > correlation.
 
-### 3.7. Multicollinearity (slide 51)
+## Multicollinearity ([[slide:51]])
 
 Hai gạch đầu dòng của slide:
 
@@ -255,7 +269,7 @@ Hai gạch đầu dòng của slide:
 (*multicollinearity*) là khi **một feature gần như là tổ hợp tuyến tính của
 nhiều feature khác** (ví dụ Tổng điểm ≈ Toán + Văn + Anh).
 
-**Đọc sơ đồ Venn trên slide 51.** Vòng tròn **đỏ** = độ biến thiên
+**Đọc sơ đồ Venn trên [[slide:51]].** Vòng tròn **đỏ** = độ biến thiên
 (*dispersion*) của **biến phụ thuộc** (target); hai vòng **xanh** = độ biến
 thiên của **các biến độc lập** (features). Phần chồng lấn giữa vòng xanh và
 vòng đỏ là phần target mà feature đó "giải thích" được.
@@ -268,7 +282,7 @@ vòng đỏ là phần target mà feature đó "giải thích" được.
   "phần này là nhờ feature 1 hay feature 2", và feature thứ hai gần như
   không thêm thông tin mới.
 
-> **EN:** Slide 51: multicollinearity is the degree to which two or more
+> **EN:** [[slide:51]]: multicollinearity is the degree to which two or more
 > **features** relate linearly; typically |r| > 0.7 indicates it.
 > *Collinearity* involves two features; *multicollinearity* means one
 > feature is nearly a linear combination of others. **Venn diagram**: the
@@ -278,7 +292,7 @@ vòng đỏ là phần target mà feature đó "giải thích" được.
 > they explain the **same** part of the target, so the model can't tell
 > which feature deserves the credit, and the second adds little.
 
-### 3.8. Vì sao multicollinearity có hại, và xử lý thế nào *(Bổ sung)*
+## Vì sao multicollinearity có hại, và xử lý thế nào *(Bổ sung)*
 
 Tác hại chủ yếu với các model **tuyến tính** (Linear / Logistic
 Regression — P05):
@@ -330,9 +344,9 @@ không có đa cộng tuyến.
 > (P12). Pairwise r misses multi-feature dependencies; use **VIF** = 1/(1 −
 > R²ⱼ) (> 5 notable, > 10 severe). Diabetes' largest VIF is 1.59 (Age).
 
-## 4. Ví dụ tay
+## Ba cách kiểm tra bằng tính tay
 
-### 4.1. Pearson r giữa diện tích và số phòng ngủ *(tự soạn)*
+## Pearson r giữa diện tích và số phòng ngủ *(tự soạn)*
 
 6 căn hộ:
 
@@ -364,7 +378,7 @@ trung bình) → r gần 1. |r| = 0.975 > 0.7 → nếu cả hai cùng làm feat
 đoán giá nhà, chúng **cộng tuyến**: nên giữ một (diện tích chi tiết hơn) hoặc
 gộp thành "diện tích trung bình mỗi phòng".
 
-### 4.2. Pearson r trên 5 dòng đầu Diabetes: Age và Pregnancies
+## Pearson r trên 5 dòng đầu Diabetes: Age và Pregnancies
 
 | Dòng | Age (x) | Pregnancies (y) |
 |---|---|---|
@@ -391,7 +405,7 @@ Dòng 2 (32 tuổi, mang thai 8 lần) cho tích **âm**, kéo r xuống. Trên 
 bộ 768 dòng r = 0.544 — gần với kết quả 5 dòng, nhưng đó là may mắn: 5 điểm
 quá ít để tin.
 
-### 4.3. Quan hệ rõ ràng nhưng r = 0
+## Quan hệ rõ ràng nhưng r = 0
 
 x = −2, −1, 0, 1, 2 và y = x² = 4, 1, 0, 1, 4.
 
@@ -399,7 +413,7 @@ x̄ = 0; ȳ = 10 / 5 = 2. Tích (xᵢ − 0)(yᵢ − 2): (−2)(2) + (−1)(−
 (1)(−1) + (2)(2) = −4 + 1 + 0 − 1 + 4 = **0** → **r = 0**.
 
 y được xác định **hoàn toàn** bởi x, vậy mà r = 0 — cùng hiện tượng với
-hình doanh số chữ U ngược ở slide 50.
+hình doanh số chữ U ngược ở [[slide:50]].
 
 > **EN:** **4.1** *(own example)* Area 45–120 m² vs bedrooms 1–4: means
 > 80 and 2.5; Σ products = 140, Σ squares 3750 and 5.5 → r = 140/143.61 ≈
@@ -407,11 +421,11 @@ hình doanh số chữ U ngược ở slide 50.
 > on Diabetes' first 5 rows: means 33.4 and 3.2; Σ = 73.6, 437.2, 50.8 →
 > r ≈ 0.494 (0.544 on all 768 rows — five points are too few to trust).
 > **4.3** y = x² on −2…2: Σ products = 0 → r = 0, though y is fully
-> determined by x — the inverted-U effect from slide 50.
+> determined by x — the inverted-U effect from [[slide:50]].
 
-## 5. Code
+## Tính r, VIF và thử hệ số qua mẫu con
 
-### 5.1. Tính r bằng tay và bằng thư viện
+## Tính r bằng tay và bằng thư viện
 
 ```python
 import numpy as np
@@ -434,7 +448,7 @@ u = np.array([-2, -1, 0, 1, 2])
 print(np.corrcoef(u, u**2)[0, 1])          # 0.0
 ```
 
-### 5.2. Correlation trên Diabetes dataset
+## Correlation trên Diabetes dataset
 
 ```python
 data = pd.read_csv("diabetes.csv")
@@ -462,7 +476,7 @@ print(clean.corr().loc["SkinThickness", "BMI"].round(3))   # 0.648 (trước: 0.
 
 Heatmap của ma trận này sẽ vẽ ở module 04 (Data visualization).
 
-### 5.3. VIF *(bổ sung)*
+## VIF *(bổ sung)*
 
 ```python
 from sklearn.linear_model import LinearRegression
@@ -478,7 +492,7 @@ def vif(df):
 print(vif(features))      # lớn nhất: Age 1.588 -> không đa cộng tuyến
 ```
 
-### 5.4. Minh họa hệ số không ổn định khi có multicollinearity *(bổ sung — dữ liệu mô phỏng)*
+## Minh họa hệ số không ổn định khi có multicollinearity *(bổ sung — dữ liệu mô phỏng)*
 
 ```python
 rng = np.random.default_rng(0)
@@ -506,68 +520,120 @@ for seed in [1, 2, 3]:
 > rooms coefficient swings across subsamples while the area-only
 > coefficient stays near 0.04.
 
-## 6. Câu hỏi tự kiểm tra
+## Ngưỡng chỉ là tín hiệu điều tra (bổ sung)
 
-**Câu 1:** Hai feature có r = −0.85. Đọc ý nghĩa và cho biết có
-multicollinearity theo slide 51 không.
-> **Đáp án:** Quan hệ tuyến tính **âm, mạnh**: feature này tăng thì feature
-> kia giảm khá đều. |r| = 0.85 > 0.7 (r < −0.7) → **có** cộng tuyến; nên
-> bỏ bớt một hoặc gộp lại.
+:::compare Correlation và multicollinearity
+| Câu hỏi | Công cụ | Giới hạn |
+|---|---|---|
+| Hai biến liên hệ tuyến tính? | Pearson r, scatter | Bỏ lỡ quan hệ phi tuyến |
+| Một feature được giải thích bởi các feature khác? | Hồi quy phụ, VIF | Cần xử lý missing, intercept và cột hằng đúng |
+| Thay đổi X có gây thay đổi y? | Thiết kế nhân quả/thí nghiệm | r đơn độc không trả lời được |
+:::
 
-**Câu 2:** Correlation giữa một feature và **target** cao là tốt hay xấu?
+:::note Không kết luận quá mức (nhận xét)
+Ngưỡng |r| > 0.7 trên [[slide:51]] là quy ước, không là kiểm định hay lệnh bỏ cột. Không có cặp vượt ngưỡng chưa loại trừ phụ thuộc nhiều biến. Sau đổi 0 thành NaN, correlation tính trên cặp quan sát còn lại có thể thay đổi do selection bias; không gọi đó là quan hệ thật đã được khôi phục. Pearson không đổi với affine scaling có hệ số dương; nhân một biến với số âm đảo dấu, biến hằng làm r không xác định.
+:::
+
+> **EN:** Pairwise thresholds do not rule out multivariate dependencies. Complete-case correlations can change through selection bias; they are not automatically the true population correlations.
+
+## Tóm tắt 1 phút
+
+:::recap
+- Pearson đo quan hệ tuyến tính từng cặp.
+- Dấu là chiều, |r| là độ chặt, không phải độ dốc.
+- r gần 0 không loại trừ quan hệ phi tuyến.
+- Correlation không chứng minh causation.
+- Cộng tuyến làm hệ số khó xác định ổn định.
+- VIF nhìn quan hệ với nhiều feature cùng lúc.
+- Chọn xử lý trên validation theo mục tiêu dự đoán/giải thích.
+:::
+
+## Câu hỏi tự kiểm tra
+
+:::quiz
+@tier A | Hiểu bài
+Q: Hai feature có r = −0.85. Đọc ý nghĩa và cho biết có
+multicollinearity theo [[slide:51]] không.
+A: Quan hệ tuyến tính **âm, mạnh**: feature này tăng thì feature
+kia giảm khá đều. |r| = 0.85 > 0.7 (r < −0.7) → **có** cộng tuyến; nên
+bỏ bớt một hoặc gộp lại.
+EN: Two features have r = −0.85. Meaning? Multicollinearity?
+**A:** Strong negative linear relationship; |r| > 0.7 → yes,
+> collinear — drop or combine one.
+
+Q: Correlation giữa một feature và **target** cao là tốt hay xấu?
 Giữa hai **feature** với nhau cao là tốt hay xấu?
-> **Đáp án:** Feature – target cao là **tốt**: feature hữu ích để dự đoán
-> (slide 50). Feature – feature cao là **xấu** với model tuyến tính
-> (multicollinearity — slide 51): thông tin trùng lặp, hệ số không ổn định.
+A: Feature – target cao là **tốt**: feature hữu ích để dự đoán
+([[slide:50]]). Feature – feature cao là **xấu** với model tuyến tính
+(multicollinearity — [[slide:51]]): thông tin trùng lặp, hệ số không ổn định.
+EN: High feature–target correlation: good or bad? High
+feature–feature?
+**A:** Feature–target: good (predictive). Feature–feature: bad for
+> linear models (redundancy, unstable coefficients).
 
-**Câu 3:** Tính r cho x = 1, 2, 3, 4 và y = 2, 4, 5, 9.
-> **Đáp án:** x̄ = 2.5, ȳ = 5. Độ lệch x: −1.5, −0.5, 0.5, 1.5; y: −3,
-> −1, 0, 4. Σ tích = 4.5 + 0.5 + 0 + 6 = **11**; Σ(x − x̄)² = **5**;
-> Σ(y − ȳ)² = 9 + 1 + 0 + 16 = **26** → r = 11 / √130 ≈ 11 / 11.40 ≈
-> **0.965**.
+Q: Tính r cho x = 1, 2, 3, 4 và y = 2, 4, 5, 9.
+A: x̄ = 2.5, ȳ = 5. Độ lệch x: −1.5, −0.5, 0.5, 1.5; y: −3,
+−1, 0, 4. Σ tích = 4.5 + 0.5 + 0 + 6 = **11**; Σ(x − x̄)² = **5**;
+Σ(y − ȳ)² = 9 + 1 + 0 + 16 = **26** → r = 11 / √130 ≈ 11 / 11.40 ≈
+**0.965**.
+EN: r for x = 1, 2, 3, 4 and y = 2, 4, 5, 9?
+**A:** Σ products 11, Σ squares 5 and 26 → r = 11/√130 ≈ 0.965.
 
-**Câu 4:** Hình doanh số theo nhiệt độ ở slide 50 cho r ≈ 0. Có thể kết
+Q: Hình doanh số theo nhiệt độ ở [[slide:50]] cho r ≈ 0. Có thể kết
 luận "nhiệt độ không ảnh hưởng doanh số" không?
-> **Đáp án:** Không. Pearson chỉ đo quan hệ **tuyến tính**; doanh số tăng
-> rồi giảm (chữ U ngược) nên hai nửa triệt tiêu, r ≈ 0 dù quan hệ rất rõ.
-> Phải vẽ scatter plot trước khi kết luận.
+A: Không. Pearson chỉ đo quan hệ **tuyến tính**; doanh số tăng
+rồi giảm (chữ U ngược) nên hai nửa triệt tiêu, r ≈ 0 dù quan hệ rất rõ.
+Phải vẽ scatter plot trước khi kết luận.
+EN: [[slide:50]]'s sales-vs-temperature chart has r ≈ 0. Does
+temperature not matter?
+**A:** No — Pearson measures only linear relationships; the inverted U
+> cancels out. Plot first.
 
-**Câu 5:** Số máy điều hòa bán ra và số ca sốc nhiệt ở Hà Nội có r = 0.8.
+Q: Số máy điều hòa bán ra và số ca sốc nhiệt ở Hà Nội có r = 0.8.
 Có nên kết luận điều hòa gây sốc nhiệt?
-> **Đáp án:** Không — **correlation does not imply causation**. Cả hai
-> cùng do biến ẩn **nắng nóng** gây ra.
+A: Không — **correlation does not imply causation**. Cả hai
+cùng do biến ẩn **nắng nóng** gây ra.
+EN: AC sales and heatstroke cases correlate at 0.8. Do ACs cause
+heatstroke?
+**A:** No — a confounder (heat) drives both.
 
-**Câu 6:** Trong Diabetes dataset, r(SkinThickness, BMI) = 0.393 khi giữ
+Q: Trong Diabetes dataset, r(SkinThickness, BMI) = 0.393 khi giữ
 nguyên số 0, nhưng 0.648 khi đổi số 0 thành NaN. Vì sao?
-> **Đáp án:** Các số 0 là dữ liệu thiếu trá hình (bài 17): một người có
-> BMI 35 nhưng SkinThickness ghi 0 tạo ra những điểm "lạc" xa đường xu
-> hướng, làm quan hệ trông yếu hơn thật. Bỏ chúng đi thì thấy được quan hệ
-> thật mạnh hơn → phải xử lý dữ liệu thiếu trước khi tính correlation.
+A: Các số 0 là dữ liệu thiếu trá hình ([[bài:missing-values-outliers]]): một người có
+BMI 35 nhưng SkinThickness ghi 0 tạo ra những điểm "lạc" xa đường xu
+hướng, làm quan hệ trông yếu hơn thật. Bỏ chúng đi thì thấy được quan hệ
+thật mạnh hơn → phải xử lý dữ liệu thiếu trước khi tính correlation.
+EN: Why does r(SkinThickness, BMI) jump from 0.393 to 0.648 when
+zeros become NaN?
+**A:** The zeros are disguised missing values creating stray points
+> that weaken the apparent relationship; clean them first.
+@tier B | Phỏng vấn lý thuyết
+Q: r bằng 0 có nghĩa độc lập không?
+A: Không. Ví dụ y=x² trên x đối xứng cho r=0 nhưng quan hệ hoàn toàn xác định. Pearson chỉ đo phần liên hệ tuyến tính; cần scatter và hiểu dạng quan hệ.
+EN: Zero Pearson correlation does not imply independence; deterministic nonlinear relationships can have zero correlation.
+Q: Cộng tuyến ảnh hưởng dự đoán và diễn giải giống nhau?
+A: Không. Hệ số có thể rất bất ổn dù dự đoán trong miền quen thuộc vẫn khá ổn. Khi ngoại suy hoặc phân phối quan hệ feature đổi, rủi ro tăng; không lấy coefficient làm tác động nhân quả.
+EN: Multicollinearity can destabilize coefficients without greatly changing in-distribution predictions.
+Q: VIF bổ sung gì so với ma trận correlation?
+A: VIF hồi quy mỗi feature theo tất cả feature khác, đo mức phóng đại variance qua 1/(1−R²). Nó phát hiện tổ hợp nhiều biến mà từng cặp chưa có r rất lớn.
+EN: VIF detects multivariate linear redundancy that a pairwise correlation matrix can miss.
+Q: Xóa một trong hai feature tương quan cao dựa vào gì?
+A: Xem chất lượng đo, missing, chi phí thu thập, tính sẵn có khi serving và khả năng dự đoán trên validation. Có thể dùng regularization thay xóa; ngưỡng r không đủ quyết định.
+EN: Choose remedies using measurement quality, availability, cost, and validation performance, not a correlation threshold alone.
+@tier C | Tình huống doanh nghiệp
+Q: Hai feature có r=0.95, quản lý yêu cầu bỏ một. Bạn làm gì?
+A: Kiểm tra định nghĩa, leakage và chất lượng, so mô hình giữ cả với regularization và bỏ từng cột trên cùng split. Nếu cần diễn giải hệ số, ưu tiên biến ổn định và dễ đo; nếu cần dự đoán, dùng bằng chứng validation. Bỏ cột có thể giảm chi phí nhưng mất thông tin ở vùng hiếm *(bổ sung)*.
+WANT: Ra quyết định từ mục tiêu và kiểm chứng, không chỉ ngưỡng.
+Q: Một feature có r thấp với target nên team loại ngay. Có vấn đề?
+A: Xem scatter và tương tác với cột khác, kiểm tra missing và nhóm dữ liệu. r thấp chỉ nói liên hệ tuyến tính đơn biến thấp. So qua validation trước khi bỏ; giữ mọi biến cũng có chi phí và nguy cơ nhiễu *(bổ sung)*.
+WANT: Nhận ra quan hệ phi tuyến và thông tin có điều kiện.
+Q: Hệ số đổi dấu giữa các lần train nhưng điểm ổn. Giải thích sao?
+A: Kiểm tra cộng tuyến, VIF và độ ổn định qua mẫu con, đồng thời xác nhận pipeline giống nhau. Thử gộp/bỏ cột hoặc regularize để ổn định. Không diễn giải dấu hệ số là tác động kinh doanh khi chưa xử lý các phụ thuộc *(bổ sung)*.
+WANT: Phân biệt ổn định dự đoán với ổn định diễn giải.
+:::
 
-> **EN:**
->
-> **Q1:** Two features have r = −0.85. Meaning? Multicollinearity?
-> > **A:** Strong negative linear relationship; |r| > 0.7 → yes,
-> > collinear — drop or combine one.
->
-> **Q2:** High feature–target correlation: good or bad? High
-> feature–feature?
-> > **A:** Feature–target: good (predictive). Feature–feature: bad for
-> > linear models (redundancy, unstable coefficients).
->
-> **Q3:** r for x = 1, 2, 3, 4 and y = 2, 4, 5, 9?
-> > **A:** Σ products 11, Σ squares 5 and 26 → r = 11/√130 ≈ 0.965.
->
-> **Q4:** Slide 50's sales-vs-temperature chart has r ≈ 0. Does
-> temperature not matter?
-> > **A:** No — Pearson measures only linear relationships; the inverted U
-> > cancels out. Plot first.
->
-> **Q5:** AC sales and heatstroke cases correlate at 0.8. Do ACs cause
-> heatstroke?
-> > **A:** No — a confounder (heat) drives both.
->
-> **Q6:** Why does r(SkinThickness, BMI) jump from 0.393 to 0.648 when
-> zeros become NaN?
-> > **A:** The zeros are disguised missing values creating stray points
-> > that weaken the apparent relationship; clean them first.
+## Nối sang bài sau
+
+:::next
+Tiếp theo, [[bài:imbalanced-data]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+:::

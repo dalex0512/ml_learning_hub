@@ -1,10 +1,24 @@
 ---
 title: Step 3.3 — Mã hóa categorical features (Ordinal, One-hot, Hash, Embedding)
 order: 19
-description: Biến dữ liệu dạng chữ thành số cho model — OrdinalEncoder cho ordinal features (slide 48), và ba cách mã hóa nominal features One-hot, Hash encoding, Word embedding cùng ưu nhược điểm (slide 49).
+description: "Giữ đúng nghĩa khi chuyển category thành số: ordinal, one-hot, hash và embedding, cùng category mới và giới hạn khi cardinality cao."
+slides: 48-49
+needs: [feature-and-data-types, feature-scaling]
+tags: [encoding, one-hot, ordinal, hash, embedding, cardinality]
 ---
 
-## 1. Ý tưởng
+## Đổi chữ thành số sao cho đúng nghĩa?
+
+:::intro Đọc xong bài này bạn làm được
+- Đọc output OrdinalEncoder theo thứ tự khai báo.
+- So sánh one-hot, hashing và embedding theo bộ nhớ và thông tin.
+- Thiết kế cách xử lý category mới khi serving.
+:::
+
+Nền để đọc bài này: [[bài:feature-and-data-types]], [[bài:feature-scaling]].
+
+:::slides 48-49 | Slide gốc — Step 3.3 — Mã hóa categorical features (Ordinal, One-hot, Hash, Embedding)
+:::
 
 Model chỉ làm toán được trên **số**. Nhưng rất nhiều dữ liệu thật là
 **chữ**: size áo "S, M, L", màu "Red, Blue", quốc gia "USA, Korea", học lực
@@ -15,9 +29,9 @@ Cái khó là **đổi thế nào cho đúng nghĩa**. Bài 02 đã chia dữ li
 categorical thành hai loại, và mỗi loại cần một cách mã hóa riêng:
 
 - **Ordinal** — các giá trị có **thứ tự**: XS < S < M < L < XL. Mã hóa phải
-  **giữ thứ tự** đó → slide 48: **OrdinalEncoder**.
+  **giữ thứ tự** đó → [[slide:48]]: **OrdinalEncoder**.
 - **Nominal** — các giá trị **không có thứ tự**: Red, Green, Blue không cái
-  nào "lớn hơn" cái nào. Mã hóa **không được bịa ra thứ tự** → slide 49: ba
+  nào "lớn hơn" cái nào. Mã hóa **không được bịa ra thứ tự** → [[slide:49]]: ba
   cách **One-hot encoding**, **Hash encoding**, **Word embedding**.
 
 > **EN:** Models compute only on **numbers**, yet much real data is text:
@@ -25,11 +39,11 @@ categorical thành hai loại, và mỗi loại cần một cách mã hóa riên
 > numbers — the second half of step **03 Data Transformation**. The hard
 > part is preserving meaning. Lesson 02's two categorical types need
 > different encoders: **ordinal** values have an order (XS < … < XL) that
-> must be kept — **OrdinalEncoder** (slide 48); **nominal** values have no
+> must be kept — **OrdinalEncoder** ([[slide:48]]); **nominal** values have no
 > order, which must not be invented — **one-hot**, **hash encoding** and
-> **word embedding** (slide 49).
+> **word embedding** ([[slide:49]]).
 
-## 2. Vị trí trong pipeline
+## Encoding nối vào pipeline thế nào?
 
 ```
 3.1 Missing → 3.2 Outliers → [ 3.3 Transformation: Scaling (bài 18) + Encoding (bài này) ] → 3.4 Correlation → 3.5 Balance
@@ -39,11 +53,11 @@ categorical thành hai loại, và mỗi loại cần một cách mã hóa riên
   Categorical (Nominal / Ordinal / Boolean). Bài này là "phần thực hành"
   của bảng phân loại đó.
 - Bài 16 — `data.dtypes`: cột có dtype `object` là dấu hiệu cần encoding.
-  Diabetes dataset toàn số nên không cần; Titanic (bài 17) có `Sex`,
+  Diabetes dataset toàn số nên không cần; Titanic ([[bài:missing-values-outliers]]) có `Sex`,
   `Embarked` là chữ → cần.
 - Bài 04 — feature vector: sau encoding, một cột chữ có thể biến thành
   **nhiều** cột số (one-hot), làm feature vector dài thêm.
-- Như scaler (bài 18), encoder cũng **fit trên train** (học danh sách
+- Như scaler ([[bài:feature-scaling]]), encoder cũng **fit trên train** (học danh sách
   category) rồi transform test.
 
 > **EN:** This lesson puts lesson 02's taxonomy (numerical vs nominal /
@@ -53,9 +67,9 @@ categorical thành hai loại, và mỗi loại cần một cách mã hóa riên
 > lengthening the feature vector (lesson 04). Like scalers, encoders are
 > **fitted on the training set** (they learn the category list).
 
-## 3. Công thức / cách hoạt động
+## Từng cách mã hóa và giới hạn
 
-### 3.1. OrdinalEncoder cho ordinal features (slide 48)
+## OrdinalEncoder cho ordinal features ([[slide:48]])
 
 Code trên slide, viết lại:
 
@@ -96,7 +110,7 @@ tự sai hoàn toàn, model sẽ học một quan hệ vô nghĩa. Ordinal phả
 khai báo thứ tự bằng tay.
 
 *(Nhận xét nhỏ)* Slide đặt tên biến `scaler` cho một encoder — chạy vẫn
-đúng, nhưng nên đặt `encoder` cho khỏi nhầm với bài 18.
+đúng, nhưng nên đặt `encoder` cho khỏi nhầm với [[bài:feature-scaling]].
 
 Ví dụ ordinal khác *(bổ sung)*: học lực Yếu < Trung bình < Khá < Giỏi <
 Xuất sắc; mức độ hài lòng 1–5 sao; trình độ Cử nhân < Thạc sĩ < Tiến sĩ;
@@ -105,7 +119,7 @@ hạng vé Titanic `Pclass` 1 / 2 / 3 (đã là số).
 Hạn chế: OrdinalEncoder giả định các bậc **cách đều nhau** (S → M bằng M →
 L, đều là +1). Thường chấp nhận được, nhưng cần nhớ đó là một giả định.
 
-> **EN:** Slide 48's `OrdinalEncoder(categories=[values])` declares the
+> **EN:** [[slide:48]]'s `OrdinalEncoder(categories=[values])` declares the
 > correct order XS → S → M → L → XL and replaces each value by its
 > position (0–4); the extra brackets give one list per column. *(Claude's
 > note)* `categories=` is the crucial line: without it, categories are
@@ -115,7 +129,7 @@ L, đều là +1). Thường chấp nhận được, nhưng cần nhớ đó là
 > star ratings, degrees, Titanic's `Pclass`. Limitation: steps are assumed
 > **equally spaced**.
 
-### 3.2. Vì sao không dùng OrdinalEncoder cho nominal?
+## Vì sao không dùng OrdinalEncoder cho nominal?
 
 Nếu mã hóa màu Red = 0, Green = 1, Blue = 2, Black = 3, model sẽ hiểu:
 
@@ -125,15 +139,15 @@ Nếu mã hóa màu Red = 0, Green = 1, Blue = 2, Black = 3, model sẽ hiểu:
 
 Không điều nào có nghĩa. Một Linear / Logistic Regression sẽ gán một hệ
 số cho cột màu, ép hiệu ứng của màu phải **tăng đều** theo thứ tự bịa ra
-đó. Với nominal cần cách mã hóa không tạo thứ tự — slide 49.
+đó. Với nominal cần cách mã hóa không tạo thứ tự — [[slide:49]].
 
 > **EN:** Encoding colours as 0–3 would tell the model Black is "three
 > times" Green, Green is the "average" of Red and Blue, and Red is
 > "closer" to Green than to Black — all meaningless. A linear model would
 > force the colour effect to grow evenly along this fake order. Nominal
-> data needs order-free encodings (slide 49).
+> data needs order-free encodings ([[slide:49]]).
 
-### 3.3. One-hot encoding (slide 49, cột xanh lá)
+## One-hot encoding ([[slide:49]], cột xanh lá)
 
 Mỗi category thành **một cột riêng**; mỗi dòng có đúng một số 1 ("hot") ở
 cột của nó, còn lại là 0. Ví dụ trên slide — feature **Color**:
@@ -180,7 +194,7 @@ cột của nó, còn lại là 0. Ví dụ trên slide — feature **Color**:
 > (`drop="first"`) for unregularized linear models; prefer
 > `OneHotEncoder` (fitted on train) over `pd.get_dummies` in pipelines.
 
-### 3.4. Hash encoding (slide 49, cột cam)
+## Hash encoding ([[slide:49]], cột cam)
 
 Ý tưởng: chọn trước **số cột cố định** k (ví dụ k = 3), rồi dùng một **hàm
 băm (hash function)** — hàm biến chuỗi chữ bất kỳ thành một số nguyên — để
@@ -225,7 +239,7 @@ lớn hoặc luôn có category mới (từ trong văn bản, ID người dùng,
 > `FeatureHasher` uses MurmurHash3 (and may output −1 via
 > `alternate_sign`). Useful for huge or ever-growing category sets.
 
-### 3.5. Word embedding (slide 49, cột đỏ)
+## Word embedding ([[slide:49]], cột đỏ)
 
 Mỗi category được biểu diễn bằng một **vector số thực dày (dense)** —
 vài chục đến vài trăm số, không phải 0/1 — và các vector này được **học từ
@@ -281,17 +295,17 @@ là đủ.
 > embeddings suit text and huge category sets, while one-hot is enough
 > for a few colours.
 
-### 3.6. Tổng hợp: chọn cách mã hóa
+## Tổng hợp: chọn cách mã hóa
 
 | Loại dữ liệu | Cách | Ví dụ | Ghi chú |
 |---|---|---|---|
 | **Boolean** (2 giá trị) | 0 / 1 | Sex: male / female; Có / Không | Một cột là đủ *(bổ sung)* |
-| **Ordinal** | OrdinalEncoder (khai báo thứ tự) | Size, học lực, Pclass | Slide 48 |
-| **Nominal, ít category** | One-hot | Color, Embarked (S / C / Q) | Slide 49 — mặc định an toàn |
+| **Ordinal** | OrdinalEncoder (khai báo thứ tự) | Size, học lực, Pclass | [[slide:48]] |
+| **Nominal, ít category** | One-hot | Color, Embarked (S / C / Q) | [[slide:49]] — mặc định an toàn |
 | **Nominal, rất nhiều / luôn có category mới** | Hash encoding | Mã sản phẩm, URL, từ | Chấp nhận va chạm |
 | **Văn bản / category có quan hệ ngữ nghĩa** | Word embedding | Từ trong câu, tên con vật | Cần model như Word2vec (P09) |
 
-Bảng ưu nhược theo slide 49:
+Bảng ưu nhược theo [[slide:49]]:
 
 | | One-hot | Hash encoding | Word embedding |
 |---|---|---|---|
@@ -305,16 +319,16 @@ Ví dụ thực tế Việt Nam *(bổ sung)*: dự đoán giá thuê phòng tr�
 ở P09.
 
 > **EN:** Summary: **boolean** → 0/1 (one column); **ordinal** →
-> OrdinalEncoder with an explicit order (slide 48); **nominal, few
+> OrdinalEncoder with an explicit order ([[slide:48]]); **nominal, few
 > categories** → one-hot (safe default); **nominal, huge or growing** →
 > hash encoding; **text / semantic categories** → word embeddings (P09).
 > *(Supplementary)* Vietnamese rental example: district (nominal) →
 > one-hot; furnishing None/Basic/Full (ordinal) → 0/1/2; balcony (boolean)
 > → 0/1; free-text description → embeddings or P09 techniques.
 
-## 4. Ví dụ tay
+## Mã hóa bảng sinh viên, hash và cosine
 
-### 4.1. Mã hóa một bảng nhỏ *(tự soạn)*
+## Mã hóa một bảng nhỏ *(tự soạn)*
 
 5 sinh viên:
 
@@ -344,7 +358,7 @@ Ví dụ thực tế Việt Nam *(bổ sung)*: dự đoán giá thuê phòng tr�
 dùng `drop="first"` cho Quê thì bỏ cột `Que_Huế`, còn 4 cột: Huế được hiểu
 là "cả hai cột còn lại bằng 0".
 
-### 4.2. Hash encoding bằng tay với một hàm băm đơn giản *(tự soạn)*
+## Hash encoding bằng tay với một hàm băm đơn giản *(tự soạn)*
 
 Hàm băm tự chọn: **cộng mã ASCII của các chữ cái, rồi lấy dư khi chia
 cho 3**.
@@ -364,7 +378,7 @@ cho 3**.
 - Nhìn vector 0, 1, 0 không biết là UK, Russia hay Vietnam — **no
   inverse-mapping**.
 
-### 4.3. Cosine similarity với vector trên slide
+## Cosine similarity với vector trên slide
 
 **Lion · Tiger** = (−0.7)(−0.71) + (0.61)(0.6) + (0.42)(0.38)
 = 0.497 + 0.366 + 0.1596 = **1.0226**
@@ -393,9 +407,9 @@ khác nhau đều bằng **0** — one-hot không biểu diễn được "Lion g
 > 0.9992; Dog·Lion = −0.6007, ‖Dog‖ ≈ 0.6707 → cosine ≈ −0.879. Under
 > one-hot every distinct pair has cosine 0.
 
-## 5. Code
+## Tự tính rồi chạy encoder
 
-### 5.1. Chạy lại code slide 48 và thử bỏ `categories`
+## Chạy lại code [[slide:48]] và thử bỏ `categories`
 
 ```python
 from pandas import DataFrame
@@ -415,7 +429,7 @@ print(wrong.categories_)               # [array(['L', 'M', 'S', 'XL', 'XS'], ...
 print(wrong.transform(before).ravel()) # [3. 0. 2. 1. 4. 4. 0. 1.]
 ```
 
-### 5.2. One-hot encoding *(bổ sung)*
+## One-hot encoding *(bổ sung)*
 
 ```python
 import pandas as pd
@@ -432,7 +446,7 @@ print(OneHotEncoder(drop="first", sparse_output=False)
       .fit(colors).get_feature_names_out())  # ['Color_Blue' 'Color_Green' 'Color_Red'] - bỏ Black
 ```
 
-### 5.3. Hash encoding *(bổ sung)*
+## Hash encoding *(bổ sung)*
 
 ```python
 from sklearn.feature_extraction import FeatureHasher
@@ -453,7 +467,7 @@ fh8 = FeatureHasher(n_features=8, input_type="string", alternate_sign=False)
 print(fh8.transform(countries).toarray())   # nhiều cột hơn -> ít va chạm hơn
 ```
 
-### 5.4. Cosine similarity cho vector embedding của slide *(bổ sung)*
+## Cosine similarity cho vector embedding của slide *(bổ sung)*
 
 ```python
 import numpy as np
@@ -469,7 +483,7 @@ for a, b in [("Lion", "Tiger"), ("Dog", "Lion"), ("Dog", "Mouse")]:
     print(a, b, round(cosine(E[a], E[b]), 4))   # 0.9992  -0.8788  -0.3586
 ```
 
-### 5.5. Mã hóa nhiều cột cùng lúc bằng ColumnTransformer *(bổ sung)*
+## Mã hóa nhiều cột cùng lúc bằng ColumnTransformer *(bổ sung)*
 
 ```python
 from sklearn.compose import ColumnTransformer
@@ -489,7 +503,7 @@ print(ct.get_feature_names_out())
 print(out)        # khớp bảng ở mục 4.1
 ```
 
-> **EN:** 5.1 reruns slide 48 (renaming `scaler` to `encoder`) and shows
+> **EN:** 5.1 reruns [[slide:48]] (renaming `scaler` to `encoder`) and shows
 > the alphabetical order you get without `categories`. *(Supplementary)*
 > 5.2 one-hot with `OneHotEncoder` (unknown categories → all zeros,
 > `drop="first"`) and `pd.get_dummies`; 5.3 the toy ASCII hash and
@@ -497,67 +511,120 @@ print(out)        # khớp bảng ở mục 4.1
 > embeddings; 5.5 a `ColumnTransformer` encoding ordinal, nominal and
 > boolean columns together, matching table 4.1.
 
-## 6. Câu hỏi tự kiểm tra
+## Những giả định không nằm trong mã số (bổ sung)
 
-**Câu 1:** Phân loại và chọn cách mã hóa: (a) Size giày 38–44, (b) Hãng
+:::compare Chọn theo cấu trúc và quy mô
+| Tình huống | Điểm bắt đầu | Cần kiểm tra |
+|---|---|---|
+| Ordinal | Thứ tự khai báo | Model có áp khoảng cách đều không |
+| Nominal ít mức | One-hot sparse | Vocabulary train và unknown |
+| Nhiều mức hoặc tăng liên tục | Hash hoặc nhóm mức hiếm | Collision, khả năng giải thích |
+| Category có cấu trúc học được | Embedding | Dữ liệu học, OOV và bộ nhớ bảng vector |
+:::
+
+:::note Làm rõ các nhận xét (bổ sung)
+OrdinalEncoder tạo mã nguyên liên tiếp; giả định hiệu ứng/khoảng cách đều đến từ model dùng mã đó, không từ encoder tự khẳng định. Dummy variable trap của bộ one-hot đầy đủ liên quan cột intercept: tổng các dummy bằng cột hằng 1; không phải mọi trường hợp đều bắt buộc drop. Với drop và ignore unknown, vector toàn 0 có thể trùng category chuẩn. Sparse one-hot có thể tiết kiệm hơn dense embedding cho mỗi mẫu; embedding còn cần lưu bảng vector và học quan hệ, không bảo đảm ngữ nghĩa. Target encoding dùng thống kê target theo category nên phải fit trong fold hoặc out-of-fold để tránh leakage; xem như một lựa chọn bổ sung cho cardinality cao.
+:::
+
+> **EN:** Consecutive ordinal codes do not themselves justify equal spacing. Full one-hot encoding is redundant with an intercept; unknown-category handling and target encoding require careful validation.
+
+## Tóm tắt 1 phút
+
+:::recap
+- Ordinal phải giữ đúng thứ tự nghiệp vụ.
+- One-hot tránh thứ tự giả.
+- Vocabulary học trên train và dùng lại khi serving.
+- Hash dùng số chiều cố định nhưng có collision.
+- Embedding học biểu diễn, cần dữ liệu và OOV policy.
+- Không fit target encoding bằng nhãn validation.
+- So chất lượng, bộ nhớ và khả năng giải thích.
+:::
+
+## Câu hỏi tự kiểm tra
+
+:::quiz
+@tier A | Hiểu bài
+Q: Phân loại và chọn cách mã hóa: (a) Size giày 38–44, (b) Hãng
 điện thoại, (c) Mức độ hài lòng "Rất tệ … Rất tốt", (d) Đã kết hôn Có /
 Không.
-> **Đáp án:** (a) Numerical (số đo thật) — giữ nguyên, có thể scale;
-> (b) Nominal → one-hot; (c) Ordinal → OrdinalEncoder với thứ tự khai báo
-> tay; (d) Boolean → 0 / 1.
+A: (a) Numerical (số đo thật) — giữ nguyên, có thể scale;
+(b) Nominal → one-hot; (c) Ordinal → OrdinalEncoder với thứ tự khai báo
+tay; (d) Boolean → 0 / 1.
+EN: Classify and encode: shoe size 38–44, phone brand, satisfaction
+"very bad … very good", married yes/no.
+**A:** Numerical (keep, maybe scale); nominal → one-hot; ordinal →
+> OrdinalEncoder with explicit order; boolean → 0/1.
 
-**Câu 2:** Chạy `OrdinalEncoder()` (không truyền `categories`) trên
+Q: Chạy `OrdinalEncoder()` (không truyền `categories`) trên
 `["S", "M", "L"]`. Kết quả là gì và có vấn đề gì?
-> **Đáp án:** Category sắp theo chữ cái L, M, S → L = 0, M = 1, S = 2. Thứ
-> tự ngược với ý nghĩa (S nhỏ nhất lại thành lớn nhất). Phải truyền
-> `categories=[["S", "M", "L"]]`.
+A: Category sắp theo chữ cái L, M, S → L = 0, M = 1, S = 2. Thứ
+tự ngược với ý nghĩa (S nhỏ nhất lại thành lớn nhất). Phải truyền
+`categories=[["S", "M", "L"]]`.
+EN: `OrdinalEncoder()` without `categories` on S, M, L?
+**A:** Alphabetical: L = 0, M = 1, S = 2 — reversed meaning; pass the
+> order explicitly.
 
-**Câu 3:** Một cột "Tỉnh/thành" có 34 giá trị. One-hot sẽ tạo bao nhiêu
+Q: Một cột "Tỉnh/thành" có 34 giá trị. One-hot sẽ tạo bao nhiêu
 cột? Bao nhiêu nếu dùng `drop="first"`? Vì sao Linear Regression nên dùng
 `drop="first"`?
-> **Đáp án:** 34 cột; 33 cột với `drop="first"`. Vì 34 cột one-hot luôn
-> cộng lại bằng 1 → phụ thuộc tuyến tính hoàn toàn (**dummy variable
-> trap**, một dạng multicollinearity — bài 20), làm hệ số của Linear
-> Regression không xác định duy nhất.
+A: 34 cột; 33 cột với `drop="first"`. Vì 34 cột one-hot luôn
+cộng lại bằng 1 → phụ thuộc tuyến tính hoàn toàn (**dummy variable
+trap**, một dạng multicollinearity — [[bài:correlation-multicollinearity]]), làm hệ số của Linear
+Regression không xác định duy nhất.
+EN: 34 provinces: how many one-hot columns, with `drop="first"`, and
+why drop for Linear Regression?
+**A:** 34 and 33; the full set always sums to 1 (dummy variable trap,
+> multicollinearity), so coefficients aren't uniquely determined.
 
-**Câu 4:** Hash encoding với k = 4 cột cho 6 category. Có chắc chắn xảy ra
+Q: Hash encoding với k = 4 cột cho 6 category. Có chắc chắn xảy ra
 va chạm không? Vì sao?
-> **Đáp án:** Chắc chắn có. 6 category mà chỉ 4 cột → theo nguyên lý chuồng
-> bồ câu, ít nhất 2 category phải chung một cột.
+A: Chắc chắn có. 6 category mà chỉ 4 cột → theo nguyên lý chuồng
+bồ câu, ít nhất 2 category phải chung một cột.
+EN: Hash 6 categories into 4 columns — collision guaranteed?
+**A:** Yes, by the pigeonhole principle.
 
-**Câu 5:** Tính cosine similarity giữa u = (1, 2, 2) và v = (2, 1, 2).
-> **Đáp án:** u · v = 2 + 2 + 4 = 8; ‖u‖ = ‖v‖ = √9 = 3 → cos = 8 / 9 ≈
-> **0.889**.
+Q: Tính cosine similarity giữa u = (1, 2, 2) và v = (2, 1, 2).
+A: u · v = 2 + 2 + 4 = 8; ‖u‖ = ‖v‖ = √9 = 3 → cos = 8 / 9 ≈
+**0.889**.
+EN: Cosine of (1, 2, 2) and (2, 1, 2)?
+**A:** 8/9 ≈ 0.889.
 
-**Câu 6:** Vì sao với one-hot, khoảng cách Euclid giữa hai category khác
+Q: Vì sao với one-hot, khoảng cách Euclid giữa hai category khác
 nhau bất kỳ đều bằng √2? Điều đó tốt hay xấu?
-> **Đáp án:** Hai vector one-hot khác nhau đúng ở 2 vị trí (một bên 1/0,
-> bên kia 0/1) → √(1² + 1²) = √2. Tốt: không bịa ra thứ tự hay khoảng cách
-> giả. Hạn chế: không biểu diễn được quan hệ giống nhau (Lion và Tiger
-> cũng xa như Lion và Mouse) — điều mà word embedding làm được.
+A: Hai vector one-hot khác nhau đúng ở 2 vị trí (một bên 1/0,
+bên kia 0/1) → √(1² + 1²) = √2. Tốt: không bịa ra thứ tự hay khoảng cách
+giả. Hạn chế: không biểu diễn được quan hệ giống nhau (Lion và Tiger
+cũng xa như Lion và Mouse) — điều mà word embedding làm được.
+EN: Why are distinct one-hot vectors always √2 apart? Good or bad?
+**A:** They differ in exactly two positions. Good: no fake order or
+> distance. Bad: no notion of similarity, which embeddings provide.
+@tier B | Phỏng vấn lý thuyết
+Q: Khi nào ordinal hợp, khi nào one-hot hợp?
+A: Ordinal hợp mức có thứ tự đã xác nhận; one-hot là baseline cho nominal ít category. Chú ý linear model dùng ordinal có thể áp hiệu ứng tuyến tính đều giữa mức, nên cần kiểm chứng.
+EN: Ordinal encoding preserves a declared order; one-hot encoding is a baseline for nominal categories without artificial ordering.
+Q: Hash đánh đổi gì với one-hot?
+A: Hash cố định số chiều và không cần vocabulary, nhưng có collision và khó đảo ngược. One-hot phân biệt mức đã biết rõ hơn nhưng rộng theo cardinality. So bộ nhớ sparse thực tế thay vì chỉ số cột.
+EN: Hashing fixes dimensionality and handles new values but introduces collisions and loses inverse mapping.
+Q: Dummy variable trap có luôn bắt drop một cột?
+A: Bộ dummy đầy đủ cùng intercept phụ thuộc tuyến tính, gây không xác định duy nhất hệ số của mô hình không regularize. Drop một mức là cách phổ biến; regularization và loại model thay đổi cách xử lý, nên không coi drop là luật mọi nơi.
+EN: A full dummy set is redundant with an intercept; dropping a reference level is common but is not universally required.
+Q: Embedding có tự biết hai category giống nhau không?
+A: Không. Quan hệ phải được học từ dữ liệu/mục tiêu hoặc từ model pretrained phù hợp. Vector nhỏ không bảo đảm có nghĩa, và category mới cần policy OOV *(bổ sung)*.
+EN: Embeddings learn relationships from an objective and data; semantic similarity is not automatic.
+@tier C | Tình huống doanh nghiệp
+Q: Cột sản phẩm có 50.000 giá trị, chọn gì?
+A: Đo cardinality, tần suất và memory baseline sparse one-hot; cân nhắc nhóm hiếm/hash để cố định chiều, embedding nếu có dữ liệu học quan hệ. Target encoding là lựa chọn khác nhưng fit trong fold. So theo split thời gian và sản phẩm mới; đánh đổi giải thích với chi phí và chất lượng *(bổ sung)*.
+WANT: Không phản xạ dùng embedding chỉ vì nhiều category.
+Q: Serving gặp quốc gia mới và encoder lỗi. Xử lý sao?
+A: Đặt unknown policy trước, dùng encoder đã fit train và lưu cùng pipeline. One-hot ignore cho toàn 0 hoặc gộp unknown theo thiết kế, theo dõi tỷ lệ unknown để phát hiện đổi nguồn. Không refit vocabulary riêng mỗi request vì đổi schema *(bổ sung)*.
+WANT: Giữ schema train–serving nhất quán và biết ý nghĩa unknown.
+Q: Team target-encode toàn dataset rồi CV, điểm tăng mạnh. Tin không?
+A: Không kết luận trước khi chạy lại đúng: mỗi validation fold chỉ nhận encoding học từ train, phần train có thể cần out-of-fold encoding; xử lý unseen bằng prior train. Điểm có thể giảm vì bỏ thông tin nhãn rò rỉ. So baseline trên cùng split *(bổ sung)*.
+WANT: Nhận diện target leakage và nêu cách cross-fitting cụ thể.
+:::
 
-> **EN:**
->
-> **Q1:** Classify and encode: shoe size 38–44, phone brand, satisfaction
-> "very bad … very good", married yes/no.
-> > **A:** Numerical (keep, maybe scale); nominal → one-hot; ordinal →
-> > OrdinalEncoder with explicit order; boolean → 0/1.
->
-> **Q2:** `OrdinalEncoder()` without `categories` on S, M, L?
-> > **A:** Alphabetical: L = 0, M = 1, S = 2 — reversed meaning; pass the
-> > order explicitly.
->
-> **Q3:** 34 provinces: how many one-hot columns, with `drop="first"`, and
-> why drop for Linear Regression?
-> > **A:** 34 and 33; the full set always sums to 1 (dummy variable trap,
-> > multicollinearity), so coefficients aren't uniquely determined.
->
-> **Q4:** Hash 6 categories into 4 columns — collision guaranteed?
-> > **A:** Yes, by the pigeonhole principle.
->
-> **Q5:** Cosine of (1, 2, 2) and (2, 1, 2)?
-> > **A:** 8/9 ≈ 0.889.
->
-> **Q6:** Why are distinct one-hot vectors always √2 apart? Good or bad?
-> > **A:** They differ in exactly two positions. Good: no fake order or
-> > distance. Bad: no notion of similarity, which embeddings provide.
+## Nối sang bài sau
+
+:::next
+Tiếp theo, [[bài:correlation-multicollinearity]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+:::

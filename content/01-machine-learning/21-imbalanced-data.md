@@ -1,10 +1,24 @@
 ---
 title: Step 3.5 — Cân bằng dữ liệu (Imbalanced data)
 order: 21
-description: Khi một class đông áp đảo, model nghiêng về class đó — cân bằng lại tập train bằng over-sampling (RandomOverSampler, SMOTE, ADASYN) hoặc under-sampling (ClusterCentroids), chỉ resample trên train, so sánh trên Diabetes dataset 500/268.
+description: "So resampling, class weight và đổi threshold; giữ validation/test theo phân bố thật và chọn bằng chất lượng ở điểm vận hành."
+slides: 52-54
+needs: [classification-metrics, stratified-k-fold]
+tags: [smote, oversampling, undersampling, class-weight, imbalanced, threshold]
 ---
 
-## 1. Ý tưởng
+## Accuracy cao nhưng bỏ sót lớp cần tìm
+
+:::intro Đọc xong bài này bạn làm được
+- Phân biệt nhân bản, nội suy và giảm mẫu.
+- Tính SMOTE và class weight bằng tay.
+- Đặt sampler trong từng fold và biện luận chi phí FP/FN.
+:::
+
+Nền để đọc bài này: [[bài:classification-metrics]], [[bài:stratified-k-fold]].
+
+:::slides 52-54 | Slide gốc — Step 3.5 — Cân bằng dữ liệu (Imbalanced data)
+:::
 
 Một lớp học có 90 bạn chăm và 10 bạn hay nghỉ học. Nếu giáo viên đoán "bạn
 nào cũng chăm", thầy đúng 90% — nhưng **không phát hiện được bạn nào** cần
@@ -13,13 +27,13 @@ class đông (*majority class*) áp đảo class ít (*minority class*), nên mo
 "an toàn" bằng cách nghiêng về class đông, còn class ít — thường lại là class
 ta quan tâm nhất (người bệnh, giao dịch gian lận) — bị bỏ sót.
 
-**Step 3.5 Balance data** (slide 52–54) sửa vấn đề bằng cách **thay đổi số
+**Step 3.5 Balance data** ([[slide:52-54]]) sửa vấn đề bằng cách **thay đổi số
 mẫu mỗi class trong tập train** cho cân bằng hơn. Hai hướng:
 
 | Hướng | Làm gì | Công cụ trên slide |
 |---|---|---|
-| **Over-sampling** (slide 52–53) | **Thêm** mẫu cho class ít — nhân bản hoặc sinh mẫu mới | RandomOverSampler, SMOTE, ADASYN |
-| **Under-sampling** (slide 54) | **Bớt** mẫu của class đông | ClusterCentroids |
+| **Over-sampling** ([[slide:52-53]]) | **Thêm** mẫu cho class ít — nhân bản hoặc sinh mẫu mới | RandomOverSampler, SMOTE, ADASYN |
+| **Under-sampling** ([[slide:54]]) | **Bớt** mẫu của class đông | ClusterCentroids |
 
 Ba slide gần như chỉ có **hình**: ranh giới quyết định (*decision function*)
 của Logistic Regression trước và sau khi resample, và dữ liệu trông thế nào
@@ -34,11 +48,11 @@ tất cả trên Diabetes dataset.
 > missed. **Step 3.5 Balance data** (slides 52–54) changes the class counts
 > **in the training set**: **over-sampling** adds minority samples
 > (RandomOverSampler, SMOTE, ADASYN — slides 52–53); **under-sampling**
-> removes majority samples (ClusterCentroids — slide 54). The slides are
+> removes majority samples (ClusterCentroids — [[slide:54]]). The slides are
 > almost all pictures; this lesson explains them, the mechanics, and tests
 > every method on the Diabetes dataset.
 
-## 2. Vị trí trong pipeline
+## Từ stratification đến thay đổi cách học
 
 ```
 3.1 Missing → 3.2 Outliers → 3.3 Scaling, Encoding → 3.4 Correlation → [ 3.5 Balance data ] → Step 4 Visualization → …
@@ -68,9 +82,9 @@ tất cả trên Diabetes dataset.
 > is a trap, so we judge by Recall, Precision and F1 of class 1. **Lesson
 > 15**'s baseline had Recall 0.50; balancing lifts it to about 0.65–0.74.
 
-## 3. Công thức / cách hoạt động
+## Đọc hình và so từng kỹ thuật
 
-### 3.1. Vì sao mất cân bằng làm model "lệch"
+## Vì sao mất cân bằng làm model "lệch"
 
 Hầu hết model học bằng cách **giảm tổng loss trên tất cả các mẫu** (bài
 05–06). Với 400 mẫu class 0 và 214 mẫu class 1 trong tập train Diabetes,
@@ -83,11 +97,11 @@ Mức độ mất cân bằng *(bổ sung — quy ước tham khảo)*:
 | Tỉ lệ class ít | Mức | Ví dụ |
 |---|---|---|
 | 20–40% | Nhẹ | Diabetes (34.9%) |
-| 1–20% | Vừa | Khách hàng rời bỏ dịch vụ, Cat 90 / Dog 10 (bài 09) |
+| 1–20% | Vừa | Khách hàng rời bỏ dịch vụ, Cat 90 / Dog 10 ([[bài:stratified-k-fold]]) |
 | < 1% | Nặng | Gian lận thẻ tín dụng, lỗi sản phẩm trên dây chuyền |
 
 Mất cân bằng **nhẹ** như Diabetes không phải "thảm họa", nhưng vẫn kéo
-Recall xuống rõ (0.50 ở bài 15).
+Recall xuống rõ (0.50 ở [[bài:ml-pipeline]]).
 
 > **EN:** Models minimise the **total loss over all samples** (lessons
 > 05–06). With 400 class-0 vs 214 class-1 training samples, class 0
@@ -97,9 +111,9 @@ Recall xuống rõ (0.50 ở bài 15).
 > < 1% = severe (card fraud). Even mild imbalance dragged Recall to 0.50
 > in lesson 15.
 
-### 3.2. Đọc hình slide 52 — decision function trước và sau RandomOverSampler
+## Đọc hình [[slide:52]] — decision function trước và sau RandomOverSampler
 
-Slide 52 có tiêu đề hình *"Decision function of LogisticRegression"*, hai
+[[slide:52]] có tiêu đề hình *"Decision function of LogisticRegression"*, hai
 khung:
 
 - Dữ liệu 2 chiều, **3 class**: **vàng** (đông nhất, chiếm phần lớn điểm),
@@ -120,11 +134,11 @@ ra. Các điểm tím giờ nằm trong vùng tím → được nhận diện. �
 Đây là **đánh đổi cốt lõi** của cân bằng dữ liệu: **Recall của class ít
 tăng, Precision của nó (và độ chính xác cho class đông) thường giảm.**
 
-*(Nhận xét của Claude)* Hình slide 52–54 có vẻ lấy từ các ví dụ trong tài
+*(Nhận xét của Claude)* Hình [[slide:52-54]] có vẻ lấy từ các ví dụ trong tài
 liệu chính thức của thư viện **imbalanced-learn** — dùng dữ liệu tổng hợp 3
 class, không phải Diabetes dataset. Mục 5.4 có code dựng lại hình tương tự.
 
-> **EN:** Slide 52, "Decision function of LogisticRegression": 2-D toy
+> **EN:** [[slide:52]], "Decision function of LogisticRegression": 2-D toy
 > data, **3 classes** — yellow (majority), teal (middle), purple (≈ 5
 > points). Background colour = predicted class. **Without resampling** the
 > purple region is a tiny triangle at the left edge — purple is
@@ -136,7 +150,7 @@ class, không phải Diabetes dataset. Mục 5.4 có code dựng lại hình tư
 > examples (synthetic data, not Diabetes); section 5.4 rebuilds a similar
 > plot.
 
-### 3.3. RandomOverSampler — nhân bản ngẫu nhiên
+## RandomOverSampler — nhân bản ngẫu nhiên
 
 Cách đơn giản nhất: **bốc ngẫu nhiên có hoàn lại** các mẫu class ít rồi
 **chép thêm** cho đến khi bằng class đông.
@@ -146,7 +160,7 @@ Cách đơn giản nhất: **bốc ngẫu nhiên có hoàn lại** các mẫu cl
 - Không tạo thông tin mới; chỉ làm mỗi mẫu class ít "nặng ký" hơn trong tổng
   loss.
 
-Ở slide 53, khung *"Resampling with RandomOverSampler"* trông **gần như y hệt**
+Ở [[slide:53]], khung *"Resampling with RandomOverSampler"* trông **gần như y hệt**
 *"Original dataset"* — vì các bản sao **nằm chồng đúng lên** điểm gốc; chỉ
 thấy các chấm tím và xanh **đậm màu hơn** (nhiều chấm chồng nhau).
 
@@ -158,12 +172,12 @@ thấy các chấm tím và xanh **đậm màu hơn** (nhiều chấm chồng nh
 > **EN:** **RandomOverSampler** samples minority points **with
 > replacement** and duplicates them until the classes match — on Diabetes,
 > 186 copies of class 1 → 400/400. No new information; each minority point
-> just weighs more. On slide 53 the RandomOverSampler panel looks almost
+> just weighs more. On [[slide:53]] the RandomOverSampler panel looks almost
 > identical to the original because copies sit exactly on top of the
 > originals (darker dots). Pros: simple, no data lost. Cons: risk of
 > **overfitting** to repeated points (P11).
 
-### 3.4. SMOTE — sinh điểm mới bằng nội suy
+## SMOTE — sinh điểm mới bằng nội suy
 
 **SMOTE** (*Synthetic Minority Over-sampling Technique*) không chép mà
 **tạo điểm mới nằm giữa** các điểm class ít gần nhau *(cơ chế là bổ sung —
@@ -181,7 +195,7 @@ slide chỉ có hình)*:
 Bước 5 là **nội suy tuyến tính**: x_new nằm **trên đoạn thẳng** nối xᵢ và
 x_nn; λ = 0 → trùng xᵢ, λ = 1 → trùng x_nn, λ = 0.5 → đúng trung điểm.
 
-Ở slide 53, khung *"Resampling with SMOTE"*: các chấm tím và xanh mới xếp
+Ở [[slide:53]], khung *"Resampling with SMOTE"*: các chấm tím và xanh mới xếp
 thành **những vệt / đường thẳng** nối giữa các điểm gốc — dấu vết của phép
 nội suy. Vùng tím phía dưới giữa hình dày đặc lên thành một "đám" chứ không
 còn vài chấm lẻ.
@@ -190,20 +204,20 @@ còn vài chấm lẻ.
 |---|---|
 | Tạo điểm **mới** (không trùng) → ít overfitting hơn chép | Điểm mới có thể rơi vào **vùng của class đông** nếu nối hai điểm class ít nằm hai bên một cụm class đông, hoặc nối từ một điểm nhiễu |
 | Phủ đều vùng của class ít | Chỉ dùng được cho feature **số liên tục** (nội suy "Red" với "Blue" vô nghĩa — dùng biến thể SMOTENC cho dữ liệu có cột categorical) |
-| | Cần tính khoảng cách → **phải scale trước** (bài 18) |
+| | Cần tính khoảng cách → **phải scale trước** ([[bài:feature-scaling]]) |
 
 > **EN:** **SMOTE** creates **new points between nearby minority
 > points** *(mechanism supplementary — slide shows only a picture)*: pick a
 > minority point xᵢ, find its k nearest **minority** neighbours (default 5),
 > pick one x_nn, draw λ ∈ [0, 1], and set x_new = xᵢ + λ(x_nn − xᵢ) — a
-> point on the segment between them. On slide 53, SMOTE's new points form
+> point on the segment between them. On [[slide:53]], SMOTE's new points form
 > **streaks along lines** between originals. Pros: new, non-duplicate
 > points; fills the minority region. Cons: can create points inside the
 > majority region (bridging across it or from noisy points); numeric
 > features only (SMOTENC handles categoricals); distance-based, so **scale
 > first** (lesson 18).
 
-### 3.5. ADASYN — sinh nhiều điểm hơn ở vùng khó
+## ADASYN — sinh nhiều điểm hơn ở vùng khó
 
 **ADASYN** (*Adaptive Synthetic sampling*) giống SMOTE ở cách nội suy, nhưng
 **không chia đều** số điểm mới cho mọi điểm class ít. Nó sinh **nhiều điểm
@@ -224,7 +238,7 @@ nhiều điểm class đông *(cơ chế là bổ sung)*:
 nhất. Vì làm tròn từng gᵢ nên tổng có thể lệch 1–2 so với G (Diabetes: ra
 **401** thay vì 400).
 
-Ở slide 53, khung *"Resampling with ADASYN"*: so với SMOTE, các điểm xanh
+Ở [[slide:53]], khung *"Resampling with ADASYN"*: so với SMOTE, các điểm xanh
 mới **dồn về phía vùng vàng** (giữa và trên hình, nơi hai class chồng lấn),
 còn vùng xanh "an toàn" bên phải lại thưa hơn. Đúng tinh thần "tập trung vào
 vùng khó".
@@ -240,26 +254,26 @@ vùng khó".
 > points among its K nearest neighbours (whole dataset), set rᵢ = Δᵢ/K,
 > normalise, and generate gᵢ = r̂ᵢ·G points around it. Points deep inside
 > their own class (Δ = 0) get none. Rounding can shift the total (401
-> instead of 400 on Diabetes). On slide 53, ADASYN's new teal points crowd
+> instead of 400 on Diabetes). On [[slide:53]], ADASYN's new teal points crowd
 > toward the yellow region (the overlap), unlike SMOTE. Pros: focuses on
 > the boundary. Cons: **noise-sensitive** — a mislabelled point inside the
 > majority gets many synthetic neighbours; may push the boundary into the
 > majority region.
 
-### 3.6. Under-sampling: ClusterCentroids (slide 54)
+## Under-sampling: ClusterCentroids ([[slide:54]])
 
 Hướng ngược lại: **giảm** class đông xuống bằng class ít.
 
 - **RandomUnderSampler** *(bổ sung — không có trên slide)*: bỏ ngẫu nhiên
   các mẫu class đông. Diabetes (train): giữ 214 trong 400 mẫu class 0 → bỏ
   **186 mẫu (46.5%)** — mất gần nửa dữ liệu class 0.
-- **ClusterCentroids** (slide 54): thay vì bỏ ngẫu nhiên, chạy **K-Means**
+- **ClusterCentroids** ([[slide:54]]): thay vì bỏ ngẫu nhiên, chạy **K-Means**
   (sẽ học ở P08) trên class đông với **K = số mẫu class ít**, rồi **thay cả
   class đông bằng K tâm cụm (centroid)**. Mỗi centroid "tóm tắt" một nhóm
   điểm gần nhau, nên tập mới vẫn **phủ được hình dạng** của class đông dù ít
   điểm hơn nhiều.
 
-**Đọc hình slide 54:**
+**Đọc hình [[slide:54]]:**
 
 - *Resampling with ClusterCentroids* (phải): sau khi resample, **cả 3 class
   chỉ còn khoảng 20 điểm mỗi class** — bằng class ít nhất. Các điểm vàng
@@ -284,9 +298,9 @@ centroid** (điểm "nhân tạo", không có trong dữ liệu gốc) với d�
 
 > **EN:** **Under-sampling** shrinks the majority class.
 > *(Supplementary)* **RandomUnderSampler** drops random majority samples —
-> on Diabetes, 186 of 400 (46.5%). **ClusterCentroids** (slide 54) runs
+> on Diabetes, 186 of 400 (46.5%). **ClusterCentroids** ([[slide:54]]) runs
 > **K-Means** (P08) on the majority class with K = minority size and
-> replaces it with the K **centroids**, preserving its shape. Slide 54
+> replaces it with the K **centroids**, preserving its shape. [[slide:54]]
 > right: each class ends with ≈ 20 points; the yellow ones are centroids
 > spread along the original band. Left: a model trained on that small set,
 > drawn over the full original data — balanced regions, but many yellow
@@ -295,7 +309,7 @@ centroid** (điểm "nhân tạo", không có trong dữ liệu gốc) với d�
 > samples. Pros: fast, keeps shape. Cons: **loses information** — wasteful
 > on small data like Diabetes; best when the majority is huge.
 
-### 3.7. Quy tắc vàng: chỉ resample tập train *(Bổ sung — slide không nói)*
+## Quy tắc vàng: chỉ resample tập train *(Bổ sung — slide không nói)*
 
 **Tuyệt đối không resample tập validation / test.** Lý do:
 
@@ -321,7 +335,7 @@ Cách sai cho điểm **cao hơn giả tạo** 5–8 điểm phần trăm. Cách
 `predict`** (trên validation/test). `Pipeline` của scikit-learn không làm được
 vì sampler không có hàm `transform`.
 
-Thứ tự đúng trong pipeline: **impute (bài 17) → scale (bài 18) → resample →
+Thứ tự đúng trong pipeline: **impute ([[bài:missing-values-outliers]]) → scale ([[bài:feature-scaling]]) → resample →
 model**. SMOTE/ADASYN/ClusterCentroids cần khoảng cách nên phải scale trước,
 và không nội suy được giá trị NaN nên phải impute trước.
 
@@ -335,7 +349,7 @@ và không nội suy được giá trị NaN nên phải impute trước.
 > `predict`; scikit-learn's `Pipeline` can't host samplers. Order: impute →
 > scale → resample → model.
 
-### 3.8. Cách khác: class_weight và đổi ngưỡng *(Bổ sung — không có trong slide)*
+## Cách khác: class_weight và đổi ngưỡng *(Bổ sung — không có trong slide)*
 
 Không cần thay đổi dữ liệu cũng có thể "cân bằng":
 
@@ -366,7 +380,7 @@ tăng. Trên tập test Diabetes (model không resample):
 | 0.4 | 0.614 | 0.648 | 0.631 |
 | 0.3 | 0.597 | 0.796 | 0.683 |
 
-Nhớ bài 13: AUC = 0.813 cho thấy model **xếp hạng** người bệnh khá tốt — vấn
+Nhớ [[bài:roc-auc]]: AUC = 0.813 cho thấy model **xếp hạng** người bệnh khá tốt — vấn
 đề Recall thấp phần lớn nằm ở ngưỡng 0.5. Lưu ý: ngưỡng phải chọn trên tập
 **validation**, không chọn trên test (bảng trên chỉ để minh họa).
 
@@ -380,9 +394,9 @@ Nhớ bài 13: AUC = 0.813 cho thấy model **xếp hạng** người bệnh kh�
 > low Recall is mostly the threshold. Choose thresholds on validation data,
 > not test.
 
-### 3.9. So sánh trên Diabetes dataset *(Bổ sung — thí nghiệm của Claude)*
+## So sánh trên Diabetes dataset *(Bổ sung — thí nghiệm của Claude)*
 
-Cùng quy trình như bài 15: đổi số 0 vô lý → NaN, chia 80/20 `stratify=y`,
+Cùng quy trình như [[bài:ml-pipeline]]: đổi số 0 vô lý → NaN, chia 80/20 `stratify=y`,
 `random_state=42` (train 400/214, test 100/54), pipeline impute median →
 StandardScaler → [resample] → LogisticRegression. Đánh giá trên tập test
 **không resample**, cộng thêm F1 và Recall trung bình Stratified 5-fold trên
@@ -408,7 +422,7 @@ toàn bộ dữ liệu (resample bên trong từng fold).
   ranh giới quyết định**, không làm model "giỏi xếp hạng" hơn — giống hiệu
   ứng hạ ngưỡng ở mục 3.8.
 - **Accuracy gần như không đổi** — thêm một bằng chứng Accuracy không phải
-  thước đo phù hợp (bài 12).
+  thước đo phù hợp ([[bài:classification-metrics]]).
 - Trên tập test 154 mẫu, chênh lệch giữa các cách chỉ vài người → **không
   đủ để tuyên bố cách nào thắng**. Cột CV ổn định hơn: SMOTE, ADASYN,
   RandomUnderSampler nhỉnh hơn một chút về F1, nhưng mọi cách cân bằng đều
@@ -430,7 +444,7 @@ toàn bộ dữ liệu (resample bên trong từng fold).
 > on small data, replacing 400 real patients with 214 centroids loses
 > information.
 
-### 3.10. Tổng hợp: chọn cách nào?
+## Tổng hợp: chọn cách nào?
 
 | Tình huống | Gợi ý |
 |---|---|
@@ -443,7 +457,7 @@ toàn bộ dữ liệu (resample bên trong từng fold).
 Và ba điều không đổi: **(1)** chỉ resample tập train (dùng `imblearn`
 Pipeline); **(2)** chia dữ liệu và cross-validate bằng **stratified** (bài
 09); **(3)** đánh giá bằng Recall, Precision, F1, AUC — không phải Accuracy
-(bài 12–13).
+([[bài:classification-metrics]]–13).
 
 > **EN:** Start simple with `class_weight="balanced"` or threshold moving;
 > SMOTE (or ADASYN for hard boundaries) for small/medium numeric data;
@@ -453,9 +467,9 @@ Pipeline); **(2)** chia dữ liệu và cross-validate bằng **stratified** (b�
 > **stratification** (lesson 09), and judge with Recall/Precision/F1/AUC,
 > not accuracy (lessons 12–13).
 
-## 4. Ví dụ tay
+## Tự tính resampling và trọng số
 
-### 4.1. Số mẫu sau mỗi cách trên Diabetes (tập train 400 / 214)
+## Số mẫu sau mỗi cách trên Diabetes (tập train 400 / 214)
 
 | Cách | Class 0 | Class 1 | Tổng | Thay đổi |
 |---|---|---|---|---|
@@ -468,7 +482,7 @@ Baseline "luôn đoán 0" trên tập test (100 / 54): Accuracy = 100 / 154 ≈
 baseline 8 điểm — nhưng Recall 0.741, tức tìm được 40 / 54 người bệnh. Đây là
 lý do ta nhìn Recall.
 
-### 4.2. SMOTE bằng tay *(tự soạn)*
+## SMOTE bằng tay *(tự soạn)*
 
 Class ít có 4 điểm 2 chiều: **A(2, 3), B(3, 5), C(5, 3), D(8, 6)**. Dùng
 k = 2 láng giềng.
@@ -503,7 +517,7 @@ C có một cụm class đông, điểm (6.5, 4.5) sẽ rơi **ngay giữa vùng
 ví dụ được B và B → thêm hai bản **(3, 5), (3, 5)** chồng đúng lên B. Không
 có điểm mới nào.
 
-### 4.3. ADASYN: chia số điểm cần sinh *(tự soạn)*
+## ADASYN: chia số điểm cần sinh *(tự soạn)*
 
 4 điểm class ít, K = 5 láng giềng (trong toàn bộ dữ liệu), cần sinh G = 8
 điểm. Đếm số láng giềng thuộc class đông:
@@ -522,7 +536,7 @@ có điểm mới nào.
   ADASYN đã "nhân bản lỗi" 5 lần.
 - SMOTE thì chia đều: mỗi điểm 2 điểm mới.
 
-### 4.4. ClusterCentroids bằng tay *(tự soạn)*
+## ClusterCentroids bằng tay *(tự soạn)*
 
 Class đông có 6 điểm: (1, 1), (2, 1), (1, 2) và (8, 8), (9, 8), (8, 9). Class
 ít có 2 điểm: (4, 5), (5, 4). Cần giảm class đông xuống **2** điểm → K-Means
@@ -538,7 +552,7 @@ Tập sau resample: class 0 = {(1.333, 1.333), (8.333, 8.333)}, class 1 =
 class đông. Nếu bỏ ngẫu nhiên 4 điểm, có thể xui xẻo giữ lại (1, 1) và
 (2, 1) — mất hẳn cụm thứ hai.
 
-### 4.5. class_weight bằng tay
+## class_weight bằng tay
 
 Train Diabetes: n = 614, n₀ = 400, n₁ = 214, 2 class.
 
@@ -563,13 +577,13 @@ Train Diabetes: n = 614, n₀ = 400, n₁ = 214, 2 class.
 > class_weight: w₀ = 0.7675, w₁ ≈ 1.4346, ratio 1.869 = 400/214, each class
 > totals ≈ 307.
 
-## 5. Code
+## Đặt sampler đúng trong imblearn Pipeline
 
 Cần cài thư viện **imbalanced-learn**: `pip install imbalanced-learn` (import
 bằng tên `imblearn`). Code trong mục này là *tự soạn* — slide chỉ có hình,
 không có code.
 
-### 5.1. Đếm class và resample thử
+## Đếm class và resample thử
 
 ```python
 import numpy as np
@@ -609,7 +623,7 @@ for sampler in [RandomOverSampler(random_state=42), SMOTE(random_state=42),
 # Tập test KHÔNG resample.
 ```
 
-### 5.2. So sánh các cách bằng imblearn Pipeline
+## So sánh các cách bằng imblearn Pipeline
 
 ```python
 from sklearn.linear_model import LogisticRegression
@@ -655,7 +669,7 @@ print(pd.DataFrame(rows).to_string(index=False))
 # ADASYN:         [72, 28, 14, 40], recall 0.741, f1_cv 0.675
 ```
 
-### 5.3. Cách SAI: resample trước khi chia *(để thấy điểm bị thổi phồng)*
+## Cách SAI: resample trước khi chia *(để thấy điểm bị thổi phồng)*
 
 ```python
 X_all = StandardScaler().fit_transform(SimpleImputer(strategy="median").fit_transform(X))
@@ -671,7 +685,7 @@ right = cross_val_score(right_model, X, y, cv=cv, scoring="f1").mean()
 print(f"SAI: {wrong:.3f}   ĐÚNG: {right:.3f}")   # SAI: 0.736   ĐÚNG: 0.684
 ```
 
-### 5.4. Dựng lại hình kiểu slide 52–54 *(dữ liệu tổng hợp 3 class)*
+## Dựng lại hình kiểu [[slide:52-54]] *(dữ liệu tổng hợp 3 class)*
 
 ```python
 import matplotlib
@@ -709,7 +723,7 @@ plt.tight_layout()
 plt.savefig("balance_data.png", dpi=100)
 ```
 
-Kết quả: hàng trên, khung *Without resampling* rất giống slide 52 — vùng tím
+Kết quả: hàng trên, khung *Without resampling* rất giống [[slide:52]] — vùng tím
 (class 5 điểm) chỉ là một góc hẹp ở mép trái, hầu hết điểm tím nằm trong vùng
 vàng hoặc xanh; các khung có resample thì vùng tím mở rộng chiếm cả góc trái
 và nửa trái phía dưới. Hàng dưới, khung
@@ -719,7 +733,7 @@ class đông, ClusterCentroids chỉ còn 5 điểm mỗi class. Số mẫu in t
 đề: `[85, 85, 85]` cho RandomOverSampler và SMOTE, `[84, 86, 85]` cho ADASYN,
 `[5, 5, 5]` cho ClusterCentroids.
 
-### 5.5. Kiểm tra ví dụ tay
+## Kiểm tra ví dụ tay
 
 ```python
 from sklearn.cluster import KMeans
@@ -750,81 +764,133 @@ print(compute_class_weight("balanced", classes=np.array([0, 1]), y=y_train))
 > methods plus `class_weight="balanced"` inside an **imblearn Pipeline**
 > (resampling only at `fit`), on the untouched test set and with
 > Stratified 5-fold CV. 5.3 shows the inflated score from resampling before
-> splitting (0.736 vs 0.684). 5.4 rebuilds slide 52–54-style plots on
+> splitting (0.736 vs 0.684). 5.4 rebuilds [[slide:52-54]]-style plots on
 > synthetic 3-class data (5 / 10 / 85 points). 5.5 checks the hand
 > examples.
 
-## 6. Câu hỏi tự kiểm tra
+## Thí nghiệm không phải lời hứa cho mọi dữ liệu (bổ sung)
 
-**Câu 1:** Stratified K-fold (bài 09) và SMOTE đều liên quan đến dữ liệu
+:::compare Ba nơi có thể can thiệp
+| Cách | Thay đổi | Đánh đổi |
+|---|---|---|
+| Resampling | Dữ liệu train | Bản sao/nội suy/mất thông tin |
+| Class weight | Trọng số loss | Cần model hỗ trợ, có thể đổi calibration |
+| Threshold | Quyết định sau score | Recall/precision và tải cảnh báo |
+:::
+
+:::pitfall Giữ giới hạn của phép so sánh
+Mất cân bằng không tự quyết định model thất bại; còn phụ thuộc overlap, nhãn, loss và threshold. Tổng loss từng class còn phụ thuộc mức sai từng mẫu, không chỉ số mẫu. Bảng Diabetes là thí nghiệm cụ thể, không chứng minh mọi cân bằng luôn tăng chất lượng. SMOTE phân bổ mẫu ngẫu nhiên, không bảo đảm đúng số bằng nhau quanh từng điểm; ADASYN chủ động phân bổ theo độ khó và rounding có thể lệch nhiều hơn 1–2. CV trên toàn dữ liệu trong bảng là minh họa riêng: nếu dùng để chọn model thì phần test cũ không còn độc lập cho lựa chọn đó.
+:::
+
+> **EN:** Resampling is not guaranteed to improve performance. Use development-only CV for selection and keep a separate untouched test set; empirical results do not establish a universal ranking.
+
+## Tóm tắt 1 phút
+
+:::recap
+- Không dùng accuracy đơn độc khi class dương hiếm.
+- Stratification giữ tỷ lệ, resampling đổi train.
+- Random oversampling không thêm thông tin.
+- SMOTE nội suy, ADASYN ưu tiên vùng khó.
+- Undersampling có thể mất thông tin đa số.
+- Class weight và threshold là baseline đáng thử.
+- Resample trong train từng fold, đánh giá phân bố thật.
+:::
+
+## Câu hỏi tự kiểm tra
+
+:::quiz
+@tier A | Hiểu bài
+Q: Stratified K-fold ([[bài:stratified-k-fold]]) và SMOTE đều liên quan đến dữ liệu
 mất cân bằng. Chúng khác nhau thế nào? Có dùng cùng lúc được không?
-> **Đáp án:** Stratified K-fold **giữ nguyên** tỉ lệ class ở mọi fold để
-> **đánh giá** công bằng; nó không cân bằng gì cả. SMOTE **thay đổi** tỉ lệ
-> class trong **tập train** để model **học** tốt class ít. Dùng cùng lúc
-> được và nên dùng: chia fold bằng stratified, rồi SMOTE chỉ phần train của
-> mỗi fold (imblearn Pipeline).
+A: Stratified K-fold **giữ nguyên** tỉ lệ class ở mọi fold để
+**đánh giá** công bằng; nó không cân bằng gì cả. SMOTE **thay đổi** tỉ lệ
+class trong **tập train** để model **học** tốt class ít. Dùng cùng lúc
+được và nên dùng: chia fold bằng stratified, rồi SMOTE chỉ phần train của
+mỗi fold (imblearn Pipeline).
+EN: How do Stratified K-fold and SMOTE differ? Can they be combined?
+**A:** Stratification **preserves** class ratios per fold for fair
+> evaluation; SMOTE **changes** the training ratio so the model learns
+> the minority. Combine them: stratified folds, SMOTE on each training
+> part (imblearn Pipeline).
 
-**Câu 2:** Tập train có 900 mẫu class 0 và 100 mẫu class 1. Sau
+Q: Tập train có 900 mẫu class 0 và 100 mẫu class 1. Sau
 RandomOverSampler và sau RandomUnderSampler (cân bằng hoàn toàn) mỗi class
 còn bao nhiêu mẫu? Mỗi cách thêm / bỏ bao nhiêu?
-> **Đáp án:** Over-sampling: 900 / 900 — thêm **800** bản sao class 1 (mỗi
-> mẫu class 1 xuất hiện trung bình 9 lần → nguy cơ overfitting). Under-
-> sampling: 100 / 100 — bỏ **800** mẫu class 0 (mất 88.9% dữ liệu class 0).
+A: Over-sampling: 900 / 900 — thêm **800** bản sao class 1 (mỗi
+mẫu class 1 xuất hiện trung bình 9 lần → nguy cơ overfitting). Under-
+sampling: 100 / 100 — bỏ **800** mẫu class 0 (mất 88.9% dữ liệu class 0).
+EN: 900 vs 100 training samples — counts after full over- and
+under-sampling?
+**A:** 900/900 (800 copies added, each minority sample ≈ 9 times —
+> overfitting risk); 100/100 (800 majority samples dropped, 88.9%).
 
-**Câu 3:** Dùng SMOTE với xᵢ = (4, 10), láng giềng x_nn = (6, 4), λ = 0.25.
+Q: Dùng SMOTE với xᵢ = (4, 10), láng giềng x_nn = (6, 4), λ = 0.25.
 Tính điểm mới.
-> **Đáp án:** x_nn − xᵢ = (2, −6); x_new = (4, 10) + 0.25 × (2, −6) = (4 +
-> 0.5, 10 − 1.5) = **(4.5, 8.5)**.
+A: x_nn − xᵢ = (2, −6); x_new = (4, 10) + 0.25 × (2, −6) = (4 +
+0.5, 10 − 1.5) = **(4.5, 8.5)**.
+EN: SMOTE with xᵢ = (4, 10), x_nn = (6, 4), λ = 0.25?
+**A:** (4.5, 8.5).
 
-**Câu 4:** Một bạn SMOTE toàn bộ Diabetes dataset rồi mới chia train/test và
+Q: Một bạn SMOTE toàn bộ Diabetes dataset rồi mới chia train/test và
 được F1 = 0.74, cao hơn hẳn bạn khác (0.68). Kết quả nào đáng tin hơn? Vì
 sao?
-> **Đáp án:** 0.68. Resample trước khi chia làm **rò rỉ dữ liệu**: điểm nội
-> suy từ cùng một bệnh nhân nằm cả ở train và test; tập test còn bị cân bằng
-> 50/50, không giống thực tế (≈ 35% bệnh). Chỉ được resample tập train.
+A: 0.68. Resample trước khi chia làm **rò rỉ dữ liệu**: điểm nội
+suy từ cùng một bệnh nhân nằm cả ở train và test; tập test còn bị cân bằng
+50/50, không giống thực tế (≈ 35% bệnh). Chỉ được resample tập train.
+EN: SMOTE on the whole dataset before splitting gives F1 0.74 vs
+0.68 done correctly. Which to trust?
+**A:** 0.68 — resampling first leaks synthetic copies across the split
+> and makes the test set unrealistically balanced.
 
-**Câu 5:** ADASYN khác SMOTE ở điểm nào? Khi nào ADASYN có thể gây hại?
-> **Đáp án:** ADASYN sinh **nhiều điểm hơn quanh những điểm class ít bị
-> class đông bao quanh** (vùng khó, gần biên giới); SMOTE chia đều. ADASYN
-> gây hại khi dữ liệu **có nhiễu / nhãn sai**: một điểm bị gán nhãn sai nằm
-> giữa class đông sẽ được sinh rất nhiều điểm giả, kéo ranh giới vào sâu
-> vùng class đông.
+Q: ADASYN khác SMOTE ở điểm nào? Khi nào ADASYN có thể gây hại?
+A: ADASYN sinh **nhiều điểm hơn quanh những điểm class ít bị
+class đông bao quanh** (vùng khó, gần biên giới); SMOTE chia đều. ADASYN
+gây hại khi dữ liệu **có nhiễu / nhãn sai**: một điểm bị gán nhãn sai nằm
+giữa class đông sẽ được sinh rất nhiều điểm giả, kéo ranh giới vào sâu
+vùng class đông.
+EN: ADASYN vs SMOTE; when does ADASYN hurt?
+**A:** ADASYN generates more points around minority samples surrounded
+> by the majority; it hurts with noisy labels, multiplying mislabelled
+> points and pushing the boundary into the majority region.
 
-**Câu 6:** Sau khi cân bằng, Recall trên Diabetes tăng từ 0.50 lên khoảng
+Q: Sau khi cân bằng, Recall trên Diabetes tăng từ 0.50 lên khoảng
 0.70 nhưng AUC gần như không đổi (≈ 0.81). Giải thích.
-> **Đáp án:** AUC đo khả năng **xếp hạng** người bệnh cao hơn người khỏe ở
-> **mọi ngưỡng** (bài 13). Cân bằng dữ liệu chủ yếu **dời ranh giới quyết
-> định** (giống hạ ngưỡng) — model đoán "bệnh" nhiều hơn nên Recall tăng,
-> nhưng thứ tự xếp hạng gần như giữ nguyên nên AUC không đổi. Vì vậy hạ
-> ngưỡng hoặc class_weight cũng cho hiệu quả tương tự.
+A: AUC đo khả năng **xếp hạng** người bệnh cao hơn người khỏe ở
+**mọi ngưỡng** ([[bài:roc-auc]]). Cân bằng dữ liệu chủ yếu **dời ranh giới quyết
+định** (giống hạ ngưỡng) — model đoán "bệnh" nhiều hơn nên Recall tăng,
+nhưng thứ tự xếp hạng gần như giữ nguyên nên AUC không đổi. Vì vậy hạ
+ngưỡng hoặc class_weight cũng cho hiệu quả tương tự.
+EN: Recall rises from 0.50 to ≈ 0.70 but AUC stays ≈ 0.81. Why?
+**A:** AUC measures ranking across all thresholds; balancing mainly
+> shifts the decision boundary (like lowering the threshold), so Recall
+> rises while the ranking — and AUC — barely changes.
+@tier B | Phỏng vấn lý thuyết
+Q: Vì sao SMOTE trước split gây leakage?
+A: Mẫu tổng hợp dùng thông tin láng giềng trên toàn dataset nên có thể phụ thuộc các mẫu sau đó thuộc validation/test. Ngoài ra tập đánh giá bị đổi tỷ lệ. Split trước và đặt sampler trong pipeline từng fold.
+EN: Resampling before splitting can leak neighbor information and alter the evaluation class distribution.
+Q: SMOTE có luôn hơn nhân bản?
+A: Không. Nó mở rộng vùng thiểu số nhưng có thể nội suy qua vùng sai hoặc từ nhãn nhiễu. Random oversampling đơn giản và giữ category; cần so trên cùng validation theo mục tiêu.
+EN: SMOTE can generate unhelpful or invalid samples; it is not universally better than random oversampling.
+Q: Class weight khác resampling và threshold?
+A: Weight đổi đóng góp loss trong train, resampling đổi dữ liệu train, threshold đổi quyết định từ score sau học. Hiệu ứng có thể gần nhau nhưng không tương đương mọi model hay regularization.
+EN: Class weighting changes the objective, resampling changes training data, and thresholding changes decisions after scoring.
+Q: ADASYN có rủi ro nào với nhãn sai?
+A: Điểm thiểu số nằm giữa đa số được coi khó và sinh nhiều mẫu quanh nó. Nếu nhãn gốc sai, ADASYN khuếch đại nhiễu; cần kiểm tra nhãn và overlap trước khi tăng độ phức tạp.
+EN: ADASYN can amplify mislabeled minority samples surrounded by majority neighbors.
+@tier C | Tình huống doanh nghiệp
+Q: Fraud 0.1%, chọn SMOTE hay class_weight?
+A: Giữ split thời gian/nhóm phù hợp và validation tỷ lệ thật, xây baseline score, weight và threshold trước. Đo PR, recall ở ngân sách duyệt và chi phí; thử SMOTE chỉ train nếu feature và láng giềng có nghĩa. Nội suy có thể tạo giao dịch không hợp lệ, weight đơn giản hơn nhưng vẫn cần chọn ngưỡng *(bổ sung)*.
+WANT: Biết bắt đầu đơn giản, đánh giá đúng phân bố và kiểm tra tính hợp lệ mẫu tổng hợp.
+Q: Recall tăng sau SMOTE nhưng đội duyệt quá tải. Có thành công?
+A: Đếm FP và cảnh báo/ngày, precision ở ngưỡng đang dùng và giá trị fraud bắt thêm. Chọn ngưỡng trên validation theo công suất, cân nhắc tỷ lệ resampling nhỏ hơn. Thành công là lợi ích sau chi phí, không riêng recall *(bổ sung)*.
+WANT: Biện luận chất lượng ở điểm vận hành và giới hạn nguồn lực.
+Q: Dữ liệu chứa mã sản phẩm one-hot, team muốn SMOTE thường. Bạn xử lý sao?
+A: Nội suy có thể tạo giá trị category phân số không hợp lệ. Thử RandomOverSampler hoặc SMOTENC khi còn cấu trúc categorical và tiền xử lý đúng; so baseline weight. Giữ pipeline trong fold và kiểm tra schema đầu ra, đánh đổi đơn giản với khả năng mô tả vùng thiểu số *(bổ sung)*.
+WANT: Không áp khoảng cách và nội suy số liên tục một cách máy móc.
+:::
 
-> **EN:**
->
-> **Q1:** How do Stratified K-fold and SMOTE differ? Can they be combined?
-> > **A:** Stratification **preserves** class ratios per fold for fair
-> > evaluation; SMOTE **changes** the training ratio so the model learns
-> > the minority. Combine them: stratified folds, SMOTE on each training
-> > part (imblearn Pipeline).
->
-> **Q2:** 900 vs 100 training samples — counts after full over- and
-> under-sampling?
-> > **A:** 900/900 (800 copies added, each minority sample ≈ 9 times —
-> > overfitting risk); 100/100 (800 majority samples dropped, 88.9%).
->
-> **Q3:** SMOTE with xᵢ = (4, 10), x_nn = (6, 4), λ = 0.25?
-> > **A:** (4.5, 8.5).
->
-> **Q4:** SMOTE on the whole dataset before splitting gives F1 0.74 vs
-> 0.68 done correctly. Which to trust?
-> > **A:** 0.68 — resampling first leaks synthetic copies across the split
-> > and makes the test set unrealistically balanced.
->
-> **Q5:** ADASYN vs SMOTE; when does ADASYN hurt?
-> > **A:** ADASYN generates more points around minority samples surrounded
-> > by the majority; it hurts with noisy labels, multiplying mislabelled
-> > points and pushing the boundary into the majority region.
->
-> **Q6:** Recall rises from 0.50 to ≈ 0.70 but AUC stays ≈ 0.81. Why?
-> > **A:** AUC measures ranking across all thresholds; balancing mainly
-> > shifts the decision boundary (like lowering the threshold), so Recall
-> > rises while the ranking — and AUC — barely changes.
+## Nối sang bài sau
+
+:::next
+Quay lại [[bài:ml-pipeline]] để ghép các bước tiền xử lý thành quy trình hoàn chỉnh; ôn cách đánh giá ở [[bài:classification-metrics]]. Các thuật toán cụ thể sẽ được học ở module Supervised Learning.
+:::
