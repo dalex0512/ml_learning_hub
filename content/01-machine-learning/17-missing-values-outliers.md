@@ -1,14 +1,28 @@
 ---
 title: Step 3.1–3.2 — Xử lý dữ liệu thiếu và Outliers
 order: 17
-description: Bước đầu tiên của tiền xử lý — nhận diện dữ liệu thiếu (ô trống, số 0 vô lý), chọn cách xóa hay điền, rồi phát hiện và xử lý outlier bằng IQR và z-score trên Diabetes dataset.
+description: "Nhận diện missing/invalid và outlier, so cách điền, IQR và z-score; xử lý theo nguyên nhân và fit mọi thống kê trong train."
+slides: 45-46
+needs: [descriptive-statistics]
+tags: [missing, imputation, outlier, iqr, zscore, MCAR, MAR, MNAR]
 ---
 
-## 1. Ý tưởng
+## Thiếu dữ liệu hay dữ liệu khác thường?
+
+:::intro Đọc xong bài này bạn làm được
+- Phân biệt ô trống, sentinel và giá trị sai.
+- Tính ngưỡng IQR, đọc giới hạn z-score.
+- Chọn xử lý dựa vào nguyên nhân mà không làm sạch test để lấy điểm.
+:::
+
+Nền để đọc bài này: [[bài:descriptive-statistics]].
+
+:::slides 45-46 | Slide gốc — Step 3.1–3.2 — Xử lý dữ liệu thiếu và Outliers
+:::
 
 Bài 16 đã "khám bệnh" cho Diabetes dataset và lập được danh sách vấn đề.
 Từ bài này bắt đầu **chữa bệnh** — Step 3 *Data preprocessing* (tiền xử
-lý dữ liệu). Slide 45–46 vẽ Step 3 thành **4 bước con**:
+lý dữ liệu). [[slide:45-46]] vẽ Step 3 thành **4 bước con**:
 
 | Bước | Tên trên slide | Nghĩa | Bài |
 |---|---|---|---|
@@ -17,20 +31,20 @@ lý dữ liệu). Slide 45–46 vẽ Step 3 thành **4 bước con**:
 | 03 | Data Transformation | Biến đổi dữ liệu (scaling, encoding) | 18, 19 |
 | 04 | Remove multicollinearity | Loại bỏ đa cộng tuyến | 20 |
 
-Sau 4 bước này slide còn một bước **3.5 Balance data** (slide 52–54) —
-bài 21.
+Sau 4 bước này slide còn một bước **3.5 Balance data** ([[slide:52-54]]) —
+[[bài:imbalanced-data]].
 
 Hai vấn đề của bài này rất đời thường:
 
 - **Dữ liệu thiếu (missing values)**: ô bị bỏ trống vì không ai ghi, không
-  đo được, hoặc người khai không muốn trả lời. Slide 45 lấy ví dụ bảng
+  đo được, hoặc người khai không muốn trả lời. [[slide:45]] lấy ví dụ bảng
   **Titanic**: ô `Age` của hành khách số 6 và nhiều ô `Cabin` bị trống
   (các mũi tên đỏ "Missing values").
 - **Dữ liệu sai (invalid values)**: ô có giá trị nhưng giá trị đó **không
-  thể đúng** — như huyết áp = 0 trong Diabetes dataset (bài 16), tuổi = −5,
+  thể đúng** — như huyết áp = 0 trong Diabetes dataset ([[bài:descriptive-statistics]]), tuổi = −5,
   chiều cao 1700 cm do gõ thừa số 0.
 - **Outlier (giá trị ngoại lai)**: điểm dữ liệu **khác hẳn** phần còn lại.
-  Slide 46 minh họa bằng một bức ảnh: giữa đàn chim cánh cụt đen là một
+  [[slide:46]] minh họa bằng một bức ảnh: giữa đàn chim cánh cụt đen là một
   con **trắng toát** (mũi tên cam chỉ vào nó). Nó không "sai" — nó thật sự
   tồn tại — nhưng khác thường đến mức có thể làm lệch những gì model học
   về "chim cánh cụt điển hình".
@@ -43,16 +57,16 @@ mà không làm hỏng dữ liệu còn lại?
 > **four sub-steps**: (01) handle missing or invalid values, (02) remove
 > outliers, (03) data transformation (lessons 18–19), (04) remove
 > multicollinearity (lesson 20); step 3.5 balance data follows in lesson
-> 21. **Missing values** are empty cells — slide 45's **Titanic** table
+> 21. **Missing values** are empty cells — [[slide:45]]'s **Titanic** table
 > has an empty `Age` for passenger 6 and several empty `Cabin` cells.
 > **Invalid values** are present but impossible (blood pressure 0, age
-> −5). An **outlier** is a point far from the rest — slide 46 shows a
+> −5). An **outlier** is a point far from the rest — [[slide:46]] shows a
 > **white penguin** among black ones: real, not wrong, but unusual enough
 > to distort what a model learns about a "typical" penguin. This lesson:
 > how to **detect** and **treat** them without damaging the remaining
 > data.
 
-## 2. Vị trí trong pipeline
+## Đưa danh sách vấn đề sang bước xử lý
 
 ```
 Step 2 Statistics → [ Step 3 Preprocessing ] → Step 4 Visualization → Step 5 Model building → …
@@ -63,15 +77,15 @@ Step 2 Statistics → [ Step 3 Preprocessing ] → Step 4 Visualization → Step
                       3.5 Balance data (bài 21)
 ```
 
-Bài này dùng trực tiếp ba phát hiện của bài 16:
+Bài này dùng trực tiếp ba phát hiện của [[bài:descriptive-statistics]]:
 
 - `count` = 768 ở mọi cột → không có ô trống, nhưng có **374 số 0** ở
   Insulin, 227 ở SkinThickness… → dữ liệu thiếu **trá hình**.
 - Max Insulin = 846, SkinThickness = 99 → **nghi outlier**.
-- **IQR = Q3 − Q1** (đã gặp ở bài 16, mục 3.4.2) chính là công cụ phát
+- **IQR = Q3 − Q1** (đã gặp ở [[bài:descriptive-statistics]], mục 3.4.2) chính là công cụ phát
   hiện outlier ở bài này.
 
-Và một nguyên tắc từ bài 07: mọi con số dùng để "sửa" dữ liệu (median để
+Và một nguyên tắc từ [[bài:train-test-split]]: mọi con số dùng để "sửa" dữ liệu (median để
 điền, ngưỡng để cắt outlier) phải **tính trên tập train**, rồi áp dụng y
 nguyên cho validation/test.
 
@@ -82,13 +96,13 @@ nguyên cho validation/test.
 > to fix data (fill values, outlier cut-offs) must be **computed on the
 > training set** and then applied unchanged to validation/test.
 
-## 3. Công thức / cách hoạt động
+## Nhận diện, chọn phương án và kiểm tra giả định
 
-### 3.1. Ba dạng dữ liệu thiếu hoặc sai
+## Ba dạng dữ liệu thiếu hoặc sai
 
 | Dạng | Trông như thế nào | Cách phát hiện | Ví dụ |
 |---|---|---|---|
-| **Ô trống thật** | `NaN`, `None`, ô rỗng | `data.isna().sum()` | Titanic: `Age`, `Cabin` (slide 45) |
+| **Ô trống thật** | `NaN`, `None`, ô rỗng | `data.isna().sum()` | Titanic: `Age`, `Cabin` ([[slide:45]]) |
 | **Thiếu trá hình** | Một giá trị "giữ chỗ": 0, −1, 999, "?", "N/A" | Thống kê + hiểu ý nghĩa cột (`describe()`, đếm số 0) | Diabetes: Insulin = 0 |
 | **Sai / không hợp lệ** | Có giá trị nhưng vô lý | So với khoảng hợp lý của cột | Tuổi = −5; huyết áp = 0; giới tính = "Nam " (thừa dấu cách) |
 
@@ -117,7 +131,7 @@ vì nó quyết định cách xử lý:
 > (depends on the missing value itself — the fact of being missing is
 > informative; add an indicator column).
 
-### 3.2. Các cách xử lý dữ liệu thiếu *(Bổ sung — slide chỉ nêu tên bước, không liệt kê cách)*
+## Các cách xử lý dữ liệu thiếu *(Bổ sung — slide chỉ nêu tên bước, không liệt kê cách)*
 
 | Cách | Làm gì | Ưu | Nhược | Khi nào dùng |
 |---|---|---|---|---|
@@ -142,7 +156,7 @@ giả tạo. Đây là một dạng **rò rỉ dữ liệu (data leakage)**.
 
 **(2) Điền cũng là "học" từ dữ liệu → chỉ học trên train.** Median dùng
 để điền phải tính từ tập train rồi điền cho cả train lẫn test (giống
-`fit` trên train, `transform` test — bài 07, sẽ gặp lại ở bài 18). Nếu
+`fit` trên train, `transform` test — [[bài:train-test-split]], sẽ gặp lại ở [[bài:feature-scaling]]). Nếu
 tính median trên toàn bộ dataset, thông tin của tập test đã lọt vào quá
 trình huấn luyện.
 
@@ -157,9 +171,9 @@ trình huấn luyện.
 > (2) imputation is learning — compute the fill value on the **training
 > set** only and apply it to both sets.
 
-### 3.3. Áp dụng vào hai dataset trên slide
+## Áp dụng vào hai dataset trên slide
 
-**Titanic (slide 45)** *(số liệu toàn bộ dataset là bổ sung — slide chỉ
+**Titanic ([[slide:45]])** *(số liệu toàn bộ dataset là bổ sung — slide chỉ
 cho 6 dòng)*. Bộ Titanic đầy đủ có 891 hành khách:
 
 | Cột | Số ô thiếu | Tỉ lệ | Cách hợp lý |
@@ -172,7 +186,7 @@ Với `Cabin`, việc **thiếu** gần như chắc chắn mang thông tin: hàn
 hạng 1 thường có số cabin ghi lại, hạng 3 thì không — tức là "thiếu" gắn
 với hạng vé và khả năng sống sót.
 
-**Diabetes (bài 16)**:
+**Diabetes ([[bài:descriptive-statistics]])**:
 
 | Cột | Số 0 vô lý | Tỉ lệ | Cách hợp lý |
 |---|---|---|---|
@@ -195,7 +209,7 @@ liệu, trong đó mất 138 / 268 người bệnh, đúng class mà ta đang th
 > rows would leave only **392 of 768** rows (262 healthy, 130 diabetic) —
 > losing 138 of the 268 diabetic patients, the class we already lack.
 
-### 3.4. Outlier là gì và đến từ đâu
+## Outlier là gì và đến từ đâu
 
 **Outlier** là điểm dữ liệu nằm **rất xa** phần lớn các điểm khác. Có hai
 loại, xử lý khác nhau hoàn toàn *(bổ sung)*:
@@ -204,15 +218,15 @@ loại, xử lý khác nhau hoàn toàn *(bổ sung)*:
   nặng ghi gram thay vì kg), máy đo hỏng. → Sửa nếu biết giá trị đúng, nếu
   không thì coi như dữ liệu thiếu.
 - **Outlier thật**: hiếm nhưng có thật — như chú chim cánh cụt trắng ở
-  slide 46, hay một bệnh nhân có Insulin 846 thật. → Không nên vội xóa:
+  [[slide:46]], hay một bệnh nhân có Insulin 846 thật. → Không nên vội xóa:
   đôi khi chính những điểm hiếm này là thứ quan trọng nhất (giao dịch gian
   lận, ca bệnh nặng).
 
 Vì sao outlier gây hại? Nhiều thứ trong ML dựa vào **mean và bình phương
 sai số**, mà bình phương phóng đại khoảng cách lớn: một điểm lệch 10 đơn vị
-đóng góp 100 vào tổng, bằng 100 điểm lệch 1 đơn vị. Nhớ lại bài 06: L2
+đóng góp 100 vào tổng, bằng 100 điểm lệch 1 đơn vị. Nhớ lại [[bài:loss-function]]: L2
 loss (bình phương) nhạy với outlier hơn L1 loss (trị tuyệt đối) chính vì
-vậy. Tương tự: mean, std, MinMaxScaler (bài 18), Linear Regression đều bị
+vậy. Tương tự: mean, std, MinMaxScaler ([[bài:feature-scaling]]), Linear Regression đều bị
 outlier kéo; median, IQR và các model dạng cây (Decision Tree, Random
 Forest — P07) thì ít bị ảnh hưởng.
 
@@ -227,7 +241,7 @@ Forest — P07) thì ít bị ảnh hưởng.
 > Mean, std, MinMaxScaler and Linear Regression are pulled by outliers;
 > median, IQR and tree models are robust.
 
-### 3.5. Phát hiện outlier: IQR và z-score *(Bổ sung — slide chỉ có hình minh họa)*
+## Phát hiện outlier: IQR và z-score *(Bổ sung — slide chỉ có hình minh họa)*
 
 **Cách 1 — Quy tắc IQR (của Tukey).**
 
@@ -296,7 +310,7 @@ toàn có thể. Chỉ SkinThickness = 99 mm (với BMI 34.7) là trông giống
 > high DPF is valuable family history and 17 pregnancies is rare but
 > possible; only SkinThickness = 99 mm looks like a measurement error.
 
-### 3.6. Xử lý outlier *(Bổ sung)*
+## Xử lý outlier *(Bổ sung)*
 
 | Cách | Làm gì | Khi nào |
 |---|---|---|
@@ -304,7 +318,7 @@ toàn có thể. Chỉ SkinThickness = 99 mm (với BMI 34.7) là trông giống
 | **Sửa / coi là thiếu** | Đổi thành NaN rồi điền như mục 3.2 | Lỗi nhưng không biết giá trị đúng |
 | **Cắt ngưỡng** (*capping / winsorizing*) | Kéo giá trị vượt cận về đúng cận (`clip`) | Muốn giữ dòng nhưng hạn chế ảnh hưởng |
 | **Biến đổi** | Lấy log, căn bậc hai để "nén" đuôi dài | Cột lệch phải mạnh (Insulin, thu nhập) |
-| **Giữ nguyên** | Không làm gì; chọn model/scaler vững với outlier | Outlier thật, mang thông tin (dùng RobustScaler — bài 18, model dạng cây — P07) |
+| **Giữ nguyên** | Không làm gì; chọn model/scaler vững với outlier | Outlier thật, mang thông tin (dùng RobustScaler — [[bài:feature-scaling]], model dạng cây — P07) |
 
 Ba quy tắc an toàn:
 
@@ -325,9 +339,9 @@ Ba quy tắc an toàn:
 > set mimics real-world data; only apply train-learned transformations to
 > it.
 
-## 4. Ví dụ tay
+## Tính tay trên Titanic và Insulin
 
-### 4.1. Điền dữ liệu thiếu trên bảng Titanic của slide 45
+## Điền dữ liệu thiếu trên bảng Titanic của [[slide:45]]
 
 6 hành khách trên slide có Age: 22, 38, 26, 35, 35, **trống**.
 
@@ -339,7 +353,7 @@ quả khác nhau gần 4 tuổi chỉ vì một người 22 tuổi kéo mean xu�
 `Cabin` thì 4 / 6 ô trống (≈ 67%) ngay trong 6 dòng này — dấu hiệu nên bỏ
 cột hoặc chỉ giữ "có / không có cabin".
 
-### 4.2. Insulin của 20 bệnh nhân đầu tiên (Diabetes)
+## Insulin của 20 bệnh nhân đầu tiên (Diabetes)
 
 Insulin của 20 dòng đầu: 0, 0, 0, 94, 168, 0, 88, 0, 543, 0, 0, 0, 0,
 846, 175, 0, 230, 0, 83, 96.
@@ -361,7 +375,7 @@ Mean lớn hơn median 90 đơn vị vì hai số 543 và 846 → điền **medi
 lý hơn. Nếu điền mean, 11 bệnh nhân sẽ được gán Insulin 258 — cao hơn 7 / 9
 người có số đo thật.
 
-**Bước 3 — Phát hiện outlier bằng IQR** (vị trí p × (n − 1) như bài 16):
+**Bước 3 — Phát hiện outlier bằng IQR** (vị trí p × (n − 1) như [[bài:descriptive-statistics]]):
 
 - Q1: vị trí 0.25 × 8 = 2 → **94**
 - Q3: vị trí 0.75 × 8 = 6 → **230**
@@ -386,7 +400,7 @@ chính 846 đã kéo mean lên 258 và std lên 248 (*masking*); hơn nữa vớ
 = 1802 / 9 ≈ **200.2** (giảm từ 258.1), còn median vẫn **168** — median
 không đổi, minh chứng nó vững với outlier.
 
-> **EN:** **4.1 Titanic (slide 45):** ages 22, 38, 26, 35, 35 and one
+> **EN:** **4.1 Titanic ([[slide:45]]):** ages 22, 38, 26, 35, 35 and one
 > blank → mean 31.2, median 35; one young passenger drags the mean down.
 > Cabin is blank in 4 of 6 rows. **4.2 Insulin, first 20 Diabetes rows:**
 > 11 of 20 are zeros → NaN; the 9 real values have mean ≈ 258.1 and median
@@ -396,12 +410,12 @@ không đổi, minh chứng nó vững với outlier.
 > n = 9 the maximum possible |z| is √8 ≈ 2.83). Capping at 434 lowers the
 > mean to ≈ 200.2 while the median stays 168.
 
-## 5. Code
+## Fit trên train rồi áp dụng test
 
-Cần file `diabetes.csv` cùng thư mục (như bài 16). Toàn bộ code mục này
+Cần file `diabetes.csv` cùng thư mục (như [[bài:descriptive-statistics]]). Toàn bộ code mục này
 là *tự soạn — slide không có code cho Step 3.1–3.2*.
 
-### 5.1. Phát hiện và đổi dữ liệu thiếu trá hình thành NaN
+## Phát hiện và đổi dữ liệu thiếu trá hình thành NaN
 
 ```python
 import numpy as np
@@ -423,7 +437,7 @@ print(rows_missing.sum(), (~rows_missing).sum())   # 376 392
 print(clean.dropna()["Outcome"].value_counts().to_dict())  # {0: 262, 1: 130}
 ```
 
-### 5.2. Điền dữ liệu thiếu đúng cách: fit trên train
+## Điền dữ liệu thiếu đúng cách: fit trên train
 
 ```python
 from sklearn.model_selection import train_test_split
@@ -449,7 +463,7 @@ print(dict(zip(X_train.columns, imputer.statistics_.round(2).tolist())))
 print(X_train_f.isna().sum().sum(), X_test_f.isna().sum().sum())   # 0 0
 ```
 
-### 5.3. Phát hiện outlier bằng IQR và z-score
+## Phát hiện outlier bằng IQR và z-score
 
 ```python
 def iqr_bounds(s, k=1.5):
@@ -469,7 +483,7 @@ print(pd.DataFrame(rows).to_string(index=False))
 # Insulin: lo = -94.375, hi = 360.625, out_iqr = 24, out_z3 = 8
 ```
 
-### 5.4. Xử lý outlier: cắt ngưỡng học từ train
+## Xử lý outlier: cắt ngưỡng học từ train
 
 ```python
 lo, hi = iqr_bounds(X_train["Insulin"].dropna())   # ngưỡng chỉ tính trên train
@@ -483,7 +497,7 @@ print(clean["Insulin"].skew().round(2), np.log1p(clean["Insulin"]).skew().round(
 # 2.17 -0.09  -> sau log, phân bố gần đối xứng
 ```
 
-### 5.5. Kiểm tra ví dụ tay
+## Kiểm tra ví dụ tay
 
 ```python
 ins = data["Insulin"].head(20)
@@ -505,70 +519,122 @@ print(round(capped.mean(), 1), capped.median())    # 200.2 168.0
 > train-learned IQR fences and shows `log1p` reducing skew. 5.5 checks
 > the hand example.
 
-## 6. Câu hỏi tự kiểm tra
+## Giả định cần nói rõ khi điền (bổ sung)
 
-**Câu 1:** Slide 45 chia Step 3 thành những bước con nào? Bước 3.5 nằm ở
+:::compare MCAR, MAR và MNAR
+| Cơ chế | Thiếu phụ thuộc vào | Hệ quả |
+|---|---|---|
+| MCAR | Không phụ thuộc dữ liệu quan sát hay chưa quan sát | Xóa dòng vẫn giảm dữ liệu; điền đơn giản vẫn có thể méo variance |
+| MAR | Biến đã quan sát | Có thể tận dụng biến liên quan khi impute |
+| MNAR | Giá trị thiếu/chưa quan sát, dù đã điều kiện trên biến quan sát | Indicator có thể hữu ích nhưng không tự sửa được bias |
+:::
+
+:::pitfall Nhãn outlier không phải bằng chứng sai
+IQR và z-score là quy tắc gắn cờ, không tự quyết định xóa. Model-based imputation không bảo đảm chính xác nhất; cần so trên validation. Lỗi định dạng như khoảng trắng nên chuẩn hóa nếu khôi phục được giá trị, không bắt buộc đổi mọi lỗi thành NaN. Với bài học này, các con số y sinh chỉ là ví dụ dữ liệu, không dùng làm ngưỡng quyết định thực tế.
+:::
+
+> **EN:** Missingness mechanisms require assumptions. An indicator is not a general cure for MNAR bias; outlier flags and model-based imputation also require validation.
+
+## Tóm tắt 1 phút
+
+:::recap
+- Missing có thể ẩn trong sentinel.
+- Xác minh giá trị và đơn vị trước khi sửa.
+- Median bền với cực trị hơn mean.
+- IQR và z-score có giả định, có thể gắn cờ khác nhau.
+- Outlier thật có thể là tín hiệu quý.
+- Fit imputer và ngưỡng trên train/fold.
+- Không bỏ mẫu test chỉ vì dự đoán khó.
+:::
+
+## Câu hỏi tự kiểm tra
+
+:::quiz
+@tier A | Hiểu bài
+Q: [[slide:45]] chia Step 3 thành những bước con nào? Bước 3.5 nằm ở
 đâu?
-> **Đáp án:** 01 Handle missing or invalid value, 02 Remove outliers, 03
-> Data Transformation, 04 Remove multicollinearity. Bước 3.5 Balance data
-> không nằm trong 4 ô này mà ở slide 52–54 (bài 21).
+A: 01 Handle missing or invalid value, 02 Remove outliers, 03
+Data Transformation, 04 Remove multicollinearity. Bước 3.5 Balance data
+không nằm trong 4 ô này mà ở [[slide:52-54]] ([[bài:imbalanced-data]]).
+EN: Which sub-steps does [[slide:45]] list? Where is step 3.5?
+**A:** Handle missing/invalid values, remove outliers, data
+> transformation, remove multicollinearity; step 3.5 (balance data) is
+> on slides 52–54 (lesson 21).
 
-**Câu 2:** Vì sao với cột Insulin nên điền **median** thay vì **mean**?
-> **Đáp án:** Insulin lệch phải mạnh và có outlier (846): vài giá trị rất
-> lớn kéo mean lên cao (ở ví dụ 20 dòng: mean 258.1, median 168). Median
-> không bị outlier kéo nên đại diện cho bệnh nhân điển hình tốt hơn.
+Q: Vì sao với cột Insulin nên điền **median** thay vì **mean**?
+A: Insulin lệch phải mạnh và có outlier (846): vài giá trị rất
+lớn kéo mean lên cao (ở ví dụ 20 dòng: mean 258.1, median 168). Median
+không bị outlier kéo nên đại diện cho bệnh nhân điển hình tốt hơn.
+EN: Why fill Insulin with the median rather than the mean?
+**A:** Insulin is strongly right-skewed with outliers that inflate the
+> mean (258.1 vs median 168 in the 20-row example); the median is
+> robust.
 
-**Câu 3:** Một bạn điền Insulin thiếu bằng "median Insulin của những người
+Q: Một bạn điền Insulin thiếu bằng "median Insulin của những người
 có cùng Outcome". Cách này sai ở đâu?
-> **Đáp án:** Outcome là label. Khi dự đoán bệnh nhân mới ta chưa biết
-> Outcome nên không áp dụng được; khi đánh giá thì giá trị điền đã "mách"
-> label cho model → **data leakage**, điểm đánh giá đẹp giả tạo.
+A: Outcome là label. Khi dự đoán bệnh nhân mới ta chưa biết
+Outcome nên không áp dụng được; khi đánh giá thì giá trị điền đã "mách"
+label cho model → **data leakage**, điểm đánh giá đẹp giả tạo.
+EN: What's wrong with filling Insulin by the median of patients with
+the same Outcome?
+**A:** Outcome is the label — unknown at prediction time, and using it
+> leaks the answer into the features (**data leakage**).
 
-**Câu 4:** Cho dãy 4, 5, 5, 6, 7, 8, 30. Dùng quy tắc IQR (vị trí
+Q: Cho dãy 4, 5, 5, 6, 7, 8, 30. Dùng quy tắc IQR (vị trí
 p × (n − 1)) tìm outlier.
-> **Đáp án:** n = 7. Q1: vị trí 0.25 × 6 = 1.5 → giữa 5 và 5 = **5**;
-> Q3: vị trí 4.5 → giữa 7 và 8 = **7.5**; IQR = **2.5**; cận dưới = 5 −
-> 3.75 = **1.25**; cận trên = 7.5 + 3.75 = **11.25** → **30** là outlier.
+A: n = 7. Q1: vị trí 0.25 × 6 = 1.5 → giữa 5 và 5 = **5**;
+Q3: vị trí 4.5 → giữa 7 và 8 = **7.5**; IQR = **2.5**; cận dưới = 5 −
+3.75 = **1.25**; cận trên = 7.5 + 3.75 = **11.25** → **30** là outlier.
+EN: IQR outliers in 4, 5, 5, 6, 7, 8, 30?
+**A:** Q1 = 5, Q3 = 7.5, IQR = 2.5, fences 1.25 and 11.25 → 30.
 
-**Câu 5:** Cùng dãy trên, z-score (std chia n) của 30 là bao nhiêu? Quy
+Q: Cùng dãy trên, z-score (std chia n) của 30 là bao nhiêu? Quy
 tắc |z| > 3 có bắt được 30 không? Vì sao?
-> **Đáp án:** mean = 65 / 7 ≈ 9.286; Σ(x − mean)² ≈ 511.43 → std =
-> √(511.43 / 7) ≈ 8.55 → z(30) ≈ (30 − 9.286) / 8.55 ≈ **2.42** < 3 →
-> **không bắt được**. Hai lý do: 30 kéo mean và std lên (*masking*), và
-> với n = 7 thì |z| tối đa chỉ là √6 ≈ 2.45 — quy tắc |z| > 3 vô dụng với
-> mẫu này. IQR ở Câu 4 thì bắt được.
+A: mean = 65 / 7 ≈ 9.286; Σ(x − mean)² ≈ 511.43 → std =
+√(511.43 / 7) ≈ 8.55 → z(30) ≈ (30 − 9.286) / 8.55 ≈ **2.42** < 3 →
+**không bắt được**. Hai lý do: 30 kéo mean và std lên (*masking*), và
+với n = 7 thì |z| tối đa chỉ là √6 ≈ 2.45 — quy tắc |z| > 3 vô dụng với
+mẫu này. IQR ở Câu 4 thì bắt được.
+EN: z-score of 30 in that list; does |z| > 3 catch it?
+**A:** z ≈ 2.42 < 3 → not caught: masking, and with n = 7 the
+> maximum possible |z| is √6 ≈ 2.45.
 
-**Câu 6:** Giải thích vì sao không nên xóa các dòng có outlier trong tập
+Q: Giải thích vì sao không nên xóa các dòng có outlier trong tập
 test.
-> **Đáp án:** Tập test mô phỏng dữ liệu thật mà model sẽ gặp khi triển
-> khai; ngoài đời không thể bỏ một bệnh nhân vì chỉ số lạ. Xóa outlier ở
-> test làm điểm đánh giá đẹp hơn thực tế. Với test chỉ áp dụng các phép
-> biến đổi (cắt ngưỡng, log) đã học từ train.
+A: Tập test mô phỏng dữ liệu thật mà model sẽ gặp khi triển
+khai; ngoài đời không thể bỏ một bệnh nhân vì chỉ số lạ. Xóa outlier ở
+test làm điểm đánh giá đẹp hơn thực tế. Với test chỉ áp dụng các phép
+biến đổi (cắt ngưỡng, log) đã học từ train.
+EN: Why not delete outlier rows from the test set?
+**A:** The test set mimics real data; deleting rows inflates the
+> score. Only apply train-learned transformations to it.
+@tier B | Phỏng vấn lý thuyết
+Q: Khi nào dùng median thay mean để điền?
+A: Median phù hợp baseline cho biến số lệch hoặc có cực trị vì ít bị kéo. Nó vẫn làm giảm variation và có thể bỏ qua quan hệ với cột khác; cần kiểm chứng trên validation.
+EN: Median imputation is robust to extreme values but can reduce variation and ignore conditional relationships.
+Q: IQR khác z-score ra sao?
+A: IQR dùng quantile và khoảng giữa, z-score dùng mean/std nên dễ bị cực trị kéo. Hai quy tắc chỉ tạo cờ điều tra, không xác nhận điểm sai.
+EN: IQR uses quartiles; z-scores use the mean and standard deviation and can suffer from masking.
+Q: MCAR, MAR, MNAR phân biệt thế nào?
+A: MCAR không phụ thuộc dữ liệu; MAR phụ thuộc biến đã quan sát; MNAR vẫn phụ thuộc giá trị chưa quan sát sau khi xét biến quan sát. Không xác định chắc cơ chế chỉ từ bảng dữ liệu thiếu.
+EN: MCAR is independent missingness; MAR depends on observed variables; MNAR depends on unobserved values after conditioning on observed data.
+Q: Vì sao thêm missing indicator có ích nhưng chưa đủ?
+A: Thiếu có thể phản ánh quy trình thu thập nên indicator giữ tín hiệu đó. Nhưng model có thể học quy trình của nguồn cũ và không tổng quát; indicator không tự khử bias do MNAR.
+EN: Missingness indicators can preserve useful signals but may encode collection bias and do not generally correct MNAR.
+@tier C | Tình huống doanh nghiệp
+Q: Cột số có nhiều giá trị 0. Đổi hết thành missing được không?
+A: Đọc định nghĩa và quy trình ghi trước: 0 có thể là giá trị thật, như số lần mua. Kiểm tra theo nguồn, thời gian và trường liên quan; chỉ đổi sentinel đã xác nhận, rồi thử imputation trong train. Đổi nhầm xóa tín hiệu thật *(bổ sung)*.
+WANT: Không áp quy tắc từ Diabetes cho mọi cột số.
+Q: Fraud có nhiều giao dịch rất lớn bị IQR đánh dấu. Có xóa?
+A: Kiểm tra lỗi đơn vị/nhập liệu và liên hệ nhãn; giữ giao dịch hiếm có thật vì có thể chính là mục tiêu phát hiện. Thử biến đổi hoặc model bền, đánh giá trên dữ liệu đại diện. Xóa có thể nâng metric chung nhưng phá recall fraud *(bổ sung)*.
+WANT: Phân biệt lỗi dữ liệu với tín hiệu hiếm quan trọng.
+Q: Insulin thiếu nhiều, muốn bỏ cột ngay. Bạn quyết định sao?
+A: So baseline có/không cột, median kèm indicator và phương án khác trên cùng split. Kiểm tra thiếu do nhóm nào và lúc serving có đo không. Cột thiếu nhiều vẫn có ích; model phức tạp hơn tăng chi phí và nguy cơ học bias nguồn *(bổ sung)*.
+WANT: Không dùng một ngưỡng tỷ lệ thiếu làm quyết định tuyệt đối.
+:::
 
-> **EN:**
->
-> **Q1:** Which sub-steps does slide 45 list? Where is step 3.5?
-> > **A:** Handle missing/invalid values, remove outliers, data
-> > transformation, remove multicollinearity; step 3.5 (balance data) is
-> > on slides 52–54 (lesson 21).
->
-> **Q2:** Why fill Insulin with the median rather than the mean?
-> > **A:** Insulin is strongly right-skewed with outliers that inflate the
-> > mean (258.1 vs median 168 in the 20-row example); the median is
-> > robust.
->
-> **Q3:** What's wrong with filling Insulin by the median of patients with
-> the same Outcome?
-> > **A:** Outcome is the label — unknown at prediction time, and using it
-> > leaks the answer into the features (**data leakage**).
->
-> **Q4:** IQR outliers in 4, 5, 5, 6, 7, 8, 30?
-> > **A:** Q1 = 5, Q3 = 7.5, IQR = 2.5, fences 1.25 and 11.25 → 30.
->
-> **Q5:** z-score of 30 in that list; does |z| > 3 catch it?
-> > **A:** z ≈ 2.42 < 3 → not caught: masking, and with n = 7 the
-> > maximum possible |z| is √6 ≈ 2.45.
->
-> **Q6:** Why not delete outlier rows from the test set?
-> > **A:** The test set mimics real data; deleting rows inflates the
-> > score. Only apply train-learned transformations to it.
+## Nối sang bài sau
+
+:::next
+Tiếp theo, [[bài:feature-scaling]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+:::

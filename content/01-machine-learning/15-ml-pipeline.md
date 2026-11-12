@@ -1,13 +1,27 @@
 ---
 title: Machine Learning Pipeline — 7 bước của một dự án ML
 order: 15
-description: Bức tranh toàn cảnh một dự án ML từ lúc thu thập dữ liệu đến khi đưa model vào sử dụng — 7 bước theo slide 39, mỗi bước làm gì, vì sao cần, và sẽ được học ở bài nào.
+description: "Ghép kiến thức thành quy trình bảy bước; dùng bản đồ bài học cho thống kê, tiền xử lý, đánh giá và triển khai."
+slides: 39
+needs: [model-training-pipeline, train-test-split, classification-metrics, regression-metrics]
+tags: [pipeline, workflow, deployment, leakage]
 ---
 
-## 1. Ý tưởng
+## Từ mảnh kiến thức đến một dự án ML
 
-Từ bài 01 đến bài 14, ta đã học từng "mảnh" riêng lẻ: feature và label,
-loss, chia train/test, K-fold, confusion matrix, các metric… Slide 39 ghép
+:::intro Đọc xong bài này bạn làm được
+- Kể đúng bảy bước theo slide và giải thích quan hệ vòng lặp.
+- Tìm bài cần đọc cho từng bước tiền xử lý.
+- Giữ fit trên train khi ghép toàn pipeline.
+:::
+
+Nền để đọc bài này: [[bài:model-training-pipeline]], [[bài:train-test-split]], [[bài:classification-metrics]], [[bài:regression-metrics]].
+
+:::slides 39 | Slide gốc — Machine Learning Pipeline — 7 bước của một dự án ML
+:::
+
+Từ [[bài:what-is-ml]] đến [[bài:regression-metrics]], ta đã học từng "mảnh" riêng lẻ: feature và label,
+loss, chia train/test, K-fold, confusion matrix, các metric… [[slide:39]] ghép
 tất cả lại thành **một quy trình hoàn chỉnh** — gọi là **Machine Learning
 pipeline** — gồm 7 bước:
 
@@ -39,7 +53,7 @@ giá, triển khai). Nguyên liệu hỏng thì đầu bếp giỏi mấy cũng 
 được — trong ML gọi là ***garbage in, garbage out***.
 
 > **EN:** Lessons 01–14 covered individual pieces (features and labels,
-> loss, train/test split, K-fold, confusion matrix, metrics…). Slide 39
+> loss, train/test split, K-fold, confusion matrix, metrics…). [[slide:39]]
 > assembles them into one complete workflow — the **Machine Learning
 > pipeline** — with 7 steps: **data collection, statistics, data
 > preprocessing, data visualization, model building, model evaluation,
@@ -50,7 +64,7 @@ giá, triển khai). Nguyên liệu hỏng thì đầu bếp giỏi mấy cũng 
 > project goes into the steps before (understanding and cleaning data) and
 > after (evaluation, deployment). ***Garbage in, garbage out.***
 
-## 2. Vị trí trong pipeline
+## Bài này là bản đồ của phần tiền xử lý
 
 Bài này **chính là** pipeline, nên câu hỏi đúng ở đây là: *những bài đã
 học nằm ở đâu trong 7 bước?*
@@ -58,7 +72,7 @@ học nằm ở đâu trong 7 bước?*
 - **Bài 02, 04** (dataset, feature, label, X và y) → cái ta có trong tay
   sau **Step 1**.
 - **Bài 05, 06** (model training, loss function) → bên trong **Step 5**.
-  Sơ đồ Input → Model → Output → so với Label → Loss ở bài 05 chính là
+  Sơ đồ Input → Model → Output → so với Label → Loss ở [[bài:model-training-pipeline]] chính là
   "phóng to" của bước Model building.
 - **Bài 07, 08, 09** (chia Train/Validation/Test, K-fold, Stratified
   K-fold) → cách tổ chức dữ liệu để **Step 5 và Step 6** làm việc đúng.
@@ -66,7 +80,7 @@ học nằm ở đâu trong 7 bước?*
   Precision, Recall, F1, ROC–AUC, MAE, RMSE) → công cụ của **Step 6**.
 
 Nói cách khác: phần đầu khóa học đã dạy "nửa sau" của pipeline (bước 5–6)
-trước. Từ bài 16 trở đi, khóa học quay lại dạy "nửa đầu" (bước 2–4) rồi
+trước. Từ [[bài:descriptive-statistics]] trở đi, khóa học quay lại dạy "nửa đầu" (bước 2–4) rồi
 mới đi sâu vào các thuật toán của bước 5.
 
 > **EN:** This lesson *is* the pipeline, so the useful question is where
@@ -78,9 +92,9 @@ mới đi sâu vào các thuật toán của bước 5.
 > half (steps 5–6) first; from lesson 16 on it goes back to steps 2–4,
 > then dives into the algorithms of step 5.
 
-## 3. Công thức / cách hoạt động
+## Bảy bước và đường đi học tiếp
 
-### 3.1. Step 1 — Data collection (Thu thập dữ liệu)
+## Step 1 — Data collection (Thu thập dữ liệu)
 
 Lấy dữ liệu về: từ file CSV có sẵn, cơ sở dữ liệu của công ty, khảo sát,
 cảm biến, API, crawl web… Trong khóa học, bước này gần như đã được làm sẵn:
@@ -100,17 +114,17 @@ liệu đó không (quyền riêng tư, nhất là dữ liệu y tế)?
 > **reliable**? Are we **allowed** to use it (privacy, especially medical
 > data)?
 
-### 3.2. Step 2 — Statistics (Hiểu dữ liệu thông qua thống kê)
+## Step 2 — Statistics (Hiểu dữ liệu thông qua thống kê)
 
 Trước khi sửa bất cứ thứ gì, phải **biết dữ liệu trông như thế nào**:
 bao nhiêu dòng, bao nhiêu cột, mỗi cột kiểu gì, giá trị nằm trong khoảng
-nào, các class có cân bằng không. Slide 40–44 làm đúng việc này trên
+nào, các class có cân bằng không. [[slide:40-44]] làm đúng việc này trên
 Diabetes dataset bằng `read_csv`, `dtypes`, `describe()` và
 `groupby(...).size()`.
 
 Kết quả của bước 2 là **danh sách vấn đề** cần xử lý ở bước 3. Ví dụ với
 Diabetes: Insulin bằng 0 ở gần một nửa số dòng (không thể có thật), và
-class 0 nhiều gấp ~1.87 lần class 1. → **Học chi tiết ở bài 16.**
+class 0 nhiều gấp ~1.87 lần class 1. → **Học chi tiết ở [[bài:descriptive-statistics]].**
 
 > **EN:** Before changing anything, **know what the data looks like**:
 > rows, columns, each column's type, value ranges, class balance. Slides
@@ -120,7 +134,7 @@ class 0 nhiều gấp ~1.87 lần class 1. → **Học chi tiết ở bài 16.**
 > the rows, and class 0 outnumbers class 1 about 1.87 to 1. → **Lesson
 > 16.**
 
-### 3.3. Step 3 — Data preprocessing (Tiền xử lý dữ liệu)
+## Step 3 — Data preprocessing (Tiền xử lý dữ liệu)
 
 Sửa những vấn đề tìm thấy ở bước 2 và biến dữ liệu thành dạng model "ăn"
 được. Theo các slide tiếp theo, bước này có 5 phần nhỏ:
@@ -133,7 +147,7 @@ Sửa những vấn đề tìm thấy ở bước 2 và biến dữ liệu thàn
 | 3.4 | Correlation và multicollinearity | 50–51 |
 | 3.5 | Cân bằng dữ liệu (over-sampling, under-sampling) | 52–54 |
 
-→ **Học ở bài 17 trở đi** (phần P02 và P03, dự kiến khoảng 4–5 bài trong
+→ **Học ở [[bài:missing-values-outliers]] trở đi** (phần P02 và P03, dự kiến khoảng 4–5 bài trong
 module 01).
 
 > **EN:** Fix the problems found in step 2 and turn the data into a form
@@ -143,11 +157,11 @@ module 01).
 > classes. → **Lessons 17 onward** (parts P02–P03, roughly 4–5 lessons in
 > module 01).
 
-### 3.4. Step 4 — Data visualization (Trực quan hóa dữ liệu)
+## Step 4 — Data visualization (Trực quan hóa dữ liệu)
 
 Vẽ biểu đồ (histogram, boxplot, scatter, heatmap…) để **nhìn** thấy những
 điều bảng số khó cho thấy: phân bố lệch, outlier, quan hệ giữa feature và
-label. Slide 55–63 dùng `matplotlib` và `seaborn`.
+label. [[slide:55-63]] dùng `matplotlib` và `seaborn`.
 
 → **Học ở module 04 — Data Visualization** (phần P04).
 
@@ -156,7 +170,7 @@ label. Slide 55–63 dùng `matplotlib` và `seaborn`.
 > feature–label relationships. Slides 55–63 use `matplotlib` and
 > `seaborn`. → **Module 04 — Data Visualization** (part P04).
 
-### 3.5. Step 5 — Model building (Xây dựng và huấn luyện mô hình)
+## Step 5 — Model building (Xây dựng và huấn luyện mô hình)
 
 Chọn thuật toán, đưa dữ liệu train vào để model học (cơ chế đã gặp ở bài
 05–06: model đoán → so với label → tính loss → tự điều chỉnh).
@@ -174,11 +188,11 @@ Chọn thuật toán, đưa dữ liệu train vào để model học (cơ chế 
 > Tree, Random Forest), **module 03** (K-Means), and *(proposed)*
 > **module 06** (NLP, time series, recommendation systems).
 
-### 3.6. Step 6 — Model evaluation (Đánh giá mô hình)
+## Step 6 — Model evaluation (Đánh giá mô hình)
 
 Đo model tốt đến đâu trên dữ liệu **chưa từng thấy** (Validation / Test).
 
-→ Phần công cụ đo **đã học ở bài 07–14**. Phần chẩn đoán và cải thiện
+→ Phần công cụ đo **đã học ở [[bài:train-test-split]]–14**. Phần chẩn đoán và cải thiện
 model học ở **Module 05 — Model Evaluation**: bias, variance,
 underfitting, overfitting, regularization, giảm chiều dữ liệu, PCA
 (P11–P14).
@@ -188,12 +202,12 @@ underfitting, overfitting, regularization, giảm chiều dữ liệu, PCA
 > improving models (bias, variance, under/overfitting, regularization,
 > dimensionality reduction, PCA) is **module 05** (P11–P14).
 
-### 3.7. Step 7 — Model deployment (Triển khai mô hình)
+## Step 7 — Model deployment (Triển khai mô hình)
 
 Đưa model ra dùng thật: lưu model thành file, gắn vào web/app/API, nhận
 dữ liệu mới và trả dự đoán.
 
-*(Bổ sung — slide 39 chỉ nêu tên bước, khóa học không có slide riêng)*
+*(Bổ sung — [[slide:39]] chỉ nêu tên bước, khóa học không có slide riêng)*
 Triển khai không phải là kết thúc: dữ liệu thực tế thay đổi theo thời
 gian (gọi là **data drift**), nên cần **theo dõi** (monitoring) độ chính
 xác và huấn luyện lại định kỳ. Ví dụ model chấm điểm tín dụng train trên
@@ -202,22 +216,22 @@ vay–trả của khách hàng đã khác.
 
 > **EN:** Put the model to real use: save it to a file, plug it into a
 > web app / API, receive new data and return predictions.
-> *(Supplementary — slide 39 only names this step)* Deployment isn't the
+> *(Supplementary — [[slide:39]] only names this step)* Deployment isn't the
 > end: real-world data changes over time (**data drift**), so the model
 > must be **monitored** and periodically retrained — e.g. a credit-scoring
 > model trained on pre-COVID data may degrade afterwards.
 
-### 3.8. Bản đồ học tập: bước nào học ở đâu
+## Bản đồ học tập: bước nào học ở đâu
 
 | Bước | Slide | Phần | Nơi học |
 |---|---|---|---|
-| 1. Data collection | — | — | (đã có sẵn file; bài 02, 04) |
-| 2. Statistics | 40–44 | P01 | **bài 16** (module 01) |
-| 3. Data preprocessing (3.1–3.4) | 45–51 | P02 | bài 17 trở đi (module 01) |
+| 1. Data collection | — | — | (đã có sẵn file; [[bài:feature-and-data-types]], 04) |
+| 2. Statistics | 40–44 | P01 | **[[bài:descriptive-statistics]]** (module 01) |
+| 3. Data preprocessing (3.1–3.4) | 45–51 | P02 | [[bài:missing-values-outliers]] trở đi (module 01) |
 | 3.5. Balance data | 52–54 | P03 | bài cuối phần tiền xử lý (module 01) |
 | 4. Data visualization | 55–63 | P04 | module 04 |
 | 5. Model building | 64–96, 132–139 | P05–P10, P15 | module 02, 03, 06 (đề xuất) |
-| 6. Model evaluation | 22–38, 97–131 | — / P11–P14 | **bài 07–14 (đã học)**; module 05 |
+| 6. Model evaluation | 22–38, 97–131 | — / P11–P14 | **[[bài:train-test-split]]–14 (đã học)**; module 05 |
 | 7. Model deployment | — | — | không có slide riêng |
 
 *Số thứ tự bài từ 17 trở đi là dự kiến, có thể đổi khi đọc slide thật.*
@@ -228,7 +242,7 @@ vay–trả của khách hàng đã khác.
 > 05; step 7 → no dedicated slides. Lesson numbers from 17 on are
 > tentative.
 
-### 3.9. Pipeline không phải đường thẳng *(Nhận xét của Claude — không có trong slide)*
+## Pipeline không phải đường thẳng *(Nhận xét của Claude — không có trong slide)*
 
 Slide vẽ 7 bước nối nhau một chiều, nhưng ngoài thực tế có hai điều cần
 lưu ý:
@@ -238,7 +252,7 @@ bước 3 thêm feature, hoặc bước 1 thu thêm dữ liệu. Trực quan hó
 thường được làm **xen kẽ** với bước 2 và 3 chứ không chỉ sau bước 3: vẽ
 histogram là cách nhanh nhất để phát hiện outlier *trước khi* xử lý.
 
-**(b) Chia Train/Test ở đâu?** Slide 39 không có bước "chia dữ liệu",
+**(b) Chia Train/Test ở đâu?** [[slide:39]] không có bước "chia dữ liệu",
 nhưng đây là chỗ hay sai nhất. Quy tắc:
 
 ```
@@ -250,12 +264,12 @@ trị thiếu, tính mean/std để chuẩn hóa, sinh mẫu mới để cân b�
 phải tính **chỉ trên tập train**, rồi mới áp dụng sang tập test. Nếu tính
 trên toàn bộ dữ liệu, thông tin của tập test đã "rò" vào quá trình train,
 gọi là **data leakage** → điểm test đẹp hơn thực tế. Tập test phải giống
-"đề thi chưa ai xem trước" (bài 07).
+"đề thi chưa ai xem trước" ([[bài:train-test-split]]).
 
 > **EN:** *(Claude's note — not in the slides)* (a) The pipeline loops:
 > poor evaluation sends you back to step 3 or step 1, and visualization is
 > usually interleaved with steps 2–3 rather than strictly after step 3.
-> (b) Slide 39 has no "split" step, yet this is where most mistakes
+> (b) [[slide:39]] has no "split" step, yet this is where most mistakes
 > happen: split **after step 2 and before step 3**. Anything in step 3
 > that *learns* from data (medians for imputation, mean/std for scaling,
 > synthetic samples for balancing) must be fitted **on the training set
@@ -263,15 +277,16 @@ gọi là **data leakage** → điểm test đẹp hơn thực tế. Tập test 
 > into training — **data leakage** — and test scores look better than
 > reality.
 
-## 4. Ví dụ tay
+## Đi qua pipeline trên Diabetes
 
+:::worked Ví dụ và số liệu đối chiếu
 Đi qua cả 7 bước với Diabetes dataset, mỗi bước một con số cụ thể
 *(phần số liệu sau bước 2 là ví dụ tự soạn, chạy bằng code ở mục 5)*.
 
 **Step 1 — Thu thập.** File `diabetes.csv`: **768** bệnh nhân × **9**
 cột (8 feature + `Outcome`).
 
-**Step 2 — Thống kê.** Hai phát hiện quan trọng (chi tiết ở bài 16):
+**Step 2 — Thống kê.** Hai phát hiện quan trọng (chi tiết ở [[bài:descriptive-statistics]]):
 
 - `Outcome`: **500** người không bệnh (0), **268** người bệnh (1) → 65.1% /
   34.9%.
@@ -279,7 +294,7 @@ cột (8 feature + `Outcome`).
   Insulin 374, BMI 11.
 
 **Chia dữ liệu.** 80% train / 20% test, **stratified** theo `Outcome`
-(bài 09):
+([[bài:stratified-k-fold]]):
 
 | | Tổng | Outcome = 0 | Outcome = 1 |
 |---|---|---|---|
@@ -303,7 +318,7 @@ scikit-learn `[[TN, FP], [FN, TP]]`):
 | **Thật 0** | TN = 82 | FP = 18 |
 | **Thật 1** | FN = 27 | TP = 27 |
 
-Tính tay (công thức bài 12):
+Tính tay (công thức [[bài:classification-metrics]]):
 
 - Accuracy = (82 + 27) / 154 = 109 / 154 ≈ **0.7078**
 - Precision = 27 / (27 + 18) = 27 / 45 = **0.60**
@@ -312,7 +327,7 @@ Tính tay (công thức bài 12):
 
 So với model "lười" **luôn đoán 0**: Accuracy = 100 / 154 ≈ **0.6494**.
 Model thật chỉ hơn khoảng **6 điểm phần trăm**, và Recall = 0.5 nghĩa là
-**bỏ sót một nửa** số người bệnh. Đây đúng là bẫy Accuracy ở bài 12 — và
+**bỏ sót một nửa** số người bệnh. Đây đúng là bẫy Accuracy ở [[bài:classification-metrics]] — và
 là lý do khóa học có **Step 3.5 Balance data**.
 
 **Step 7 — Triển khai.** Lưu model thành file, nạp lại và dự đoán cho một
@@ -341,8 +356,9 @@ thời gian không.
 > real-world example)* A Hanoi clinic screening for diabetes: export
 > records (1), notice Insulin is often blank (2), prioritise Recall (6),
 > embed the model in the clinic software and monitor it (7).
+:::
 
-## 5. Code
+## Ghép imputer, scaler và model
 
 Toàn bộ pipeline trong một file. Cần file `diabetes.csv` (Pima Indians
 Diabetes Database, có trên Kaggle) đặt cùng thư mục. Các bước 3–6 sẽ được
@@ -419,7 +435,7 @@ Ghi chú:
 - `Pipeline` của scikit-learn đúng nghĩa đen là "đường ống": dữ liệu đi
   qua impute → scale → model theo thứ tự. Lợi ích chính là **không thể
   quên** fit trên train rồi mới transform test.
-- ROC AUC = 0.813 khá ổn (bài 13), nghĩa là model **xếp hạng** người bệnh
+- ROC AUC = 0.813 khá ổn ([[bài:roc-auc]]), nghĩa là model **xếp hạng** người bệnh
   cao hơn người khỏe khá tốt — vấn đề Recall thấp một phần do ngưỡng 0.5
   và dữ liệu mất cân bằng.
 - Kết quả có thể lệch chút ít giữa các phiên bản scikit-learn.
@@ -433,72 +449,124 @@ Ghi chú:
 > due to the 0.5 threshold and the class imbalance. Numbers may differ
 > slightly across scikit-learn versions.
 
-## 6. Câu hỏi tự kiểm tra
+## Bản đồ Step 2–3 đã chốt
 
-**Câu 1:** Kể tên 7 bước của ML pipeline theo đúng thứ tự trong slide 39.
-> **Đáp án:** Data collection → Statistics → Data preprocessing → Data
+:::compare Bước nào đọc bài nào?
+| Bước | Bài học |
+|---|---|
+| Step 2 — hiểu dữ liệu | [[bài:descriptive-statistics]] |
+| Step 3.1–3.2 — thiếu và ngoại lai | [[bài:missing-values-outliers]] |
+| Step 3.3 — thang đo số | [[bài:feature-scaling]] |
+| Step 3.3 — categorical | [[bài:categorical-encoding]] |
+| Step 3.4 — quan hệ feature | [[bài:correlation-multicollinearity]] |
+| Step 3.5 — class mất cân bằng | [[bài:imbalanced-data]] |
+:::
+
+Bước 4–7 sẽ tiếp tục ở các module sau; module chưa có nội dung sẽ hiển thị trạng thái đó. Ví dụ deployment trong bài là phần bổ sung để hình dung quy trình, không phải nội dung slide riêng.
+
+> **EN:** Lessons 16–21 cover statistics and preprocessing. Visualization, model algorithms, further evaluation and deployment continue in later modules; deployment examples here are supplementary.
+
+## Tóm tắt 1 phút
+
+:::recap
+- Bảy bước là khung nhìn tổng thể.
+- Thống kê tạo danh sách vấn đề dữ liệu.
+- Tiền xử lý cần fit trong train/fold.
+- Visualization có thể xen kẽ quá trình.
+- Chọn model bằng validation, đánh giá cuối bằng test.
+- Triển khai gồm cả preprocessing và giám sát.
+:::
+
+## Câu hỏi tự kiểm tra
+
+:::quiz
+@tier A | Hiểu bài
+Q: Kể tên 7 bước của ML pipeline theo đúng thứ tự trong [[slide:39]].
+A: Data collection → Statistics → Data preprocessing → Data
+visualization → Model building → Model evaluation → Model deployment.
+EN: Name the 7 pipeline steps in [[slide:39]]'s order.
+**A:** Data collection → Statistics → Data preprocessing → Data
 > visualization → Model building → Model evaluation → Model deployment.
 
-**Câu 2:** Mỗi tình huống sau thuộc bước nào? (a) Phát hiện cột Insulin
+Q: Mỗi tình huống sau thuộc bước nào? (a) Phát hiện cột Insulin
 có 374 giá trị bằng 0. (b) Thay các số 0 đó bằng median. (c) Tính F1 trên
 tập test. (d) Gắn model vào phần mềm của phòng khám.
-> **Đáp án:** (a) Step 2 — Statistics; (b) Step 3 — Data preprocessing;
-> (c) Step 6 — Model evaluation; (d) Step 7 — Model deployment.
+A: (a) Step 2 — Statistics; (b) Step 3 — Data preprocessing;
+(c) Step 6 — Model evaluation; (d) Step 7 — Model deployment.
+EN: Which step: (a) finding 374 zeros in Insulin; (b) replacing
+them with the median; (c) computing F1 on the test set; (d) plugging the
+model into clinic software?
+**A:** (a) Statistics; (b) Data preprocessing; (c) Model evaluation;
+> (d) Model deployment.
 
-**Câu 3:** Vì sao phải chia train/test **trước** khi tính median để điền
+Q: Vì sao phải chia train/test **trước** khi tính median để điền
 giá trị thiếu hoặc tính mean/std để chuẩn hóa?
-> **Đáp án:** Vì median, mean, std là những thứ "học" từ dữ liệu. Nếu tính
-> trên toàn bộ dataset thì thông tin của tập test đã lọt vào quá trình
-> huấn luyện (data leakage), làm điểm trên test đẹp hơn so với khi gặp dữ
-> liệu thật. Phải fit trên train, rồi chỉ transform test.
+A: Vì median, mean, std là những thứ "học" từ dữ liệu. Nếu tính
+trên toàn bộ dataset thì thông tin của tập test đã lọt vào quá trình
+huấn luyện (data leakage), làm điểm trên test đẹp hơn so với khi gặp dữ
+liệu thật. Phải fit trên train, rồi chỉ transform test.
+EN: Why split before computing the median or mean/std?
+**A:** Those statistics are learned from data; computing them on the
+> full dataset leaks test information into training (data leakage),
+> inflating test scores. Fit on train, transform test.
 
-**Câu 4:** Một model trên test có TN = 82, FP = 18, FN = 27, TP = 27. Tính
+Q: Một model trên test có TN = 82, FP = 18, FN = 27, TP = 27. Tính
 Accuracy và Recall. So với model luôn đoán 0 thì sao?
-> **Đáp án:** Accuracy = 109 / 154 ≈ 0.708; Recall = 27 / 54 = 0.5. Model
-> luôn đoán 0 có Accuracy = 100 / 154 ≈ 0.649 nhưng Recall = 0. Model thật
-> chỉ hơn ~6 điểm Accuracy và vẫn bỏ sót một nửa người bệnh.
+A: Accuracy = 109 / 154 ≈ 0.708; Recall = 27 / 54 = 0.5. Model
+luôn đoán 0 có Accuracy = 100 / 154 ≈ 0.649 nhưng Recall = 0. Model thật
+chỉ hơn ~6 điểm Accuracy và vẫn bỏ sót một nửa người bệnh.
+EN: TN = 82, FP = 18, FN = 27, TP = 27. Accuracy and Recall? Compare
+with always predicting 0.
+**A:** Accuracy ≈ 0.708, Recall = 0.5. Always-0 scores ≈ 0.649
+> accuracy with Recall 0. The model is only ~6 points better and misses
+> half the patients.
 
-**Câu 5:** Đã học xong các metric ở bài 11–14, vì sao vẫn còn cả module
+Q: Đã học xong các metric ở [[bài:confusion-matrix]]–14, vì sao vẫn còn cả module
 05 "Model Evaluation" phía sau?
-> **Đáp án:** Bài 11–14 dạy cách **đo** model. Module 05 dạy cách **chẩn
-> đoán và cải thiện**: vì sao model kém (bias/variance, underfitting/
-> overfitting) và cách sửa (regularization, chọn model, giảm chiều dữ
-> liệu, PCA).
+A: Bài 11–14 dạy cách **đo** model. Module 05 dạy cách **chẩn
+đoán và cải thiện**: vì sao model kém (bias/variance, underfitting/
+overfitting) và cách sửa (regularization, chọn model, giảm chiều dữ
+liệu, PCA).
+EN: Why is there a whole "Model Evaluation" module after lessons
+11–14?
+**A:** Lessons 11–14 teach how to **measure**; module 05 teaches how to
+> **diagnose and improve** (bias/variance, under/overfitting,
+> regularization, model selection, dimensionality reduction, PCA).
 
-**Câu 6:** Triển khai xong model là dự án kết thúc, đúng hay sai?
-> **Đáp án:** Sai. Dữ liệu thực tế thay đổi theo thời gian (data drift),
-> nên phải theo dõi hiệu năng và huấn luyện lại khi cần; pipeline là một
-> vòng lặp, không phải đường thẳng.
+Q: Triển khai xong model là dự án kết thúc, đúng hay sai?
+A: Sai. Dữ liệu thực tế thay đổi theo thời gian (data drift),
+nên phải theo dõi hiệu năng và huấn luyện lại khi cần; pipeline là một
+vòng lặp, không phải đường thẳng.
+EN: True or false: once deployed, the project is finished.
+**A:** False — data drifts over time, so performance must be monitored
+> and the model retrained; the pipeline is a loop.
+@tier B | Phỏng vấn lý thuyết
+Q: Pipeline nghiệp vụ khác sklearn Pipeline không?
+A: Pipeline nghiệp vụ bao gồm cả thu thập, đánh giá và vận hành. sklearn Pipeline là công cụ ghép các phép transform và estimator để fit/predict nhất quán. Nó hỗ trợ quy trình nhưng không tự làm sạch split sai.
+EN: The project lifecycle is broader than sklearn Pipeline, which chains transformations and an estimator.
+Q: Vì sao quy trình không chỉ chạy một chiều?
+A: Thống kê hoặc đánh giá có thể cho thấy thiếu dữ liệu, nhãn sai hay feature chưa phù hợp. Quay lại bước trước để sửa, nhưng giữ test độc lập khỏi vòng lựa chọn.
+EN: The workflow is iterative; findings can send work back to data collection or preprocessing.
+Q: Lưu model có đủ để triển khai không?
+A: Cần lưu cả bước tiền xử lý đã học, thứ tự/kiểu feature và cách giải mã đầu ra, rồi kiểm tra input mới *(bổ sung)*. Chỉ lưu estimator dễ tạo khác biệt train–serving.
+EN: Deployment needs the fitted preprocessing, feature schema, and output interpretation as well as the estimator.
+Q: Theo dõi gì sau khi triển khai?
+A: Theo dõi lỗi pipeline, phân bố input và metric khi có nhãn; so theo thời gian và nhóm. Input thay đổi là tín hiệu điều tra, không tự chứng minh chất lượng giảm hoặc cần retrain ngay *(bổ sung)*.
+EN: Monitor operational failures, input distributions, and labeled performance; drift is a diagnostic signal, not proof of degradation.
+@tier C | Tình huống doanh nghiệp
+Q: Dự án đổi nhiều thuật toán mà chưa cải thiện. Bắt đầu lại đâu?
+A: Kiểm tra mục tiêu, định nghĩa target, cách split và chất lượng dữ liệu trước; xác lập baseline rồi phân tích mẫu sai. Chỉ tăng thuật toán khi đã có bằng chứng hạn chế ở model. Đổi model nhanh có thể che lỗi dữ liệu và tăng chi phí *(bổ sung)*.
+WANT: Nhìn toàn quy trình thay vì chỉ model building.
+Q: Offline tốt, API trả kết quả khác. Debug sao?
+A: Lấy một input cố định chạy cả offline và API, so schema, missing handling, scaling, encoding và phiên bản artifact từng bước. Triển khai pipeline đã fit cùng estimator, thêm kiểm tra tương đương. Đánh đổi độ linh hoạt với tính nhất quán *(bổ sung)*.
+WANT: Có cách truy vết train–serving skew tới từng bước.
+Q: Dữ liệu mới đổi phân bố, có retrain tự động ngay?
+A: Kiểm tra lỗi thu thập/schema trước, xem metric trên nhãn mới nếu có, so các nhóm và xác định tác động. Retrain thử và đánh giá trước khi thay model; đổi phân bố không luôn là giảm chất lượng. Tự động nhanh hơn nhưng cần tiêu chí phát hành rõ *(bổ sung)*.
+WANT: Phân biệt drift, lỗi vận hành và bằng chứng cần thay model.
+:::
 
-> **EN:**
->
-> **Q1:** Name the 7 pipeline steps in slide 39's order.
-> > **A:** Data collection → Statistics → Data preprocessing → Data
-> > visualization → Model building → Model evaluation → Model deployment.
->
-> **Q2:** Which step: (a) finding 374 zeros in Insulin; (b) replacing
-> them with the median; (c) computing F1 on the test set; (d) plugging the
-> model into clinic software?
-> > **A:** (a) Statistics; (b) Data preprocessing; (c) Model evaluation;
-> > (d) Model deployment.
->
-> **Q3:** Why split before computing the median or mean/std?
-> > **A:** Those statistics are learned from data; computing them on the
-> > full dataset leaks test information into training (data leakage),
-> > inflating test scores. Fit on train, transform test.
->
-> **Q4:** TN = 82, FP = 18, FN = 27, TP = 27. Accuracy and Recall? Compare
-> with always predicting 0.
-> > **A:** Accuracy ≈ 0.708, Recall = 0.5. Always-0 scores ≈ 0.649
-> > accuracy with Recall 0. The model is only ~6 points better and misses
-> > half the patients.
->
-> **Q5:** Why is there a whole "Model Evaluation" module after lessons
-> 11–14?
-> > **A:** Lessons 11–14 teach how to **measure**; module 05 teaches how to
-> > **diagnose and improve** (bias/variance, under/overfitting,
-> > regularization, model selection, dimensionality reduction, PCA).
->
-> **Q6:** True or false: once deployed, the project is finished.
-> > **A:** False — data drifts over time, so performance must be monitored
-> > and the model retrained; the pipeline is a loop.
+## Nối sang bài sau
+
+:::next
+Tiếp theo, [[bài:descriptive-statistics]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+:::

@@ -1,12 +1,26 @@
 ---
 title: ROC curve và AUC
 order: 13
-description: Thay vì chấm model tại một threshold duy nhất, quét qua mọi threshold rồi vẽ True Positive Rate theo False Positive Rate — diện tích dưới đường cong (AUC) cho một con số đánh giá khả năng phân biệt hai class.
+description: "Quét threshold để dựng ROC, hiểu AUC như khả năng xếp hạng và chọn điểm vận hành bằng chi phí FP/FN, nhất là khi class mất cân bằng."
+slides: 37
+needs: [classification-metrics]
+tags: [roc, auc, tpr, fpr, precision-recall, threshold]
 ---
 
-## 1. Ý tưởng
+## So model khi threshold thay đổi
 
-Ở bài 12, mọi metric đều tính tại **một threshold cố định** (thường 0.5).
+:::intro Đọc xong bài này bạn làm được
+- Tính TPR/FPR và dựng ROC bằng ví dụ email.
+- Kiểm tra AUC bằng diện tích và đếm cặp.
+- Phân biệt ranking, threshold và precision ở điểm vận hành.
+:::
+
+Nền để đọc bài này: [[bài:classification-metrics]].
+
+:::slides 37 | Slide gốc — ROC curve và AUC
+:::
+
+Ở [[bài:classification-metrics]], mọi metric đều tính tại **một threshold cố định** (thường 0.5).
 Đổi threshold là Precision, Recall đổi theo. Vậy khi so hai model, nếu
 model A thắng ở threshold 0.5 nhưng thua ở 0.3 thì kết luận thế nào?
 
@@ -28,7 +42,7 @@ khỏi class −, bất kể sau này chọn threshold nào.
 > the better the model **separates** positives from negatives, regardless
 > of which threshold is chosen later.
 
-## 2. Vị trí trong pipeline
+## Từ confusion matrix đến một đường cong
 
 ```
 Confusion Matrix (bài 11)
@@ -40,7 +54,7 @@ Confusion Matrix (bài 11)
                           → diện tích = AUC                (bài này)
 ```
 
-Đây là **slide 37**, slide cuối của phần đánh giá model Classification.
+Đây là **[[slide:37]]**, slide cuối của phần đánh giá model Classification.
 Slide đặt Confusion Matrix bên trái, bảng định nghĩa TPR/FPR ở dưới, và
 hình ROC curve bên phải.
 
@@ -48,15 +62,15 @@ hình ROC curve bên phải.
 chứ không chỉ một nhãn cứng. Hầu hết model phân loại đều làm được (ví dụ
 `predict_proba` trong scikit-learn).
 
-> **EN:** This is slide 37, the last slide on Classification evaluation.
+> **EN:** This is [[slide:37]], the last slide on Classification evaluation.
 > The ROC curve extends the Confusion Matrix from one threshold to all of
 > them. Requirement: the model must output a **score / probability**, not
 > just a hard label — most classifiers can (e.g. `predict_proba` in
 > scikit-learn).
 
-## 3. Công thức / cách hoạt động
+## Các công thức và cách đọc ROC
 
-### 3.1. Hai trục của ROC
+## Hai trục của ROC
 
 | Metric | Công thức | Ý nghĩa | Trục |
 |---|---|---|---|
@@ -77,7 +91,7 @@ Specificity = TN / (TN + FP) nên 1 − Specificity = FP / (FP + TN) = FPR.
 > Note the symmetry: TPR is computed over the Actual + row, FPR over the
 > Actual − row.
 
-### 3.2. Đọc hình ROC trong slide
+## Đọc hình ROC trong slide
 
 - **Perfect classifier** (dấu sao góc trên trái, điểm (0, 1)): FPR = 0,
   TPR = 1 — bắt hết mẫu + mà không báo nhầm mẫu − nào. Đường cong càng
@@ -93,7 +107,7 @@ Specificity = TN / (TN + FP) nên 1 − Specificity = FP / (FP + TN) = FPR.
 > (TPR = FPR, AUC = 0.5). The blue **ROC** curve is the real model, and
 > the shaded region beneath it is the **AUC**.
 
-### 3.3. Đường cong được vẽ ra như thế nào *(Bổ sung — slide chỉ cho hình, không cho cách vẽ)*
+## Đường cong được vẽ ra như thế nào *(Bổ sung — slide chỉ cho hình, không cho cách vẽ)*
 
 1. Model cho mỗi mẫu một **score** (xác suất là +).
 2. **Sắp xếp** các mẫu theo score giảm dần.
@@ -118,7 +132,7 @@ sang phải sau** → ôm góc trên trái. Model ngẫu nhiên xen lẫn + và 
 > flagged → (1, 1). A good model ranks positives first, so the curve goes
 > up before it goes right and hugs the top-left corner.
 
-### 3.4. Ý nghĩa của AUC *(Bổ sung)*
+## Ý nghĩa của AUC *(Bổ sung)*
 
 AUC có một cách hiểu rất trực quan:
 
@@ -148,10 +162,10 @@ Các mốc 0.7 / 0.8 / 0.9 chỉ là quy ước phổ biến, không phải chu�
 > sign of flipped labels). These bands are common conventions, not hard
 > rules.
 
-### 3.5. Chọn threshold từ ROC *(Bổ sung)*
+## Chọn threshold từ ROC *(Bổ sung)*
 
 ROC cho thấy mọi lựa chọn; việc chọn **một** điểm để triển khai phụ thuộc
-cái giá của FP và FN (giống bài 12, phần 3.10):
+cái giá của FP và FN (giống [[bài:classification-metrics]], phần 3.10):
 
 - Sàng lọc bệnh → chọn điểm có **TPR cao**, chấp nhận FPR lớn hơn.
 - Hệ thống mà báo nhầm rất tốn kém → chọn điểm có **FPR thấp**.
@@ -164,7 +178,7 @@ cái giá của FP và FN (giống bài 12, phần 3.10):
 > higher FPR; costly false alarms → low FPR; no clear preference → maximise
 > **TPR − FPR** (Youden's J), the point farthest above the diagonal.
 
-### 3.6. Giới hạn của ROC và PR curve *(Bổ sung)*
+## Giới hạn của ROC và PR curve *(Bổ sung)*
 
 FPR chia cho số mẫu − thật. Khi class − **rất đông** (ví dụ 990 giao dịch
 bình thường so với 10 gian lận), dù model báo nhầm 40 giao dịch thì
@@ -185,9 +199,9 @@ số lần báo +, không phải cho cả nhóm − đông đảo.
 > **Average Precision (AP)**. It's more sensitive to FP because Precision
 > divides by predicted positives, not by the huge negative class.
 
-## 4. Ví dụ tay
+## Quét điểm trên mười email
 
-*(Bổ sung — slide 37 không có số liệu cụ thể; ví dụ dưới đây do Claude
+*(Bổ sung — [[slide:37]] không có số liệu cụ thể; ví dụ dưới đây do Claude
 soạn.)*
 
 10 email, model cho điểm "xác suất là spam". Class + = spam: có P = 5 spam
@@ -198,7 +212,7 @@ và N = 5 không spam. Đã sắp xếp theo score giảm dần:
 | Score | 0.95 | 0.85 | 0.80 | 0.70 | 0.60 | 0.55 | 0.40 | 0.30 | 0.20 | 0.10 |
 | Label | + | + | − | + | + | − | + | − | − | − |
 
-### 4.1. Quét threshold (báo + nếu score ≥ threshold)
+## Quét threshold (báo + nếu score ≥ threshold)
 
 | Threshold | Báo + là | TP | FP | TPR = TP/5 | FPR = FP/5 |
 |---|---|---|---|---|---|
@@ -220,7 +234,7 @@ tăng 0.2 (đi lên), gặp mẫu − thì FPR tăng 0.2 (sang phải).
 Threshold mặc định 0.5 rơi vào dòng 0.55 (A–F bị báo +): TP = 4, FP = 2,
 FN = 1, TN = 3 → TPR = 0.8, FPR = 0.4, Precision = 4/6 ≈ 0.667.
 
-### 4.2. Tính AUC bằng diện tích
+## Tính AUC bằng diện tích
 
 Đường ROC là một đường bậc thang. Cộng diện tích các khối chữ nhật dưới
 nó theo từng đoạn FPR:
@@ -232,7 +246,7 @@ nó theo từng đoạn FPR:
 | 0.4 → 1.0 | 1.0 | 0.6 × 1.0 = 0.60 |
 | **Tổng** | | **AUC = 0.84** |
 
-### 4.3. Kiểm tra bằng cách đếm cặp (ý nghĩa xác suất)
+## Kiểm tra bằng cách đếm cặp (ý nghĩa xác suất)
 
 Có 5 × 5 = 25 cặp (spam, không spam). Đếm số cặp mà spam có score **cao
 hơn**:
@@ -249,13 +263,13 @@ hơn**:
 AUC = 21 / 25 = **0.84** — khớp với cách tính diện tích. Nghĩa là: lấy
 ngẫu nhiên 1 spam và 1 email thường, 84% khả năng model chấm spam cao hơn.
 
-### 4.4. Chọn threshold theo Youden's J
+## Chọn threshold theo Youden's J
 
 TPR − FPR lớn nhất là **0.6**, đạt tại threshold 0.60 (TPR 0.8, FPR 0.2)
 và 0.40 (TPR 1.0, FPR 0.4). Nếu bỏ sót spam đáng ngại hơn thì chọn 0.40
 (bắt hết spam); nếu báo nhầm đáng ngại hơn thì chọn 0.60.
 
-> **EN:** *(Example written by Claude; slide 37 has no numbers.)* 10
+> **EN:** *(Example written by Claude; [[slide:37]] has no numbers.)* 10
 > emails with spam scores, 5 spam and 5 not. Sweeping the threshold yields
 > 11 (FPR, TPR) points — each positive moves the curve up 0.2, each
 > negative moves it right 0.2. At the default 0.5 threshold: TPR = 0.8,
@@ -263,9 +277,9 @@ và 0.40 (TPR 1.0, FPR 0.4). Nếu bỏ sót spam đáng ngại hơn thì chọn
 > pairs: in 21 of 25 (spam, non-spam) pairs the spam scores higher →
 > 21/25 = 0.84. Youden's J peaks at 0.6 at thresholds 0.60 and 0.40.
 
-## 5. Code
+## Tự dựng ROC rồi đối chiếu scikit-learn
 
-### 5.1. Tự cài đặt ROC và AUC
+## Tự cài đặt ROC và AUC
 
 ```python
 import numpy as np
@@ -300,7 +314,7 @@ Lưu ý: cách cài đặt trên giả sử không có hai mẫu trùng score. N
 gộp các mẫu cùng score thành một bước (scikit-learn đã xử lý việc này).
 Nếu dùng NumPy bản cũ (< 2.0), thay `np.trapezoid` bằng `np.trapz`.
 
-### 5.2. Dùng scikit-learn và vẽ hình
+## Dùng scikit-learn và vẽ hình
 
 ```python
 from sklearn.metrics import roc_curve, roc_auc_score
@@ -331,81 +345,131 @@ Với model thật, `scores` lấy từ cột xác suất của class +:
 > `roc_auc_score` and plot. With a real model, use
 > `model.predict_proba(X_test)[:, 1]` as the scores.
 
-## 6. Câu hỏi tự kiểm tra
+## Ranking chưa phải quyết định vận hành (bổ sung)
 
-**Câu 1:** TPR và FPR được tính trên nhóm mẫu nào? Mỗi cái ta muốn cao hay
+:::compare ROC và PR
+| Đồ thị | Hai trục | Điều cần kiểm tra |
+|---|---|---|
+| ROC | FPR, TPR | Khả năng xếp hạng và vùng FPR chấp nhận được |
+| PR | Recall, Precision | Tỷ lệ cảnh báo đúng khi class dương hiếm |
+:::
+
+:::note Hai chi tiết cần chính xác (nhận xét)
+AUC tính cả điểm hòa: P(score+ > score−) + 0.5 × P(score+ = score−). AP là tổng precision có trọng số theo mức tăng recall, không đồng nhất với diện tích hình thang dưới PR. ROC không đủ cho biết precision nếu chưa biết tỷ lệ class. Trong ví dụ 10 dương, 990 âm và 40 FP, precision khoảng 0.17 chỉ khi TP = 8: 8/(8+40) = 1/6. Chọn threshold trên validation, không trên test.
+:::
+
+> **EN:** AUC gives half credit to tied pairs. Average precision weights precision by recall increments; it is distinct from trapezoidal PR area. Choose the operating threshold on validation data.
+
+## Tóm tắt 1 phút
+
+:::recap
+- TPR nhìn dương thật; FPR nhìn âm thật.
+- Quét score tạo ROC qua các threshold.
+- AUC đo ranking, không phải accuracy.
+- AUC tốt không bảo đảm tốt ở ngưỡng cụ thể.
+- Xem PR và số FP khi class dương hiếm.
+- Chọn threshold theo validation và chi phí vận hành.
+:::
+
+## Câu hỏi tự kiểm tra
+
+:::quiz
+@tier A | Hiểu bài
+Q: TPR và FPR được tính trên nhóm mẫu nào? Mỗi cái ta muốn cao hay
 thấp?
-> **Đáp án:** TPR = TP / (TP + FN), tính trên nhóm **+ thật** — muốn
-> **cao**. FPR = FP / (FP + TN), tính trên nhóm **− thật** — muốn
-> **thấp**. Cả hai đều là "tỉ lệ bị báo +", chỉ khác nhóm.
+A: TPR = TP / (TP + FN), tính trên nhóm **+ thật** — muốn
+**cao**. FPR = FP / (FP + TN), tính trên nhóm **− thật** — muốn
+**thấp**. Cả hai đều là "tỉ lệ bị báo +", chỉ khác nhóm.
+EN: Over which group of samples are TPR and FPR computed? Do we want
+each high or low?
+**A:** TPR = TP / (TP + FN), over **actual positives** — want it
+> **high**. FPR = FP / (FP + TN), over **actual negatives** — want it
+> **low**.
 
-**Câu 2:** Vì sao đường chéo nối (0, 0) và (1, 1) tương ứng với một model
+Q: Vì sao đường chéo nối (0, 0) và (1, 1) tương ứng với một model
 đoán ngẫu nhiên?
-> **Đáp án:** Model ngẫu nhiên không phân biệt được + và −, nên tỉ lệ báo
-> + trên nhóm dương thật bằng tỉ lệ báo + trên nhóm âm thật: TPR = FPR. Tập
-> hợp các điểm có TPR = FPR chính là đường chéo, và diện tích dưới nó là
-> 0.5.
+A: Model ngẫu nhiên không phân biệt được + và −, nên tỉ lệ báo
++ trên nhóm dương thật bằng tỉ lệ báo + trên nhóm âm thật: TPR = FPR. Tập
+hợp các điểm có TPR = FPR chính là đường chéo, và diện tích dưới nó là
+0.5.
+EN: Why does the diagonal from (0, 0) to (1, 1) correspond to a
+random classifier?
+**A:** A random model can't tell + from −, so it flags the same share
+> of each group: TPR = FPR. Those points form the diagonal, with area
+> 0.5 beneath it.
 
-**Câu 3:** Trong ví dụ 10 email, nếu email C (không spam, score 0.80) được
+Q: Trong ví dụ 10 email, nếu email C (không spam, score 0.80) được
 model chấm lại 0.35 thì AUC thay đổi thế nào?
-> **Đáp án:** Thứ tự mới: A, B, D, E, F, G, C, H, I, J. Đếm lại số email
-> không spam có score thấp hơn mỗi spam: A 5, B 5, D 5, E 5 (cả bốn đều
-> cao hơn mọi email thường, vì email thường cao nhất giờ là F = 0.55), G 4
-> (thua F, thắng C 0.35, H, I, J). Tổng = 24 → AUC = 24/25 = **0.96**.
-> Tăng vì model xếp hạng tốt hơn: mẫu − từng "chen" lên trên ba spam đã bị
-> đẩy xuống dưới.
+A: Thứ tự mới: A, B, D, E, F, G, C, H, I, J. Đếm lại số email
+không spam có score thấp hơn mỗi spam: A 5, B 5, D 5, E 5 (cả bốn đều
+cao hơn mọi email thường, vì email thường cao nhất giờ là F = 0.55), G 4
+(thua F, thắng C 0.35, H, I, J). Tổng = 24 → AUC = 24/25 = **0.96**.
+Tăng vì model xếp hạng tốt hơn: mẫu − từng "chen" lên trên ba spam đã bị
+đẩy xuống dưới.
+EN: In the 10-email example, if email C (not spam, score 0.80) is
+re-scored to 0.35, how does AUC change?
+**A:** New counts of lower-scored non-spam per spam: A 5, B 5, D 5,
+> E 5, G 4 → 24 → AUC = 24/25 = **0.96**. Better ranking, higher AUC.
 
-**Câu 4:** Model X có AUC = 0.92, model Y có AUC = 0.85. Có chắc X tốt hơn
+Q: Model X có AUC = 0.92, model Y có AUC = 0.85. Có chắc X tốt hơn
 Y tại threshold 0.5 không?
-> **Đáp án:** Không chắc. AUC tổng hợp trên **mọi** threshold; hai đường
-> ROC có thể cắt nhau, nên tại một threshold cụ thể Y vẫn có thể có TPR
-> hoặc FPR tốt hơn. AUC cao nói rằng X **xếp hạng** tốt hơn về tổng thể,
-> còn hiệu năng tại một điểm vận hành phải xem trực tiếp điểm đó.
+A: Không chắc. AUC tổng hợp trên **mọi** threshold; hai đường
+ROC có thể cắt nhau, nên tại một threshold cụ thể Y vẫn có thể có TPR
+hoặc FPR tốt hơn. AUC cao nói rằng X **xếp hạng** tốt hơn về tổng thể,
+còn hiệu năng tại một điểm vận hành phải xem trực tiếp điểm đó.
+EN: Model X has AUC 0.92, model Y 0.85. Is X definitely better at
+threshold 0.5?
+**A:** No. AUC summarises **all** thresholds; the ROC curves can cross,
+> so Y may still be better at a specific operating point.
 
-**Câu 5:** Một model có AUC = 0.3. Điều đó có nghĩa gì và nên làm gì?
-> **Đáp án:** Model xếp hạng **ngược**: thường chấm mẫu − cao hơn mẫu +.
-> Đảo dấu dự đoán (dùng 1 − score) sẽ cho AUC = 0.7. Nhưng trước khi đảo,
-> nên kiểm tra lỗi trong pipeline — ví dụ đảo nhầm label 0/1 hoặc lấy nhầm
-> cột xác suất của class −.
+Q: Một model có AUC = 0.3. Điều đó có nghĩa gì và nên làm gì?
+A: Model xếp hạng **ngược**: thường chấm mẫu − cao hơn mẫu +.
+Đảo dấu dự đoán (dùng 1 − score) sẽ cho AUC = 0.7. Nhưng trước khi đảo,
+nên kiểm tra lỗi trong pipeline — ví dụ đảo nhầm label 0/1 hoặc lấy nhầm
+cột xác suất của class −.
+EN: A model has AUC = 0.3. What does it mean and what should you do?
+**A:** It ranks **backwards**. Using 1 − score gives AUC 0.7, but first
+> check the pipeline for bugs such as flipped labels or using the wrong
+> probability column.
 
-**Câu 6:** Vì sao với dữ liệu rất mất cân bằng (1% là +), ROC/AUC có thể
+Q: Vì sao với dữ liệu rất mất cân bằng (1% là +), ROC/AUC có thể
 trông lạc quan hơn thực tế?
-> **Đáp án:** Vì FPR chia cho số mẫu − rất lớn: hàng chục, hàng trăm lần
-> báo nhầm vẫn chỉ cho FPR nhỏ, nên đường ROC vẫn đẹp. Trong khi Precision
-> (chia cho số lần báo +) có thể rất thấp. Lúc đó nên xem thêm
-> Precision–Recall curve và Average Precision.
+A: Vì FPR chia cho số mẫu − rất lớn: hàng chục, hàng trăm lần
+báo nhầm vẫn chỉ cho FPR nhỏ, nên đường ROC vẫn đẹp. Trong khi Precision
+(chia cho số lần báo +) có thể rất thấp. Lúc đó nên xem thêm
+Precision–Recall curve và Average Precision.
+EN: Why can ROC/AUC look overly optimistic on heavily imbalanced data
+(1% positive)?
+**A:** FPR divides by the huge number of negatives, so many false
+> alarms still give a small FPR, while Precision may be very low. Check
+> the Precision–Recall curve and Average Precision as well.
+@tier B | Phỏng vấn lý thuyết
+Q: AUC bằng 0.5 nói gì và không nói gì?
+A: Ranking tổng thể không tốt hơn mức không phân biệt theo AUC. Không có nghĩa mọi ngưỡng có accuracy 50%, cũng không chứng minh score hoàn toàn độc lập với nhãn. Cần xem đường cong và chất lượng dữ liệu.
+EN: An AUC of 0.5 indicates no overall ranking advantage under this measure; it does not imply 50% accuracy at every threshold.
+Q: AUC cao có bảo đảm xác suất đúng không?
+A: Không. AUC chỉ xét thứ tự; đổi score bằng hàm tăng nghiêm ngặt giữ nguyên AUC nhưng có thể đổi ý nghĩa xác suất. Calibration là việc khác *(bổ sung)*.
+EN: AUC measures ranking, not probability calibration; strictly increasing score transformations preserve it.
+Q: ROC khác PR khi class dương hiếm thế nào?
+A: FPR chia theo số âm, nên nhiều FP có thể vẫn cho FPR nhỏ. Precision chia số cảnh báo dương, phản ánh trực tiếp độ sạch danh sách cảnh báo. Xem cả ROC và PR, kèm tỷ lệ class và chi phí.
+EN: ROC uses false-positive rate; PR exposes precision among alerts and depends on positive prevalence.
+Q: Hai model ROC cắt nhau thì chọn bằng AUC được không?
+A: AUC tóm tắt toàn miền. Nếu chỉ vận hành ở FPR rất thấp, cần so vùng đó và chi phí tại ngưỡng khả thi; model AUC thấp hơn có thể tốt hơn ở vùng cần dùng.
+EN: Crossing ROC curves require comparison in the relevant operating region, not only by total AUC.
+@tier C | Tình huống doanh nghiệp
+Q: Fraud chỉ 0.1%, AUC cao mà đội duyệt than quá nhiều báo nhầm. Làm gì?
+A: Đo precision, recall và số cảnh báo/ngày trên validation có tỷ lệ thật. Chọn ngưỡng theo công suất duyệt và chi phí fraud bỏ sót, xem PR curve; chốt trước khi đánh giá test. AUC vẫn hữu ích cho ranking nhưng chưa phản ánh tải vận hành *(bổ sung)*.
+WANT: Nối metric với tỷ lệ class, ngân sách xử lý và trade-off.
+Q: Hai model AUC tương đương nhưng chỉ được duyệt một danh sách ngắn. Chọn sao?
+A: So precision/recall ở đúng ngân sách cảnh báo trên cùng validation, kiểm tra độ ổn định theo thời gian và nhóm giao dịch. Cân nhắc chi phí suy luận; không chọn theo chênh AUC nhỏ ngoài vùng sử dụng *(bổ sung)*.
+WANT: Ưu tiên điểm vận hành thực tế và tính ổn định.
+Q: AUC tụt dưới 0.5 sau một lần cập nhật pipeline. Có đảo score ngay?
+A: Kiểm tra class mapping, cột predict_proba và chiều score trước, so vài mẫu đã biết. Nếu lỗi kỹ thuật thì sửa và đo lại; nếu thật sự đảo ranking thì kiểm tra nhãn/phân phối. Đảo score chỉ chữa triệu chứng nếu nguyên nhân chưa rõ *(bổ sung)*.
+WANT: Debug có thứ tự trước khi áp mẹo 1 − score.
+:::
 
-> **EN:**
->
-> **Q1:** Over which group of samples are TPR and FPR computed? Do we want
-> each high or low?
-> > **A:** TPR = TP / (TP + FN), over **actual positives** — want it
-> > **high**. FPR = FP / (FP + TN), over **actual negatives** — want it
-> > **low**.
->
-> **Q2:** Why does the diagonal from (0, 0) to (1, 1) correspond to a
-> random classifier?
-> > **A:** A random model can't tell + from −, so it flags the same share
-> > of each group: TPR = FPR. Those points form the diagonal, with area
-> > 0.5 beneath it.
->
-> **Q3:** In the 10-email example, if email C (not spam, score 0.80) is
-> re-scored to 0.35, how does AUC change?
-> > **A:** New counts of lower-scored non-spam per spam: A 5, B 5, D 5,
-> > E 5, G 4 → 24 → AUC = 24/25 = **0.96**. Better ranking, higher AUC.
->
-> **Q4:** Model X has AUC 0.92, model Y 0.85. Is X definitely better at
-> threshold 0.5?
-> > **A:** No. AUC summarises **all** thresholds; the ROC curves can cross,
-> > so Y may still be better at a specific operating point.
->
-> **Q5:** A model has AUC = 0.3. What does it mean and what should you do?
-> > **A:** It ranks **backwards**. Using 1 − score gives AUC 0.7, but first
-> > check the pipeline for bugs such as flipped labels or using the wrong
-> > probability column.
->
-> **Q6:** Why can ROC/AUC look overly optimistic on heavily imbalanced data
-> (1% positive)?
-> > **A:** FPR divides by the huge number of negatives, so many false
-> > alarms still give a small FPR, while Precision may be very low. Check
-> > the Precision–Recall curve and Average Precision as well.
+## Nối sang bài sau
+
+:::next
+Tiếp theo, [[bài:regression-metrics]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+:::

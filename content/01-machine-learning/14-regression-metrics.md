@@ -1,16 +1,30 @@
 ---
 title: Metric cho Regression — MAE và RMSE
 order: 14
-description: Đánh giá model dự đoán con số (giá nhà) bằng sai số trung bình — MAE đo sai lệch "điển hình", RMSE phạt nặng sai lệch lớn — cùng mối liên hệ với L1/L2 loss, R² và cách đọc các con số này.
+description: "Tính MAE, RMSE trên giá nhà, đọc độ nhạy với lỗi lớn và đặt metric trong bối cảnh thang đo, baseline và chi phí bất đối xứng."
+slides: 38
+needs: [loss-function]
+tags: [mae, rmse, r2, regression, outlier]
 ---
 
-## 1. Ý tưởng
+## Dự đoán lệch bao nhiêu?
+
+:::intro Đọc xong bài này bạn làm được
+- Tính tay MAE và RMSE, giữ đúng đơn vị.
+- Giải thích vì sao RMSE ≥ MAE.
+- Chọn metric theo chi phí thay vì tên gọi quen thuộc.
+:::
+
+Nền để đọc bài này: [[bài:loss-function]].
+
+:::slides 38 | Slide gốc — Metric cho Regression — MAE và RMSE
+:::
 
 Với Regression, gần như không bao giờ model đoán **trúng chính xác** giá
 nhà đến từng đồng, nên hỏi "đúng bao nhiêu phần trăm" (Accuracy) là vô
 nghĩa. Câu hỏi đúng là: ***"Trung bình model đoán lệch bao nhiêu?"***
 
-Slide 38 đưa ra hai cách trả lời:
+[[slide:38]] đưa ra hai cách trả lời:
 
 - **MAE (Mean Absolute Error)**: lấy trị tuyệt đối sai lệch từng mẫu rồi
   **trung bình** → "trung bình mỗi căn đoán lệch khoảng bao nhiêu tỉ".
@@ -18,21 +32,21 @@ Slide 38 đưa ra hai cách trả lời:
   rồi **lấy căn** → cũng ra đơn vị tỉ đồng, nhưng **phạt nặng các lần
   đoán lệch lớn**.
 
-Nếu thấy quen thì đúng vậy: đây chính là **L1 và L2 loss** của bài 06,
+Nếu thấy quen thì đúng vậy: đây chính là **L1 và L2 loss** của [[bài:loss-function]],
 chỉ khác là lấy **trung bình** thay vì tổng (và RMSE thêm bước lấy căn).
 
 > **EN:** In Regression a model almost never hits the exact house price,
 > so asking "what percentage was right?" (Accuracy) is meaningless. The
-> right question is ***"on average, how far off is the model?"*** Slide 38
+> right question is ***"on average, how far off is the model?"*** [[slide:38]]
 > gives two answers: **MAE** — average the absolute errors ("each house is
 > off by about X billion"); **RMSE** — square the errors, average, then
 > take the square root (same unit, but **large errors are penalised
 > more**). These are the **L1 and L2 losses** from lesson 06, averaged
 > instead of summed (plus a square root for RMSE).
 
-## 2. Vị trí trong pipeline
+## Một công thức, hai vai trò loss và metric
 
-Slide 38 dùng lại đúng dataset giá nhà của bài 06, nhưng giờ thấy đủ
+[[slide:38]] dùng lại đúng dataset giá nhà của [[bài:loss-function]], nhưng giờ thấy đủ
 feature:
 
 ```
@@ -43,7 +57,7 @@ feature:
                                                     MAE, RMSE (bài này)
 ```
 
-So với Classification (bài 11–13), luồng giống hệt: model → prediction →
+So với Classification ([[bài:confusion-matrix]]–13), luồng giống hệt: model → prediction →
 so với label. Chỉ khác **cách so**: Classification đếm đúng/sai theo
 nhãn; Regression đo **khoảng cách** giữa hai con số.
 
@@ -51,13 +65,13 @@ Cùng một công thức có thể đóng hai vai:
 
 | | Vai trò | Ai dùng | Khi nào |
 |---|---|---|---|
-| **Loss** (L1, L2 — bài 06) | để model **tự sửa** | thuật toán tối ưu | trong lúc train |
+| **Loss** (L1, L2 — [[bài:loss-function]]) | để model **tự sửa** | thuật toán tối ưu | trong lúc train |
 | **Metric** (MAE, RMSE — bài này) | để **con người đánh giá** | ta, khi so sánh/báo cáo | trên Validation / Test |
 
 Một model có thể train bằng một loss (ví dụ L2) nhưng được đánh giá bằng
 metric khác (ví dụ MAE) — tùy điều ta quan tâm khi dùng thực tế.
 
-> **EN:** Slide 38 reuses lesson 06's house price dataset, now with all
+> **EN:** [[slide:38]] reuses lesson 06's house price dataset, now with all
 > features shown (area, floors, city, in-alley). The flow mirrors
 > Classification — model → prediction → compare with label — only the
 > comparison differs: distance between numbers instead of right/wrong
@@ -66,9 +80,9 @@ metric khác (ví dụ MAE) — tùy điều ta quan tâm khi dùng thực tế.
 > (MAE/RMSE) it lets **us evaluate** the model on Validation/Test. A model
 > can be trained with one (e.g. L2) and evaluated with another (e.g. MAE).
 
-## 3. Công thức / cách hoạt động
+## MAE, RMSE và baseline
 
-### 3.1. MAE — Mean Absolute Error
+## MAE — Mean Absolute Error
 
 ```
 MAE = (1/N) · Σ |y_prediction − y_actual|
@@ -86,7 +100,7 @@ MAE = (1/N) · Σ |y_prediction − y_actual|
 > proportion to its size; the **unit matches the label**, so MAE = 0.3
 > reads as "off by 0.3 billion VND per house on average".
 
-### 3.2. RMSE — Root Mean Squared Error
+## RMSE — Root Mean Squared Error
 
 ```
 RMSE = √[ (1/N) · Σ (y_prediction − y_actual)² ]
@@ -106,7 +120,7 @@ Ba bước, đọc từ trong ra ngoài:
 > (that's **MSE**, in squared units like "billion²" — hard to interpret),
 > then take the **root** to return to the label's unit.
 
-### 3.3. MAE và RMSE khác nhau thế nào? *(Bổ sung — slide chỉ cho công thức)*
+## MAE và RMSE khác nhau thế nào? *(Bổ sung — slide chỉ cho công thức)*
 
 **Luôn có RMSE ≥ MAE.** Hai giá trị bằng nhau chỉ khi mọi sai lệch có
 cùng độ lớn. **Khoảng cách giữa RMSE và MAE càng lớn thì sai lệch càng
@@ -117,12 +131,12 @@ không đều**, tức là có vài mẫu bị đoán lệch rất xa.
 | Phạt sai lệch lớn | tuyến tính, "phạt đều" | bình phương, "phạt nặng" |
 | Bị outlier chi phối | ít | nhiều |
 | Ý nghĩa trực quan | sai lệch điển hình | sai lệch có tính đến rủi ro lớn |
-| Tương ứng với loss | L1 (bài 06) | L2 (bài 06) |
+| Tương ứng với loss | L1 ([[bài:loss-function]]) | L2 ([[bài:loss-function]]) |
 
 Chọn cái nào?
 
 - Dùng **MAE** khi mọi sai lệch "đắt như nhau" theo đơn vị, hoặc dữ liệu
-  có nhiều điểm nhiễu không đáng tin (giống lập luận chọn L1 ở bài 06).
+  có nhiều điểm nhiễu không đáng tin (giống lập luận chọn L1 ở [[bài:loss-function]]).
 - Dùng **RMSE** khi một lần đoán lệch rất xa **gây hậu quả nặng hơn
   nhiều** so với nhiều lần lệch nhỏ. Ví dụ dự báo nhu cầu điện: thiếu hụt
   lớn một lần có thể gây mất điện diện rộng.
@@ -137,7 +151,7 @@ Chọn cái nào?
 > costs the same or data is noisy; use RMSE when one big miss is far
 > worse than several small ones. In practice, report both.
 
-### 3.4. R² — so với việc "đoán bừa bằng trung bình" *(Bổ sung)*
+## R² — so với việc "đoán bừa bằng trung bình" *(Bổ sung)*
 
 MAE = 0.3 tỉ là tốt hay tệ? Còn tùy: nhà 3 tỉ mà lệch 0.3 tỉ là 10%, nhà
 30 tỉ thì lệch 0.3 tỉ là rất ít. MAE và RMSE **phụ thuộc thang đo** của
@@ -173,9 +187,9 @@ nhưng sẽ bùng nổ khi giá trị thật gần 0.
 > percentage of the true value — intuitive, but it explodes when true
 > values are near zero.
 
-## 4. Ví dụ tay
+## Tính trên bốn căn nhà
 
-Dữ liệu slide 38 (đơn vị: tỉ VND):
+Dữ liệu [[slide:38]] (đơn vị: tỉ VND):
 
 | # | Diện tích | Số tầng | Thành phố | Trong ngõ | Prediction | Label | Sai lệch e | \|e\| | e² |
 |---|---|---|---|---|---|---|---|---|---|
@@ -185,11 +199,11 @@ Dữ liệu slide 38 (đơn vị: tỉ VND):
 | 4 | 50 | 4 | Huế | No | 2.90 | 2.30 | +0.60 | 0.60 | 0.3600 |
 | | | | | | | | **Tổng** | **1.20** | **0.5048** |
 
-### 4.1. MAE
+## MAE
 
 MAE = 1.20 / 4 = **0.30 tỉ** → trung bình mỗi căn đoán lệch 300 triệu.
 
-### 4.2. RMSE
+## RMSE
 
 - MSE = 0.5048 / 4 = **0.1262** (tỉ²)
 - RMSE = √0.1262 ≈ **0.3552 tỉ**
@@ -198,16 +212,16 @@ RMSE (0.355) lớn hơn MAE (0.30) khoảng 18%, do dòng Huế (lệch 0.60) đ
 góp **0.36 / 0.5048 ≈ 71%** tổng bình phương sai lệch, dù chỉ chiếm 1/4
 số mẫu.
 
-### 4.3. Liên hệ với bài 06
+## Liên hệ với [[bài:loss-function]]
 
 Bài 06 đã tính trên chính dữ liệu này: L1 = 1.20, L2 = 0.5048. Vậy:
 
 - MAE = L1 / N = 1.20 / 4 = 0.30 ✓
 - MSE = L2 / N = 0.5048 / 4 = 0.1262 ✓, RMSE = √MSE
 
-### 4.4. Thí nghiệm outlier *(Bổ sung)*
+## Thí nghiệm outlier *(Bổ sung)*
 
-Như câu hỏi ở bài 06: nếu model đoán căn ở Huế là **4.3 tỉ** (sai lệch
+Như câu hỏi ở [[bài:loss-function]]: nếu model đoán căn ở Huế là **4.3 tỉ** (sai lệch
 +2.0 thay vì +0.6), ba dòng còn lại giữ nguyên:
 
 | Metric | Trước | Sau | Tăng gấp |
@@ -219,7 +233,7 @@ Chỉ một căn bị đoán tệ hơn mà RMSE tăng gần gấp ba, trong khi 
 khoảng 2.2 lần. Khoảng cách RMSE − MAE nới từ 0.055 lên 0.368 — đúng là
 dấu hiệu "có một lỗi lớn bất thường".
 
-### 4.5. R² và MAPE *(Bổ sung)*
+## R² và MAPE *(Bổ sung)*
 
 - Giá trung bình: ȳ = (3.75 + 4.12 + 2.2 + 2.3) / 4 = **3.0925**
 - Model "đoán bừa bằng trung bình" có Σ(y − ȳ)² = 0.6575² + 1.0275² +
@@ -229,7 +243,7 @@ dấu hiệu "có một lỗi lớn bất thường".
 - MAPE = (0.30/3.75 + 0.22/4.12 + 0.08/2.2 + 0.60/2.3) / 4 ≈ (0.080 +
   0.053 + 0.036 + 0.261) / 4 ≈ **10.8%**. Riêng căn ở Huế lệch tới 26%.
 
-> **EN:** Slide 38's data: |errors| sum to 1.20 and squared errors to
+> **EN:** [[slide:38]]'s data: |errors| sum to 1.20 and squared errors to
 > 0.5048. MAE = 0.30 billion; MSE = 0.1262; RMSE ≈ 0.3552 billion. The
 > Huế row alone contributes ≈ 71% of the squared error. Link to lesson 06:
 > MAE = L1/N, MSE = L2/N. *(Supplementary)* If the Huế prediction becomes
@@ -237,9 +251,9 @@ dấu hiệu "có một lỗi lớn bất thường".
 > (≈ 2.9×). R² ≈ 0.827 against the mean-prediction baseline (ȳ = 3.0925);
 > MAPE ≈ 10.8%.
 
-## 5. Code
+## Tự tính và đối chiếu thư viện
 
-### 5.1. Tự cài đặt bằng NumPy
+## Tự cài đặt bằng NumPy
 
 ```python
 import numpy as np
@@ -265,7 +279,7 @@ print(f"MAE  → {mae(pred_bad, actual):.4f}")    # 0.6500
 print(f"RMSE → {rmse(pred_bad, actual):.4f}")   # 1.0179
 ```
 
-### 5.2. Đối chiếu bằng scikit-learn
+## Đối chiếu bằng scikit-learn
 
 ```python
 from sklearn.metrics import (mean_absolute_error, mean_squared_error,
@@ -288,72 +302,115 @@ RMSE thì đổi chỗ không sao vì công thức đối xứng, nhưng với R
 > gives **wrong results** for R² and MAPE. Recent versions also provide
 > `root_mean_squared_error`.
 
-## 6. Câu hỏi tự kiểm tra
+## Đừng suy quá xa từ một con số (bổ sung)
 
-**Câu 1:** Vì sao không dùng Accuracy để đánh giá model dự đoán giá nhà?
-> **Đáp án:** Vì output là số liên tục, model gần như không bao giờ đoán
-> trùng khớp tuyệt đối với giá thật, nên Accuracy gần như luôn bằng 0 và
-> không phân biệt được model lệch 10 triệu với model lệch 2 tỉ. Regression
-> cần metric đo **độ lớn sai lệch** như MAE, RMSE.
+:::pitfall Đối xứng và bối cảnh
+MAE là trung bình trị tuyệt đối, không phải median sai số. Cả MAE và RMSE đều đối xứng giữa dự đoán thừa và thiếu. R² dùng trung bình y của chính tập đánh giá trong mẫu số; không tự chứng minh model thắng baseline triển khai tính từ train. R² không có đơn vị nhưng khác phân phối target vẫn làm so sánh giữa bài toán thiếu ý nghĩa. Tập có target hằng cần xử lý riêng vì mẫu số R² bằng 0.
+:::
 
-**Câu 2:** MAE và L1 loss (bài 06) khác nhau ở đâu? RMSE và L2 loss thì
+> **EN:** MAE is a mean, not a median. Both MAE and RMSE penalize over- and underprediction symmetrically. R² depends on target variance and needs care for constant targets.
+
+## Tóm tắt 1 phút
+
+:::recap
+- MAE = trung bình độ lớn sai lệch.
+- RMSE = căn trung bình bình phương sai lệch.
+- Cả hai cùng đơn vị target.
+- RMSE nhạy với lỗi lớn hơn MAE.
+- Báo cáo baseline và phân bố residual.
+- Chi phí bất đối xứng cần tiêu chí bổ sung.
+:::
+
+## Câu hỏi tự kiểm tra
+
+:::quiz
+@tier A | Hiểu bài
+Q: Vì sao không dùng Accuracy để đánh giá model dự đoán giá nhà?
+A: Vì output là số liên tục, model gần như không bao giờ đoán
+trùng khớp tuyệt đối với giá thật, nên Accuracy gần như luôn bằng 0 và
+không phân biệt được model lệch 10 triệu với model lệch 2 tỉ. Regression
+cần metric đo **độ lớn sai lệch** như MAE, RMSE.
+EN: Why not use Accuracy to evaluate a house price model?
+**A:** The output is continuous, so predictions almost never match
+> exactly; Accuracy would be ~0 and couldn't tell a 10-million miss from
+> a 2-billion miss. Regression needs metrics that measure **error size**.
+
+Q: MAE và L1 loss ([[bài:loss-function]]) khác nhau ở đâu? RMSE và L2 loss thì
 sao?
-> **Đáp án:** MAE = L1 chia cho N (lấy trung bình thay vì tổng). RMSE =
-> căn bậc hai của (L2 chia cho N). Lấy trung bình để metric không phụ
-> thuộc số lượng mẫu; lấy căn để RMSE quay về cùng đơn vị với label.
+A: MAE = L1 chia cho N (lấy trung bình thay vì tổng). RMSE =
+căn bậc hai của (L2 chia cho N). Lấy trung bình để metric không phụ
+thuộc số lượng mẫu; lấy căn để RMSE quay về cùng đơn vị với label.
+EN: How does MAE relate to L1 loss (lesson 06)? RMSE to L2 loss?
+**A:** MAE = L1 / N; RMSE = √(L2 / N). Averaging removes dependence
+> on sample count; the root restores the label's unit.
 
-**Câu 3:** Vì sao RMSE luôn lớn hơn hoặc bằng MAE? Khi nào bằng nhau?
-> **Đáp án:** Bình phương làm các sai lệch lớn chiếm tỉ trọng nhiều hơn
-> trong trung bình, nên căn của trung bình bình phương luôn ≥ trung bình
-> trị tuyệt đối. Hai giá trị bằng nhau khi mọi sai lệch có cùng độ lớn
-> (ví dụ tất cả đều lệch đúng 0.3).
+Q: Vì sao RMSE luôn lớn hơn hoặc bằng MAE? Khi nào bằng nhau?
+A: Bình phương làm các sai lệch lớn chiếm tỉ trọng nhiều hơn
+trong trung bình, nên căn của trung bình bình phương luôn ≥ trung bình
+trị tuyệt đối. Hai giá trị bằng nhau khi mọi sai lệch có cùng độ lớn
+(ví dụ tất cả đều lệch đúng 0.3).
+EN: Why is RMSE always ≥ MAE? When are they equal?
+**A:** Squaring gives large errors more weight, so the root of the
+> mean square is ≥ the mean absolute value. They're equal only when all
+> errors have the same size.
 
-**Câu 4:** Model A: MAE = 0.30, RMSE = 0.32. Model B: MAE = 0.28, RMSE =
+Q: Model A: MAE = 0.30, RMSE = 0.32. Model B: MAE = 0.28, RMSE =
 0.60. Nhận xét hai model. Dự báo phụ tải điện nên chọn model nào?
-> **Đáp án:** A có sai lệch đều (RMSE ≈ MAE). B có sai lệch điển hình nhỏ
-> hơn một chút, nhưng RMSE gấp đôi MAE → có vài lần đoán lệch rất xa. Với
-> dự báo phụ tải, một lần lệch lớn có thể gây thiếu điện nghiêm trọng,
-> nên chọn **A**.
+A: A có sai lệch đều (RMSE ≈ MAE). B có sai lệch điển hình nhỏ
+hơn một chút, nhưng RMSE gấp đôi MAE → có vài lần đoán lệch rất xa. Với
+dự báo phụ tải, một lần lệch lớn có thể gây thiếu điện nghiêm trọng,
+nên chọn **A**.
+EN: Model A: MAE 0.30, RMSE 0.32. Model B: MAE 0.28, RMSE 0.60.
+Which suits electricity load forecasting?
+**A:** A's errors are even; B has a slightly smaller typical error but
+> occasional huge misses (RMSE ≈ 2 × MAE). One big miss can cause
+> shortages, so choose **A**.
 
-**Câu 5:** Tính MAE và RMSE cho 3 mẫu: prediction = [10, 20, 30], label =
+Q: Tính MAE và RMSE cho 3 mẫu: prediction = [10, 20, 30], label =
 [12, 20, 25].
-> **Đáp án:** Sai lệch: −2, 0, +5. MAE = (2 + 0 + 5) / 3 ≈ **2.333**.
-> MSE = (4 + 0 + 25) / 3 ≈ 9.667 → RMSE ≈ **3.109**.
+A: Sai lệch: −2, 0, +5. MAE = (2 + 0 + 5) / 3 ≈ **2.333**.
+MSE = (4 + 0 + 25) / 3 ≈ 9.667 → RMSE ≈ **3.109**.
+EN: Compute MAE and RMSE for prediction = [10, 20, 30], label =
+[12, 20, 25].
+**A:** Errors −2, 0, +5. MAE ≈ **2.333**; MSE ≈ 9.667 → RMSE ≈
+> **3.109**.
 
-**Câu 6:** Một model có R² = −0.2. Điều đó nói gì?
-> **Đáp án:** Model **tệ hơn** cả việc luôn đoán bằng giá trị trung bình
-> của label. Thường là dấu hiệu model chưa học được gì hữu ích, bị lỗi
-> pipeline, hoặc đang đánh giá trên dữ liệu có phân bố rất khác dữ liệu
-> train.
+Q: Một model có R² = −0.2. Điều đó nói gì?
+A: Model **tệ hơn** cả việc luôn đoán bằng giá trị trung bình
+của label. Thường là dấu hiệu model chưa học được gì hữu ích, bị lỗi
+pipeline, hoặc đang đánh giá trên dữ liệu có phân bố rất khác dữ liệu
+train.
+EN: A model has R² = −0.2. What does that say?
+**A:** It's **worse** than always predicting the mean label — usually a
+> sign the model learned nothing useful, a pipeline bug, or a large
+> distribution shift between training and evaluation data.
+@tier B | Phỏng vấn lý thuyết
+Q: MAE khác RMSE về độ nhạy ra sao?
+A: MAE cộng độ lớn sai lệch tuyến tính. RMSE bình phương trước khi lấy trung bình nên lỗi lớn chi phối mạnh hơn. Chọn theo chi phí lỗi lớn, kiểm tra lỗi do dữ liệu trước khi đổi metric.
+EN: MAE weights absolute errors linearly; RMSE emphasizes large residuals through squaring.
+Q: RMSE lớn hơn MAE nhiều chứng minh điều gì?
+A: Cho thấy độ lớn sai lệch không đều. Chưa đủ biết lỗi ở đâu hoặc do outlier thật, nhóm bị bỏ quên hay lỗi nhãn; cần xem residual theo nhóm và kiểm tra các mẫu sai lớn.
+EN: A large RMSE–MAE gap indicates uneven error magnitudes, but not their cause.
+Q: Loss và metric có cần cùng công thức?
+A: Không. Loss dùng để tối ưu model; metric đánh giá theo mục tiêu. Có thể train MSE nhưng theo dõi MAE hoặc chi phí vận hành, miễn quy trình lựa chọn dùng validation.
+EN: The optimization loss and reporting metric may differ when the business objective requires it.
+Q: MAPE dễ hiểu nhưng có hạn chế gì?
+A: Chia sai số cho giá trị thật nên gần 0 có thể phóng đại và tại 0 cần quy ước. Với nhu cầu thường bằng 0, không nên dùng MAPE đơn độc; xem MAE và chi phí theo mặt hàng.
+EN: MAPE becomes unstable near zero targets and requires careful handling of zeros.
+@tier C | Tình huống doanh nghiệp
+Q: Thiếu hàng đắt hơn tồn hàng, MAE hay RMSE?
+A: Cả hai không phân biệt chiều sai. Trước hết ước lượng chi phí thiếu/tồn theo mặt hàng, dùng metric chi phí có dấu hoặc quantile loss *(bổ sung)*, kèm MAE/RMSE để dễ đọc. Chọn trên validation, kiểm tra mức tồn tăng khi giảm thiếu hàng.
+WANT: Nhận ra metric đối xứng chưa mã hóa chi phí bất đối xứng.
+Q: Báo cáo MAE giảm nhưng khách VIP phản ánh dự báo tệ hơn. Làm gì?
+A: Tách residual theo nhóm khách, quy mô đơn, thời gian; kiểm tra lỗi lớn và chất lượng nhãn. Báo cáo metric từng nhóm hoặc trọng số theo chi phí đã thống nhất. Tối ưu toàn tập có thể đánh đổi một nhóm nhỏ quan trọng *(bổ sung)*.
+WANT: Không để trung bình che phân khúc chịu tổn thất.
+Q: Model giá nhà thành phố này có RMSE thấp hơn thành phố khác. Kết luận tốt hơn?
+A: Kiểm tra đơn vị, phân bố giá và cách split; dùng baseline từng nơi và cùng khung đánh giá. RMSE thấp có thể chỉ vì thang giá nhỏ. Đánh giá thêm sai số theo phân khúc trước khi ưu tiên triển khai *(bổ sung)*.
+WANT: Hiểu phụ thuộc thang đo và điều kiện so sánh công bằng.
+:::
 
-> **EN:**
->
-> **Q1:** Why not use Accuracy to evaluate a house price model?
-> > **A:** The output is continuous, so predictions almost never match
-> > exactly; Accuracy would be ~0 and couldn't tell a 10-million miss from
-> > a 2-billion miss. Regression needs metrics that measure **error size**.
->
-> **Q2:** How does MAE relate to L1 loss (lesson 06)? RMSE to L2 loss?
-> > **A:** MAE = L1 / N; RMSE = √(L2 / N). Averaging removes dependence
-> > on sample count; the root restores the label's unit.
->
-> **Q3:** Why is RMSE always ≥ MAE? When are they equal?
-> > **A:** Squaring gives large errors more weight, so the root of the
-> > mean square is ≥ the mean absolute value. They're equal only when all
-> > errors have the same size.
->
-> **Q4:** Model A: MAE 0.30, RMSE 0.32. Model B: MAE 0.28, RMSE 0.60.
-> Which suits electricity load forecasting?
-> > **A:** A's errors are even; B has a slightly smaller typical error but
-> > occasional huge misses (RMSE ≈ 2 × MAE). One big miss can cause
-> > shortages, so choose **A**.
->
-> **Q5:** Compute MAE and RMSE for prediction = [10, 20, 30], label =
-> [12, 20, 25].
-> > **A:** Errors −2, 0, +5. MAE ≈ **2.333**; MSE ≈ 9.667 → RMSE ≈
-> > **3.109**.
->
-> **Q6:** A model has R² = −0.2. What does that say?
-> > **A:** It's **worse** than always predicting the mean label — usually a
-> > sign the model learned nothing useful, a pipeline bug, or a large
-> > distribution shift between training and evaluation data.
+## Nối sang bài sau
+
+:::next
+Tiếp theo, [[bài:ml-pipeline]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+:::
