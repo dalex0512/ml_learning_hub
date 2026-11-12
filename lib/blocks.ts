@@ -102,7 +102,7 @@ function parseQuiz(body: string): QuizTier[] {
 
 export function parseBlocks(src: string): Block[] {
   const blocks: Block[] = [];
-  const lines = src.split("\n");
+  const lines = src.replace(/\r\n?/g, "\n").split("\n");
   let md: string[] = [];
   let inFence = false;
 

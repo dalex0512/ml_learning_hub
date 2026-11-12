@@ -42,13 +42,13 @@ export default function InterviewBank({ items }: { items: BankQuizItem[] }) {
     <section className="paper-card p-5 sm:p-7 space-y-4" aria-label="Bộ lọc câu hỏi">
       <div className="grid gap-4 sm:grid-cols-3">
         <label className="text-sm font-semibold">Tầng câu hỏi
-          <select className="notebook-input" value={tier} onChange={e => { setTier(e.target.value); resetDraw(); }}>
+          <select aria-label="Tầng câu hỏi" className="notebook-input" value={tier} onChange={e => { setTier(e.target.value); resetDraw(); }}>
             <option value="BC">B + C · Phỏng vấn</option><option value="ABC">Tất cả tầng</option>
             {Object.entries(TIERS).map(([key, title]) => <option key={key} value={key}>{key} · {title}</option>)}
           </select>
         </label>
         <label className="text-sm font-semibold">Bài học
-          <select className="notebook-input" value={topic} onChange={e => { setTopic(e.target.value); resetDraw(); }}>
+          <select aria-label="Bài học" className="notebook-input" value={topic} onChange={e => { setTopic(e.target.value); resetDraw(); }}>
             <option value="">Tất cả bài</option>{topics.map(([id, title]) => <option key={id} value={id}>{title}</option>)}
           </select>
         </label>

@@ -3,17 +3,13 @@
 import React, { useMemo } from "react";
 import {
   Lightbulb,
-  GitBranch,
-  Layers,
-  Table,
-  Terminal,
   HelpCircle,
   BookOpen,
   Presentation,
   ListChecks,
   Calculator,
 } from "lucide-react";
-import { TopicData, SectionContent } from "@/lib/markdown";
+import type { TopicData, SectionContent } from "@/lib/markdown";
 import { renderMarkdown, parseFormulaLayout } from "@/lib/renderMarkdown";
 import type { Block, BoxKind } from "@/lib/blocks";
 import SlideViewer, { openSlides } from "./SlideViewer";
@@ -22,8 +18,6 @@ import Quiz from "./Quiz";
 interface Props {
   topicData: TopicData;
 }
-
-const LEGACY_ICONS = [Lightbulb, GitBranch, Layers, Table, Terminal, HelpCircle];
 
 // Xoay nhẹ cho chú thích tay: −1° đến 1.5°
 const NOTE_ROTATIONS = [-1, 1.2, -0.6, 1.5];
@@ -153,8 +147,7 @@ function BlockView({ block }: { block: Block }) {
   }
 }
 
-function sectionIcon(section: SectionContent, idx: number, legacy: boolean) {
-  if (legacy) return LEGACY_ICONS[idx % LEGACY_ICONS.length];
+function sectionIcon(section: SectionContent) {
   const types = new Set(section.blocks.map((b) => (b.type === "box" ? b.kind : b.type)));
   if (types.has("quiz")) return HelpCircle;
   if (types.has("recap")) return ListChecks;
@@ -165,20 +158,16 @@ function sectionIcon(section: SectionContent, idx: number, legacy: boolean) {
 }
 
 export default function DynamicTopicPanels({ topicData }: Props) {
-  const { legacy } = topicData;
   return (
     <div className="flex-1 min-w-0 space-y-8">
       {topicData.sections.map((section, idx) => {
-        const Icon = sectionIcon(section, idx, legacy);
-        const emphasise = legacy
-          ? section.number === 3
-          : section.blocks.some((b) => b.type === "formula") && !section.blocks.some((b) => b.type === "quiz");
+        const Icon = sectionIcon(section);
 
         return (
           <section
             key={section.id || idx}
             id={section.id}
-            className={`${emphasise && legacy ? "paper-card paper-card-emph" : "paper-card"} p-6 sm:p-7 relative transition-all duration-300 scroll-mt-28`}
+            className="paper-card p-5 sm:p-7 relative transition-all duration-300 scroll-mt-28"
           >
             <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-paper-dashed">
               <div className="w-8 h-8 rounded-lg bg-sticky flex items-center justify-center text-text-main border border-paper-border shrink-0">
@@ -187,19 +176,11 @@ export default function DynamicTopicPanels({ topicData }: Props) {
               <h2 className="text-xl font-bold text-text-main font-sans">{section.title}</h2>
             </div>
 
-            {legacy ? (
-              section.number === 3 ? (
-                <FormulaSection md={section.rawContent} />
-              ) : (
-                <Prose md={section.rawContent} copy={section.number === 5 ? true : undefined} />
-              )
-            ) : (
-              <div className="space-y-1">
-                {section.blocks.map((b, i) => (
-                  <BlockView key={i} block={b} />
-                ))}
-              </div>
-            )}
+            <div className="space-y-1">
+              {section.blocks.map((b, i) => (
+                <BlockView key={i} block={b} />
+              ))}
+            </div>
           </section>
         );
       })}

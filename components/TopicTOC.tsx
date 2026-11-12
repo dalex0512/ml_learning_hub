@@ -1,38 +1,31 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 interface SectionItem {
   id: string;
-  number: number;
   label: string;
-  numbered?: boolean;
 }
 
-const DEFAULT_SECTIONS: SectionItem[] = [
-  { id: "y-tuong", number: 1, label: "Ý tưởng" },
-  { id: "vi-tri-pipeline", number: 2, label: "Vị trí trong pipeline" },
-  { id: "cong-thuc", number: 3, label: "Cách hoạt động / Công thức" },
-  { id: "vi-du-tay", number: 4, label: "Ví dụ tay" },
-  { id: "code", number: 5, label: "Code Python" },
-  { id: "cau-hoi-kiem-tra", number: 6, label: "Tự kiểm tra" },
-];
-
 interface Props {
-  sections?: { id: string; number: number; title: string; numbered?: boolean }[];
+  sections: { id: string; title: string }[];
 }
 
 export default function TopicTOC({ sections: customSections }: Props) {
-  const sections: SectionItem[] = customSections
-    ? customSections.map((s) => ({
-        id: s.id,
-        number: s.number,
-        label: s.title.replace(/^\d+\.\s*/, ""),
-        numbered: s.numbered !== false,
-      }))
-    : DEFAULT_SECTIONS;
+  const sections: SectionItem[] = useMemo(() => customSections.map(s => ({ id: s.id, label: s.title })), [customSections]);
 
-  const [activeId, setActiveId] = useState<string>(sections[0]?.id || "y-tuong");
+  const [activeId, setActiveId] = useState<string>(sections[0]?.id || "");
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const active = container?.querySelector<HTMLElement>('[aria-current="location"]');
+    if (!container || !active) return;
+    const box = container.getBoundingClientRect();
+    const item = active.getBoundingClientRect();
+    if (item.top < box.top) container.scrollTop -= box.top - item.top;
+    else if (item.bottom > box.bottom) container.scrollTop += item.bottom - box.bottom;
+  }, [activeId]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,7 +33,7 @@ export default function TopicTOC({ sections: customSections }: Props) {
 
       for (let i = sections.length - 1; i >= 0; i--) {
         const element = document.getElementById(sections[i].id);
-        if (element && element.offsetTop <= scrollPosition) {
+        if (element && element.getBoundingClientRect().top + window.scrollY <= scrollPosition) {
           setActiveId(sections[i].id);
           break;
         }
@@ -63,8 +56,8 @@ export default function TopicTOC({ sections: customSections }: Props) {
   };
 
   return (
-    <aside className="w-[190px] shrink-0 hidden md:block">
-      <div className="sticky top-28 space-y-3">
+    <aside className="w-[190px] shrink-0 self-stretch hidden md:block">
+      <div ref={containerRef} className="sticky top-28 space-y-3 max-h-[calc(100vh-8rem)] overflow-y-auto pr-1">
         {/* TOC Header Note */}
         <div className="px-2">
           <div className="flex items-center gap-1.5 font-hand text-accent-red text-base font-bold">
@@ -81,6 +74,7 @@ export default function TopicTOC({ sections: customSections }: Props) {
             return (
               <button
                 key={sec.id}
+                aria-current={isActive ? "location" : undefined}
                 onClick={() => scrollToSection(sec.id)}
                 className={`text-left px-3 py-2 rounded-lg text-xs font-medium transition-all flex items-start gap-2 border ${
                   isActive
@@ -95,7 +89,7 @@ export default function TopicTOC({ sections: customSections }: Props) {
                   }`}
                 />
                 <span className="min-w-0 leading-snug">
-                  {sec.numbered ? `${sec.number}. ` : ""}{sec.label}
+                  {sec.label}
                 </span>
               </button>
             );

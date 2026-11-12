@@ -193,6 +193,16 @@ body {
   font-size: 0.875rem;
 }
 
+.table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 1.25rem 0;
+}
+.table-scroll table { margin: 0; }
+.table-scroll th, .table-scroll td { min-width: 7rem; }
+.table-scroll code { white-space: nowrap; overflow-wrap: normal; }
+.notebook-prose { overflow-wrap: anywhere; }
+
 .notebook-prose th {
   background-color: #F5EEDC;
   border-bottom: 1px solid #E7D9A8;

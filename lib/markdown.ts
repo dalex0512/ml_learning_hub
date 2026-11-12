@@ -6,8 +6,6 @@ import { parseBlocks, parseRange, slugify, type Block } from "./blocks";
 
 export interface SectionContent {
   id: string;
-  number: number; // chỉ có nghĩa với bài cũ (heading "1. …")
-  numbered: boolean;
   title: string;
   rawContent: string;
   blocks: Block[];
@@ -22,8 +20,6 @@ export interface TopicData {
   slides: { from: number; to: number } | null;
   needs: string[];
   tags: string[];
-  /** true nếu bài còn theo khung 6 mục đánh số cũ */
-  legacy: boolean;
   sections: SectionContent[];
 }
 
@@ -33,20 +29,11 @@ export interface BacklinkItem {
   title: string;
 }
 
-const LEGACY_IDS: Record<number, string> = {
-  1: "y-tuong",
-  2: "vi-tri-pipeline",
-  3: "cong-thuc",
-  4: "vi-du-tay",
-  5: "code",
-  6: "cau-hoi-kiem-tra",
-};
-
 /** Tách theo heading `## ` nhưng bỏ qua dòng nằm trong code fence. */
 function splitSections(content: string): { heading: string; body: string }[] {
   const out: { heading: string; body: string[] }[] = [];
   let inFence = false;
-  for (const line of content.split("\n")) {
+  for (const line of content.replace(/\r\n?/g, "\n").split("\n")) {
     if (/^\s*(```|~~~)/.test(line)) inFence = !inFence;
     const m = !inFence ? line.match(/^##\s+(.*)$/) : null;
     if (m) {
@@ -101,21 +88,16 @@ export function getTopicContent(moduleId: string, filename: string, topicId: str
   const { data, content } = matter(fs.readFileSync(filePath, "utf-8"));
   const index = lessonIndex();
   const parts = splitSections(content);
-  const legacy = parts.length > 0 && parts.every((p) => /^\d+\.\s/.test(p.heading));
 
   const used = new Set<string>();
   const sections: SectionContent[] = parts.map((p, i) => {
-    const numMatch = p.heading.match(/^(\d+)\.\s/);
-    const number = numMatch ? parseInt(numMatch[1], 10) : i + 1;
-    let id = legacy ? LEGACY_IDS[number] ?? `section-${number}` : slugify(p.heading) || `muc-${i + 1}`;
+    let id = slugify(p.heading) || `muc-${i + 1}`;
     while (used.has(id)) id += "-b";
     used.add(id);
 
     const raw = expandLinks(p.body, index);
     return {
       id,
-      number,
-      numbered: legacy,
       title: p.heading,
       rawContent: raw,
       blocks: parseBlocks(raw),
@@ -136,7 +118,6 @@ export function getTopicContent(moduleId: string, filename: string, topicId: str
     slides,
     needs: toStringArray(data.needs),
     tags: toStringArray(data.tags),
-    legacy,
     sections,
   };
 }

@@ -105,25 +105,6 @@ export default function TopicPage({ params }: PageProps) {
   const toItem = (x: { module: { id: string }; topic: { id: string; title: string } } | null) =>
     x ? { moduleId: x.module.id, topicId: x.topic.id, title: x.topic.title } : null;
 
-  // Fallback subhead cho bài cũ chưa có `description` trong frontmatter
-  const getSubhead = (id: string) => {
-    switch (id) {
-      case "what-is-ml":
-        return "Bức tranh toàn cảnh phân định ranh giới giữa AI, Machine Learning, Deep Learning và Data Science từ góc nhìn dữ liệu.";
-      case "feature-and-data-types":
-        return "Hiểu bản chất cấu trúc bảng dữ liệu (tabular data), mẫu (sample), thuộc tính (feature) và cách phân biệt numerical vs categorical.";
-      case "learning-paradigms":
-        return "Ba phương thức học cốt lõi: Supervised learning (học có giám sát), Unsupervised learning và Reinforcement learning.";
-      case "labeled-data":
-        return "Phân tích cấu trúc dữ liệu có nhãn: ma trận đặc trưng (X) và vector nhãn mục tiêu (y) trước khi đưa vào mô hình.";
-      case "model-training-pipeline":
-        return "Quá trình đưa vector đặc trưng qua mô hình để sinh ra dự đoán, chuẩn bị cho bước tính toán sai số bằng hàm mất mát.";
-      case "loss-function":
-        return "Hàm mục tiêu đo lường mức độ sai lệch giữa dự đoán và thực tế, đóng vai trò người chỉ đường để thuật toán tự sửa chữa sai sót qua từng vòng lặp huấn luyện.";
-      default:
-        return "Ghi chú trọng tâm từ khóa học, kết hợp giải thích trực quan, ví dụ tính tay và mã nguồn thực thi.";
-    }
-  };
 
   return (
     <div className="min-h-screen pb-20">
@@ -155,7 +136,7 @@ export default function TopicPage({ params }: PageProps) {
 
           {/* Subhead in nghiêng */}
           <p className="text-sm sm:text-base text-text-muted italic font-sans mt-2 leading-relaxed">
-            {topicData.description ?? getSubhead(topicItem.id)}
+            {topicData.description}
           </p>
 
           <div className="mt-4 space-y-3">
@@ -179,7 +160,7 @@ export default function TopicPage({ params }: PageProps) {
           {/* Left Column: 190px Sticky TOC with Scrollspy */}
           <TopicTOC sections={topicData.sections} />
 
-          {/* Right Column: 6 Continuous Paper Panels */}
+          {/* Right Column: Sections from lesson content */}
           <div className="flex-1 min-w-0">
             <DynamicTopicPanels topicData={topicData} />
 

@@ -21,6 +21,11 @@ export function createRenderer(opts: RenderOpts = {}) {
   const instance = new Marked();
   instance.use({
     renderer: {
+      table(token: Tokens.Table) {
+        const header = token.header.map(cell => `<th>${this.parser.parseInline(cell.tokens)}</th>`).join("");
+        const rows = token.rows.map(row => `<tr>${row.map(cell => `<td>${this.parser.parseInline(cell.tokens)}</td>`).join("")}</tr>`).join("");
+        return `<div class="table-scroll" role="region" aria-label="Bảng dữ liệu, cuộn ngang nếu cần" tabindex="0"><table><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table></div>\n`;
+      },
       // `<!-- note: ... -->` được đọc riêng ở phần Công thức, không in ra HTML
       html({ text }: Tokens.HTML | Tokens.Tag) {
         return NOTE_RE.test(text.trim()) ? "" : text;

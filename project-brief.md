@@ -2,7 +2,7 @@
 project: ML Learning Hub
 type: personal study notes site (KHÔNG phải đồ án tốt nghiệp)
 owner: Duong
-status: đã chốt bố cục + nội dung + design, sẵn sàng code
+status: module 01 đã chuyển khung linh hoạt; có ngân hàng phỏng vấn và trang module
 ---
 
 # ML Learning Hub — Project Brief cho AI coding agent (Antigravity)
@@ -30,9 +30,9 @@ không dùng suy luận ngữ nghĩa để xếp vị trí.
 /roadmap.json                     ← nguồn sự thật duy nhất cho menu/sidebar/thứ tự
 /content/
   01-machine-learning/
-    01-pipeline.md
-    02-loss-function.md
-    03-train-test-split.md
+    01-what-is-ml.md
+    02-feature-and-data-types.md
+    03-learning-paradigms.md
     ...
   02-supervised-learning/
   03-unsupervised-learning/
@@ -44,39 +44,55 @@ không dùng suy luận ngữ nghĩa để xếp vị trí.
 `roadmap.json` đi kèm file này (`roadmap.json`) — đọc trực tiếp, đừng tự đoán lại
 danh sách module/topic.
 
-### Frontmatter chuẩn cho mỗi file topic
+### Frontmatter chuẩn và khung nội dung linh hoạt
 
-```
+```yaml
 ---
-title: <tên hiển thị>
-order: <số thứ tự trong module>
+title: <đúng title trong roadmap.json>
+order: <thứ tự>
+description: <bài này giải quyết vấn đề gì>
+slides: 19-21
+needs: [model-training-pipeline]
+tags: [loss, L1, L2]
 ---
 ```
 
-### Template nội dung 1 topic — 6 phần cố định, luôn theo đúng thứ tự này
+Mỗi `##` là một paper card và một mục trên mục lục; đặt tên theo nội dung,
+không đánh số theo khung cố định. Bài ngắn có thể gộp mục; bài dài tách theo
+khái niệm/kỹ thuật. Giữ mọi ví dụ, code và nhận xét gốc; phần bổ sung phải
+ghi rõ. Ba mẫu đã duyệt: 06 Loss, 12 Classification Metrics, 18 Scaling.
 
-1. **Ý tưởng** — giải thích bằng lời thường, không chép nguyên slide
-2. **Vị trí trong pipeline / liên hệ khái niệm trước** — topic này nằm ở đâu trong bức tranh lớn
-3. **Công thức / cách hoạt động**
-4. **Ví dụ tay** — số liệu cụ thể, tính tay được
-5. **Code** — cài đặt lại từ đầu bằng Python
-6. **Câu hỏi tự kiểm tra** — MỖI câu hỏi phải có đáp án đi kèm ngay bên dưới
-   (không ẩn/thu gọn nữa — hiển thị trực tiếp câu hỏi + đáp án)
+Khung chung: mở đầu với `:::intro` (mục tiêu), dẫn dắt có link tiên quyết và
+`:::slides`; thân bài tự tổ chức; ví dụ tay và code nếu có; `:::recap`;
+`:::quiz` ba tầng; `:::next` có link bài kế. Container đóng bằng `:::` ở đầu
+dòng, không lồng nhau. Các container hỗ trợ:
 
-Nếu 1 topic có đồ thị/sơ đồ minh họa, nhúng ảnh/SVG **bên trong** phần 1 hoặc 3
-ở trên — không tạo thêm phần thứ 7 riêng, giữ đúng 6 phần cho mọi topic.
+| Container | Vai trò |
+|---|---|
+| intro | Mục tiêu đọc bài |
+| slides A-B \| chú thích | Viewer slide gốc |
+| formula | Công thức, từ hai nhóm hợp lệ chia hai cột |
+| worked | Ví dụ tính tay |
+| compare | So sánh và cách chọn |
+| pitfall | Bẫy, giới hạn, hiểu nhầm |
+| note | Ghi chú, nhận xét về slide |
+| recap | Tóm tắt một phút |
+| quiz | A hiểu bài, B lý thuyết, C tình huống doanh nghiệp |
+| next | Nối kiến thức và bài sau |
 
-**Quan trọng — không cắt bớt kiến thức để vừa khung 6 phần:** 6 tiêu đề lớn
-ở trên là khung cố định cho GIAO DIỆN (sidebar 6 mục), không phải giới hạn
-lượng kiến thức. Nếu 1 topic có nhiều nội dung con không khớp gọn vào 1
-trong 6 mục, KHÔNG được lược bớt — thêm heading phụ (`###`) bên trong đúng
-mục lớn phù hợp nhất để chứa đủ chi tiết. Ưu tiên số 1 luôn là đầy đủ, chi
-tiết, đúng nội dung gốc; khung 6 phần chỉ là cách tổ chức hiển thị, không
-phải bộ lọc kiến thức.
+Quiz dùng `@tier A | Hiểu bài`, `Q:`, `A:`; tương tự tầng B có thêm `EN:`
+cho mỗi câu, tầng C thêm `WANT:`. Đáp án ẩn mặc định, có nút mở từng câu
+hoặc tất cả trong tầng. Giữ câu cũ ở A; bài mới tối thiểu A/B/C = 4/4/3.
+Không để nội dung thường bắt đầu bằng marker. Cú pháp đáp án cũ
+`> **Đáp án:**` vẫn được renderer hỗ trợ, nhưng bài mới dùng `:::quiz`.
+
+Liên kết: `[[bài:topic-id]]`, `[[bài:topic-id|nhãn]]` và `[[slide:50]]` /
+`[[slide:48-51]]` được expand thành chip bấm được. `needs` dùng ID roadmap.
+Parser chuẩn hóa CRLF/LF và không tách heading bên trong code fence.
 
 ### Song ngữ Việt – Anh (bắt buộc cho mọi đoạn văn giải thích)
 
-Tiếng Việt là chính. Ngay dưới mỗi đoạn văn tiếng Việt (không áp dụng cho
+Tiếng Việt là chính. Ngay dưới mỗi cụm giải thích chính bằng tiếng Việt (không áp dụng cho
 bảng số liệu, công thức, code — những phần đó vốn đã trung lập ngôn ngữ),
 thêm 1 khối dịch tiếng Anh, dùng **đúng thuật ngữ chuẩn ngành** (không dịch
 word-by-word) — dùng cú pháp blockquote để phân biệt với đoạn chính:
@@ -94,8 +110,7 @@ màu chữ nhạt hơn (`text-muted`), có thể thêm 1 nhãn nhỏ "EN" viết
 letter-spacing rộng, font `JetBrains Mono`, đặt ngay trước đoạn dịch. Giữ
 khoảng cách trên (`margin-top`) rõ ràng với đoạn tiếng Việt để không bị dính.
 
-Có sẵn 1 file ví dụ đầy đủ theo đúng template này: `content-example/loss-function.md`
-— dùng làm mẫu tham chiếu khi dựng component hiển thị 1 topic.
+Dùng ba bài pilot 06, 12, 18 làm chuẩn. Không bắt buộc khối EN trong intro, recap; quiz dùng trường EN riêng.
 
 ## 3. Roadmap thật (6 module, lấy từ mục lục khóa học gốc)
 
@@ -165,15 +180,16 @@ Lấy nguyên bản thiết kế **F — kết hợp cuộn liền mạch + khun
   progress nhỏ "Chủ đề x/N" kèm thanh tiến độ
 - Khối tiêu đề: eyebrow Caveat đỏ "Module 0X · <tên module>" → H1 → subhead in nghiêng
 - Bố cục 2 cột:
-  - Trái (190px, ghim/sticky khi cuộn): mục lục 6 phần, phần đang đọc được
+  - Trái (190px, ghim/sticky khi cuộn): mục lục sinh từ section thật, cuộn độc lập với bài dài; phần đang đọc được
     highlight (nền `bg-sticky`, chấm đỏ)
-  - Phải: **cuộn liền mạch một trang**, mỗi trong 6 phần nằm trong 1 khung
+  - Phải: **cuộn liền mạch một trang**, mỗi section nội dung nằm trong 1 khung
     giấy riêng (`bg-panel`, viền `border`, bo góc, đổ bóng nhẹ
     `3px 4px 0 rgba(0,0,0,0.04)`). Phần "Công thức" được nhấn mạnh hơn: viền
     đỏ 2px, layout 2 cột song song (mỗi công thức 1 pill-badge tên + công thức
     mono + 1 dòng chú thích tay đỏ kiểu "bậc 1 → phạt đều", "bậc 2 → phạt nặng
     outlier" — lấy đúng giọng chú thích tay thật từ slide gốc)
-- Dưới cùng: nút Prev (viền đứt nét) / Next (nền tối đặc) sang topic liền kề
+- Đầu bài có description, LessonMap (tiên quyết, trước/sau, backlinks), nút xem slide gốc và viewer nhúng. Quiz có ba tab, đáp án ẩn/hiện; bảng rộng cuộn trong khung trên mobile.
+- Dưới cùng có link ngân hàng phỏng vấn và nút Prev (viền đứt nét) / Next (nền tối đặc) sang topic liền kề
   theo đúng thứ tự trong `roadmap.json`
 
 ### Chuyển động / hiệu ứng — giữ đúng tông giấy/thủ công, KHÔNG dùng 3D kính/neon
@@ -199,23 +215,29 @@ dùng `critique` rồi `polish` làm 1 vòng rà soát sau khi có bản code đ
 
 ## 6. Việc CHƯA quyết định (đừng tự bịa, hỏi Duong nếu cần)
 
-- Framework/stack cụ thể (React/Next.js thuần HTML...) — chưa chọn
+- Stack đã chọn: Next.js 14 App Router, React, TypeScript và Tailwind
 - Nội dung topic của module 02–06 — chưa viết, chỉ có khung
 - Có cần lưu tiến độ học (đã hiểu/cần ôn) giữa các lần mở lại không — **đã xác
   nhận KHÔNG cần** (Duong chỉ dùng để đọc lại, không cần tracking)
 
-## 7. Prompt khởi động — copy nguyên đoạn dưới đây gửi cho Antigravity
+## 7. Khi tiếp tục dự án
 
-```
-Đọc kỹ file project-brief.md và roadmap.json trong repo này trước khi làm
-bất cứ điều gì. Bám sát tuyệt đối màu sắc, font, bố cục trang chủ (mục 4 —
-bản C) và trang chi tiết topic (mục 4 — bản F) đã mô tả trong brief — không
-tự đổi sang thiết kế khác.
+Module 01 đã hoàn tất chuyển khung; không dựng lại hạ tầng hay ba bài pilot.
+Đọc roadmap và nội dung hiện có trước khi sửa. Mọi thay đổi giữ design Notebook,
+liên kết slide và quy tắc fit trong train. Module 02–06 chưa có nội dung;
+không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-restructure-report.md.
 
-Việc đầu tiên: dựng trang chủ (Home) hiển thị roadmap 6 module dạng
-sticky-note zigzag theo đúng mô tả, và 1 trang chi tiết mẫu cho topic
-"Loss Function" (dùng nội dung có sẵn trong content-example/loss-function.md)
-theo đúng bố cục 2 cột + khung giấy đã mô tả.
+## 8. Điều hướng, dữ liệu và kiểm chứng
 
-Hỏi lại tôi nếu cần chọn framework/stack, đừng tự quyết định phần đó.
-```
+- `/phong-van`: lấy quiz từ parser bài học, mặc định B+C; lọc tầng/bài/tag,
+  tìm có hoặc không dấu, tự test, mở đáp án và rút câu ngẫu nhiên.
+- `/{moduleId}`: nhóm bài theo `group` tùy chọn trong roadmap, mô tả từ
+  frontmatter và bản đồ tiên quyết từ `needs`; thiếu group vào “Khác”.
+  Module 02–06 vẫn chưa có bài và hiển thị “Chưa có nội dung”.
+- Breadcrumb module và tiêu đề trạm roadmap dẫn về trang module. Prev/Next
+  vẫn dùng cơ chế lật trang hiện có.
+- `public/slides/` được quản lý trong git. Tạo lại từ PDF bằng
+  `python scripts/render-slides.py` (cần PyMuPDF và Pillow).
+- Kiểm tra: `npx tsc --noEmit`, `npx next build`; kiểm đủ frontmatter,
+  liên kết/needs, container và quiz A/B/C, đối chiếu số liệu, duyệt desktop
+  và mobile khoảng 390px. Không đổi ba bài pilot khi chuyển nội dung khác.

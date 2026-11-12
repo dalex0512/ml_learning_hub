@@ -18,7 +18,7 @@ export default function TopicNavigation({ prev, next }: Props) {
           <FlipLink
             flip={-1}
             href={`/${prev.module.id}/${prev.topic.id}`}
-            className="page-flip-card group flex-1 p-4 rounded-xl border-2 border-dashed border-paper-dashed hover:border-paper-border bg-panel hover:bg-sticky/50 transition-all flex items-center gap-3 shadow-xs"
+            className="page-flip-card group flex-1 min-w-0 p-4 rounded-xl border-2 border-dashed border-paper-dashed hover:border-paper-border bg-panel hover:bg-sticky/50 transition-all flex items-center gap-3 shadow-xs"
           >
             <div className="w-8 h-8 rounded-full bg-[#f2e7d3] flex items-center justify-center text-text-main group-hover:-translate-x-1 transition-transform shrink-0">
               <ArrowLeft className="w-4 h-4" />
@@ -55,7 +55,7 @@ export default function TopicNavigation({ prev, next }: Props) {
           <FlipLink
             flip={1}
             href={`/${next.module.id}/${next.topic.id}`}
-            className="page-flip-card group flex-1 p-4 rounded-xl bg-accent-dark text-panel hover:bg-black transition-all flex items-center justify-end gap-3 shadow-paper-md"
+            className="page-flip-card group flex-1 min-w-0 p-4 rounded-xl bg-accent-dark text-panel hover:bg-black transition-all flex items-center justify-end gap-3 shadow-paper-md"
           >
             <div className="text-right min-w-0">
               <span className="text-[11px] uppercase tracking-wider font-mono text-accent-sticky-yellow block">

@@ -39,6 +39,17 @@ function Deck({ from, to, start, caption, onZoom, large }: DeckProps) {
   const { lo, hi, cur, go } = useDeck(from, to, start);
   const multi = hi > lo;
 
+  useEffect(() => {
+    if (!large) return;
+    const navigate = (e: KeyboardEvent) => {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      e.preventDefault();
+      go(cur + (e.key === "ArrowRight" ? 1 : -1));
+    };
+    window.addEventListener("keydown", navigate);
+    return () => window.removeEventListener("keydown", navigate);
+  }, [large, cur, go]);
+
   // prefetch slide kế
   useEffect(() => {
     if (cur < hi) {
@@ -48,6 +59,7 @@ function Deck({ from, to, start, caption, onZoom, large }: DeckProps) {
   }, [cur, hi]);
 
   const onKey = (e: React.KeyboardEvent) => {
+    if (large) return; // lightbox navigation also works while its close button has focus
     if (e.key === "ArrowRight") {
       go(cur + 1);
       e.preventDefault();
