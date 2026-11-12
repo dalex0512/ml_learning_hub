@@ -1,10 +1,10 @@
 ---
 title: Step 3.4 — Correlation và Multicollinearity
 order: 20
-description: "Đọc Pearson r và giới hạn tuyến tính, phân biệt tương quan với nhân quả, phát hiện đa cộng tuyến bằng cả cặp feature lẫn VIF."
+description: "Đọc Pearson r và giới hạn tuyến tính, phân biệt tương quan với nhân quả, phát hiện đa cộng tuyến bằng cả cặp feature lẫn VIF, phân biệt chất lượng dự đoán với độ tin cậy của importance."
 slides: 50-51
 needs: [feature-scaling, categorical-encoding]
-tags: [correlation, multicollinearity, vif, pearson, causation]
+tags: [correlation, multicollinearity, vif, pearson, causation, feature-importance]
 ---
 
 ## Hai câu hỏi khác nhau về quan hệ giữa cột
@@ -305,8 +305,7 @@ Regression — P05):
   số chiều.
 
 Điều thú vị: **độ chính xác dự đoán** thường **ít bị ảnh hưởng** — vấn đề
-nằm ở hệ số và sự ổn định. Model dạng cây (P07) gần như không bị ảnh hưởng
-về độ chính xác, nhưng feature importance (P13) sẽ bị chia giữa các cột
+nằm ở hệ số và sự ổn định. Model dạng cây (P07) thường ít bị ảnh hưởng hơn về dự đoán, nhưng feature importance (P13) sẽ bị chia giữa các cột
 giống nhau.
 
 Cách xử lý (bước 04 *Remove multicollinearity*):
@@ -334,7 +333,7 @@ biến). Diabetes dataset có VIF lớn nhất chỉ **1.59** (Age) → không g
 > **unstable coefficients** (with area and rooms ≈ area/30, the model can
 > split credit arbitrarily; small data changes swing coefficients —
 > section 5.4), **hard interpretation**, **redundancy**. Predictive
-> accuracy is often barely affected; tree models aren't hurt in accuracy,
+> accuracy is often barely affected; tree predictions are often less sensitive,
 > though importance gets split. Remedies: **drop** one of a highly
 > correlated pair, **combine** them, **PCA** (P14), **regularization**
 > (P12). Pairwise r misses multi-feature dependencies; use **VIF** = 1/(1 −
@@ -532,6 +531,24 @@ Ngưỡng |r| > 0.7 trên [[slide:51]] là quy ước, không là kiểm định
 
 > **EN:** Pairwise thresholds do not rule out multivariate dependencies. Complete-case correlations can change through selection bias; they are not automatically the true population correlations.
 
+## Ghi nhớ cho đúng: tốt hoặc xấu với mục tiêu nào? (bổ sung từ ghi chú)
+
+:::compare Liên hệ tuyến tính và loại model
+| Quan hệ | Lợi ích hoặc rủi ro | Quyết định |
+|---|---|---|
+| Feature–target có r đáng kể | Có thể là tín hiệu tuyến tính hữu ích | Kiểm tra leakage và validation, không suy nhân quả |
+| Feature–feature tương quan cao với model tuyến tính | Hệ số khó ổn định/diễn giải, có thể thêm chi phí | Bỏ/gộp cột hoặc regularize rồi đo lại |
+| Feature–feature tương quan cao với cây/boosting dạng cây | Không gặp cùng bài toán nghịch đảo ma trận hệ số của OLS | Không bắt buộc bỏ; vẫn xem redundancy, thời gian và importance |
+:::
+
+Ghi chú “phi tuyến không khai thác quan hệ tuyến tính nên không quan tâm” cần sửa: **model phi tuyến vẫn học được quan hệ tuyến tính**. Cây/boosting thường chịu được feature tương quan tốt hơn khi xét dự đoán, nhưng không miễn nhiễm mọi hậu quả. Importance có thể chia cho các feature thay thế nhau; permutation importance từng cột có thể thấp vì cột còn lại thay thế được. “Ít ảnh hưởng độ chính xác” không đồng nghĩa diễn giải đáng tin.
+
+> **EN:** Nonlinear models can learn linear relationships. Tree models avoid the same coefficient-identification problem as OLS, but correlated predictors can still affect cost and attribution.
+
+:::pitfall Không tự động bỏ feature theo khẩu quyết
+“Feature–target tốt, feature–feature xấu” là cách gợi nhớ trong bối cảnh tuyến tính, không phải luật chọn feature. r thấp có thể bỏ lỡ quan hệ phi tuyến/tương tác; r cao có thể do leakage. Với model tuyến tính, bỏ bớt có thể ổn định hệ số và giảm thời gian nhưng cũng có thể mất tín hiệu; so cùng split với regularization. Muốn nhìn dạng quan hệ trước khi bỏ cột, xem heatmap và scatter ở [[bài:data-visualization]].
+:::
+
 ## Tóm tắt 1 phút
 
 :::recap
@@ -602,6 +619,8 @@ EN: Why does r(SkinThickness, BMI) jump from 0.393 to 0.648 when
 zeros become NaN?
 **A:** The zeros are disguised missing values creating stray points
 > that weaken the apparent relationship; clean them first.
+Q: Model phi tuyến có học được một quan hệ tuyến tính không?
+A: Có. “Phi tuyến” mô tả khả năng biểu diễn, không cấm quan hệ tuyến tính. Cây có thể xấp xỉ quan hệ đó bằng các ngưỡng; vì thế không giải thích tính bền với cộng tuyến bằng câu “cây không quan tâm quan hệ tuyến tính”.
 @tier B | Phỏng vấn lý thuyết
 Q: r bằng 0 có nghĩa độc lập không?
 A: Không. Ví dụ y=x² trên x đối xứng cho r=0 nhưng quan hệ hoàn toàn xác định. Pearson chỉ đo phần liên hệ tuyến tính; cần scatter và hiểu dạng quan hệ.
@@ -615,6 +634,9 @@ EN: VIF detects multivariate linear redundancy that a pairwise correlation matri
 Q: Xóa một trong hai feature tương quan cao dựa vào gì?
 A: Xem chất lượng đo, missing, chi phí thu thập, tính sẵn có khi serving và khả năng dự đoán trên validation. Có thể dùng regularization thay xóa; ngưỡng r không đủ quyết định.
 EN: Choose remedies using measurement quality, availability, cost, and validation performance, not a correlation threshold alone.
+Q: Random Forest có điểm dự đoán ổn thì feature importance của hai cột tương quan cao có đáng tin riêng từng cột?
+A: Chưa chắc. Cột thay thế nhau có thể chia importance, hoặc permutation từng cột trông ít ảnh hưởng vì cột còn lại giữ tín hiệu. Kiểm tra theo nhóm feature và validation; không đồng nhất importance với nhân quả.
+EN: Correlated predictors can share attribution or mask individual permutation importance even when predictive performance is stable.
 @tier C | Tình huống doanh nghiệp
 Q: Hai feature có r=0.95, quản lý yêu cầu bỏ một. Bạn làm gì?
 A: Kiểm tra định nghĩa, leakage và chất lượng, so mô hình giữ cả với regularization và bỏ từng cột trên cùng split. Nếu cần diễn giải hệ số, ưu tiên biến ổn định và dễ đo; nếu cần dự đoán, dùng bằng chứng validation. Bỏ cột có thể giảm chi phí nhưng mất thông tin ở vùng hiếm *(bổ sung)*.
@@ -625,6 +647,9 @@ WANT: Nhận ra quan hệ phi tuyến và thông tin có điều kiện.
 Q: Hệ số đổi dấu giữa các lần train nhưng điểm ổn. Giải thích sao?
 A: Kiểm tra cộng tuyến, VIF và độ ổn định qua mẫu con, đồng thời xác nhận pipeline giống nhau. Thử gộp/bỏ cột hoặc regularize để ổn định. Không diễn giải dấu hệ số là tác động kinh doanh khi chưa xử lý các phụ thuộc *(bổ sung)*.
 WANT: Phân biệt ổn định dự đoán với ổn định diễn giải.
+Q: Hai biến tương quan cao cùng có importance thấp khi hoán vị riêng, quản lý muốn bỏ cả hai. Bạn làm gì?
+A: Kiểm tra định nghĩa và leakage; thử bỏ từng biến rồi bỏ cả nhóm trên cùng validation, hoặc hoán vị nhóm để xem tín hiệu chung. Nếu chúng thay thế nhau, phép đo riêng có thể che vai trò của nhóm. Cân nhắc chi phí đo và độ ổn định, không kết luận từ một kiểu importance.
+WANT: Biết sự thay thế giữa feature làm diễn giải sai dù metric dự đoán tốt.
 :::
 
 ## Nối sang bài sau

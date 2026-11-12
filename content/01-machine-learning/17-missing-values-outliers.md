@@ -1,10 +1,10 @@
 ---
 title: Step 3.1–3.2 — Xử lý dữ liệu thiếu và Outliers
 order: 17
-description: "Nhận diện missing/invalid và outlier, so cách điền, IQR và z-score; xử lý theo nguyên nhân và fit mọi thống kê trong train."
+description: "Nhận diện missing/invalid và outlier, so cách điền, MissForest/iterative forest, IQR và z-score; xử lý theo nguyên nhân và fit mọi thống kê trong train."
 slides: 45-46
 needs: [descriptive-statistics]
-tags: [missing, imputation, outlier, iqr, zscore, MCAR, MAR, MNAR]
+tags: [missing, imputation, outlier, iqr, zscore, MCAR, MAR, MNAR, MissForest, IterativeImputer]
 ---
 
 ## Thiếu dữ liệu hay dữ liệu khác thường?
@@ -110,7 +110,7 @@ Dạng 2 và 3 phải **đổi về NaN** trước, sau đó xử lý chung như
 vì nó quyết định cách xử lý:
 
 - **Thiếu hoàn toàn ngẫu nhiên** (MCAR — *Missing Completely At Random*):
-  máy đo hỏng ngẫu nhiên vài hôm. Xóa hay điền đều ít gây lệch.
+  máy đo hỏng độc lập với các biến trong dữ liệu. Xóa dòng có thể ít gây bias nếu giả định đúng, nhưng vẫn mất dữ liệu; điền một hằng số vẫn có thể làm méo variance.
 - **Thiếu phụ thuộc vào cột khác** (MAR — *Missing At Random*): ví dụ
   người trẻ ít được chỉ định xét nghiệm Insulin. Điền dựa trên các cột khác
   sẽ tốt hơn điền một số chung.
@@ -124,8 +124,8 @@ vì nó quyết định cách xử lý:
 > domain knowledge; Diabetes' Insulin = 0) and **invalid values**
 > (impossible entries such as age −5 or "Male " with a trailing space).
 > Convert forms 2 and 3 to NaN first. *(Supplementary)* Ask **why** data
-> is missing: **MCAR** (completely random — dropping or filling barely
-> biases), **MAR** (depends on other columns — impute using them), **MNAR**
+> is missing: **MCAR** (independent missingness — deletion still loses data and constant filling can distort variance),
+> **MAR** (depends on other columns — impute using them), **MNAR**
 > (depends on the missing value itself — the fact of being missing is
 > informative; add an indicator column).
 
@@ -140,7 +140,7 @@ vì nó quyết định cách xử lý:
 | **Điền mode** | Thay bằng giá trị xuất hiện nhiều nhất | Dùng được cho cột chữ | Làm class phổ biến càng phổ biến | Cột categorical (ví dụ `Embarked`) |
 | **Điền hằng số** | Thay bằng "Unknown", −1… | Giữ thông tin "đã từng thiếu" | Hằng số có thể bị hiểu nhầm là giá trị thật | Cột categorical; MNAR |
 | **Điền theo nhóm** | Median của nhóm cùng đặc điểm | Sát thực tế hơn | Phức tạp hơn; **không được nhóm theo label** | Có cột liên quan rõ (tuổi theo danh xưng Mr/Mrs ở Titanic) |
-| **Model điền** (`KNNImputer`, `IterativeImputer`) | Dự đoán ô thiếu từ các cột khác | Chính xác nhất khi các cột liên quan | Chậm, phức tạp | Dataset vừa, MAR |
+| **Model điền** (`KNNImputer`, `IterativeImputer`) | Dự đoán ô thiếu từ các cột khác | Có thể tận dụng quan hệ giữa các cột | Chậm, phức tạp; không bảo đảm tốt nhất | Dataset vừa, MAR |
 | **Thêm cột chỉ báo** | Cột mới `Insulin_missing` = 1/0, rồi điền | Model biết dòng nào từng bị thiếu | Thêm feature | MNAR; kết hợp với cách điền khác |
 
 Hai lưu ý quan trọng:
@@ -531,6 +531,99 @@ IQR và z-score là quy tắc gắn cờ, không tự quyết định xóa. Mode
 
 > **EN:** Missingness mechanisms require assumptions. An indicator is not a general cure for MNAR bias; outlier flags and model-based imputation also require validation.
 
+## Điền một giá trị chung làm phân phối đổi thế nào? (bổ sung từ ghi chú)
+
+Ghi chú nhấn mạnh: dữ liệu số có thể điền mean/median, categorical nominal hoặc ordinal có thể điền mode. Median là baseline bền với outlier, nhưng không luôn tốt nhất; mode có thể làm nhóm phổ biến áp đảo hơn. Xóa hàng khi tỷ lệ rất nhỏ, chẳng hạn dưới khoảng 5%, chỉ là điểm bắt đầu cân nhắc: vẫn phải xem hàng bị xóa thuộc nhóm nào và cơ chế thiếu. Thiếu ít nhưng tập trung ở một nhóm hiếm vẫn có thể gây bias lớn.
+
+> **EN:** Median and mode are useful baselines, not universal rules. A small deletion rate does not guarantee that dropping rows is unbiased.
+
+:::worked Co phương sai và làm yếu tương quan — dữ liệu tự soạn
+Giả sử bảng đầy đủ được biết để kiểm chứng trong ví dụ:
+
+| x | y đầy đủ | y sau khi che | y điền mean/median |
+|---|---|---|---|
+| 1 | 10 | 10 | 10 |
+| 2 | 20 | 20 | 20 |
+| 3 | 30 | 30 | 30 |
+| 4 | 40 | thiếu | 20 |
+| 5 | 50 | thiếu | 20 |
+
+Ba giá trị quan sát có mean = median = 20. Tổng bình phương độ lệch quanh 20 là 100 + 0 + 100 = 200.
+
+- Chỉ xét ba giá trị quan sát: variance chia n = 200/3, std ≈ **8.1650**.
+- Sau điền: thêm hai số đúng bằng mean, không thêm độ lệch; variance = 200/5 = 40, std ≈ **6.3246**.
+- Bảng đầy đủ giả lập ban đầu có mean 30, std ≈ **14.1421** và r(x,y) = **1**. Sau điền r ≈ **0.4472**: hai hàng x lớn không còn đi cùng y lớn.
+
+Không được dùng std của ba giá trị quan sát làm “std thật của dữ liệu đầy đủ”. Ở dữ liệu thật ta không biết các ô bị che; bảng này chỉ cho thấy một cơ chế làm méo dữ liệu. Điền median không nhất thiết giảm variance trong mọi trường hợp; làm yếu correlation cũng không phải định luật cho mọi cách thiếu.
+:::
+
+```python
+import numpy as np
+
+x = np.arange(1, 6)
+truth = np.array([10., 20., 30., 40., 50.])
+observed = np.array([10., 20., 30., np.nan, np.nan])
+filled = np.where(np.isnan(observed), np.nanmean(observed), observed)
+print(np.nanstd(observed), filled.std(), truth.std())  # ddof=0
+# 8.1649658, 6.3245553, 14.1421356
+print(np.corrcoef(x, truth)[0, 1], np.corrcoef(x, filled)[0, 1])
+# 1.0, 0.4472136
+```
+
+> **EN:** Filling every missing entry with the same mean adds no centered variation but increases the denominator. It can distort both marginal distributions and cross-feature relationships; the effect depends on the missingness pattern.
+
+## MissForest: dự đoán ô thiếu từ các cột khác (bổ sung)
+
+MissForest khởi tạo các ô thiếu, rồi lần lượt học random forest để dự đoán phần thiếu của từng cột từ những cột còn lại; cập nhật qua nhiều lượt tới tiêu chí dừng hoặc giới hạn lặp. Với dữ liệu hỗn hợp, cột số dùng hồi quy, cột categorical dùng phân loại. Ý chính của ghi chú “tần suất cao điền nhiều, thấp điền ít” là **không gán cùng một số cho mọi hàng**, mà tận dụng quan hệ có điều kiện giữa các cột. Đây không phải quy tắc lấy mẫu theo histogram và không bảo đảm giữ nguyên tần suất/phân phối.
+
+> **EN:** MissForest iteratively predicts missing entries using forests fitted to the other variables. It exploits conditional relationships rather than filling by a global frequency rule.
+
+:::pitfall Không có bảo đảm khôi phục phân phối gốc
+Random forest có thể tận dụng quan hệ phi tuyến nhưng vẫn sai khi thiếu thông tin, nhãn/feature nhiễu hoặc MNAR. Dự đoán điểm cũng có thể làm giảm độ phân tán; “tốt hơn baseline” cần được kiểm chứng. Chi phí huấn luyện tăng vì học nhiều rừng qua nhiều lượt. Không dùng target tương lai làm đầu vào cho imputer. Xem [bài báo MissForest](https://arxiv.org/abs/1105.0828).
+:::
+
+### Code chạy được: iterative imputation với random forest cho cột số
+
+Cài `pip install numpy scikit-learn`. Ví dụ dùng **Diabetes regression của scikit-learn**, không phải bảng Pima `Outcome` trong slide. Chỉ dùng feature số, bỏ target. Đây là phương án có tinh thần tương tự MissForest; không phải bản tái hiện đầy đủ MissForest cho dữ liệu hỗn hợp hay cùng tiêu chí dừng.
+
+```python
+import numpy as np
+from sklearn.datasets import load_diabetes
+from sklearn.model_selection import train_test_split
+from sklearn.experimental import enable_iterative_imputer  # noqa: F401
+from sklearn.impute import IterativeImputer
+from sklearn.ensemble import RandomForestRegressor
+
+X, _ = load_diabetes(return_X_y=True)
+X_train, X_test = train_test_split(X, test_size=0.2, random_state=42)
+rng = np.random.default_rng(42)
+X_train = X_train.copy()
+X_test = X_test.copy()
+X_train[rng.random(X_train.shape) < 0.15] = np.nan
+X_test[rng.random(X_test.shape) < 0.15] = np.nan
+
+imputer = IterativeImputer(
+    estimator=RandomForestRegressor(
+        n_estimators=50, max_depth=6, min_samples_leaf=3,
+        random_state=42, n_jobs=1),
+    initial_strategy="median", max_iter=30, tol=0.1, random_state=42)
+train_filled = imputer.fit_transform(X_train)  # chỉ học trên train
+test_filled = imputer.transform(X_test)        # dùng các mô hình đã học
+assert train_filled.shape == X_train.shape
+assert test_filled.shape == X_test.shape
+assert not np.isnan(train_filled).any()
+assert not np.isnan(test_filled).any()
+print("Số lượt:", imputer.n_iter_)
+```
+
+API còn experimental, cần import enable trước; `max_iter` là trần số lượt, không cam kết hội tụ. Trong CV, đặt imputer trong Pipeline để fit lại trong từng fold. Không truyền mã category vào regressor rồi coi số lẻ trả về là category hợp lệ. Đối chiếu [IterativeImputer](https://scikit-learn.org/stable/modules/generated/sklearn.impute.IterativeImputer.html).
+
+> **EN:** The example is numeric-only iterative forest imputation, not a full mixed-type MissForest implementation. Fit on training data only and refit inside each CV fold.
+
+:::pitfall Khi outlier chính là mục tiêu
+Đừng xóa giao dịch hiếm hoặc ca bất thường chỉ vì chúng xa số đông. Nếu mục tiêu là phát hiện fraud hay bệnh hiếm, xóa chúng có thể xóa chính tín hiệu cần học. Một ca bệnh hiếm chưa chắc là outlier trong không gian feature; “class thiểu số” và “outlier” không đồng nghĩa. Nối với [[bài:imbalanced-data]] để chọn metric và cách học cho lớp cần phát hiện.
+:::
+
 ## Tóm tắt 1 phút
 
 :::recap
@@ -604,6 +697,8 @@ biến đổi (cắt ngưỡng, log) đã học từ train.
 EN: Why not delete outlier rows from the test set?
 **A:** The test set mimics real data; deleting rows inflates the
 > score. Only apply train-learned transformations to it.
+Q: Điền mean cho [10, 20, 30, thiếu, thiếu] làm std chia n đổi thế nào so với phần quan sát?
+A: Mean = 20. Tổng bình phương độ lệch vẫn 200; trước là √(200/3) ≈ 8.1650, sau là √(200/5) ≈ 6.3246. Đây là so phần quan sát với tập sau điền, không phải biết được variance của toàn bộ dữ liệu thật.
 @tier B | Phỏng vấn lý thuyết
 Q: Khi nào dùng median thay mean để điền?
 A: Median phù hợp baseline cho biến số lệch hoặc có cực trị vì ít bị kéo. Nó vẫn làm giảm variation và có thể bỏ qua quan hệ với cột khác; cần kiểm chứng trên validation.
@@ -617,16 +712,22 @@ EN: MCAR is independent missingness; MAR depends on observed variables; MNAR dep
 Q: Vì sao thêm missing indicator có ích nhưng chưa đủ?
 A: Thiếu có thể phản ánh quy trình thu thập nên indicator giữ tín hiệu đó. Nhưng model có thể học quy trình của nguồn cũ và không tổng quát; indicator không tự khử bias do MNAR.
 EN: Missingness indicators can preserve useful signals but may encode collection bias and do not generally correct MNAR.
+Q: MissForest có bảo đảm giữ phân phối và điền theo tần suất không?
+A: Không. Nó học dự đoán từng cột từ các cột khác, có thể giữ quan hệ tốt hơn một hằng số trong dữ liệu phù hợp. Nó không phải bộ lấy mẫu theo histogram; dự đoán điểm vẫn có bias và cần kiểm chứng với cơ chế thiếu, mục tiêu và baseline.
+EN: MissForest learns conditional predictions through iterative forests; it does not guarantee exact recovery of distributions or category frequencies.
 @tier C | Tình huống doanh nghiệp
 Q: Cột số có nhiều giá trị 0. Đổi hết thành missing được không?
 A: Đọc định nghĩa và quy trình ghi trước: 0 có thể là giá trị thật, như số lần mua. Kiểm tra theo nguồn, thời gian và trường liên quan; chỉ đổi sentinel đã xác nhận, rồi thử imputation trong train. Đổi nhầm xóa tín hiệu thật *(bổ sung)*.
 WANT: Không áp quy tắc từ Diabetes cho mọi cột số.
-Q: Fraud có nhiều giao dịch rất lớn bị IQR đánh dấu. Có xóa?
+Q: Khi nào không được xóa outlier? Fraud có nhiều giao dịch rất lớn bị IQR đánh dấu, bạn làm gì?
 A: Kiểm tra lỗi đơn vị/nhập liệu và liên hệ nhãn; giữ giao dịch hiếm có thật vì có thể chính là mục tiêu phát hiện. Thử biến đổi hoặc model bền, đánh giá trên dữ liệu đại diện. Xóa có thể nâng metric chung nhưng phá recall fraud *(bổ sung)*.
 WANT: Phân biệt lỗi dữ liệu với tín hiệu hiếm quan trọng.
 Q: Insulin thiếu nhiều, muốn bỏ cột ngay. Bạn quyết định sao?
 A: So baseline có/không cột, median kèm indicator và phương án khác trên cùng split. Kiểm tra thiếu do nhóm nào và lúc serving có đo không. Cột thiếu nhiều vẫn có ích; model phức tạp hơn tăng chi phí và nguy cơ học bias nguồn *(bổ sung)*.
 WANT: Không dùng một ngưỡng tỷ lệ thiếu làm quyết định tuyệt đối.
+Q: Team muốn dùng MissForest cho bảng có cả mã sản phẩm và số đo để khỏi phải nghĩ về kiểu dữ liệu. Bạn xử lý sao?
+A: Xác định cột số, categorical, target và thời điểm quan sát trước. Chọn triển khai hỗ trợ mixed types hoặc pipeline riêng, không dùng RandomForestRegressor để nội suy mã category. So median/mode với forest trong CV, fit chỉ train; đánh đổi chi phí, schema và khả năng tổng quát khi gặp category mới.
+WANT: Phân biệt thuật toán MissForest với ví dụ iterative regressor, không dùng tên thư viện thay cho thiết kế dữ liệu.
 :::
 
 ## Nối sang bài sau

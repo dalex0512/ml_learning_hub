@@ -1,7 +1,7 @@
 ---
 title: Step 3.5 — Cân bằng dữ liệu (Imbalanced data)
 order: 21
-description: "So resampling, class weight và đổi threshold; giữ validation/test theo phân bố thật và chọn bằng chất lượng ở điểm vận hành."
+description: "Class balancing cho classification: so resampling, class weight và đổi threshold; giữ validation/test theo phân bố thật và chọn bằng chất lượng ở điểm vận hành."
 slides: 52-54
 needs: [classification-metrics, stratified-k-fold]
 tags: [smote, oversampling, undersampling, class-weight, imbalanced, threshold]
@@ -783,6 +783,16 @@ Mất cân bằng không tự quyết định model thất bại; còn phụ thu
 
 > **EN:** Resampling is not guaranteed to improve performance. Use development-only CV for selection and keep a separate untouched test set; empirical results do not establish a universal ranking.
 
+## Balance data áp dụng cho class, không cho mọi giá trị hiếm (bổ sung từ ghi chú)
+
+Ghi chú của buổi học nhấn mạnh đúng mục tiêu: cho class cần tìm được model gặp đủ hơn, thường là class thiểu số như spam hoặc fraud. Trong bài này **class balancing dành cho classification** vì có số mẫu của từng class. Không đem nhãn liên tục của regression coi mỗi giá trị là một class rồi cân bằng. Regression cũng có thể thiếu mẫu ở vùng target hiếm; đó là bài toán phân bố/đánh trọng số khác, không có nghĩa regression hoàn toàn không có vấn đề dữ liệu lệch.
+
+> **EN:** Class balancing is a classification concept. Regression can still have underrepresented target regions, but these are not discrete classes to balance in the same way.
+
+:::pitfall Gặp nhiều hơn chưa phải đa dạng hơn
+Random oversampling tăng số lần gặp mẫu cũ, không tạo thêm quan sát độc lập. SMOTE/ADASYN tạo mẫu tổng hợp dựa vào cấu trúc đã có, có thể làm vùng train dày hơn nhưng không bảo đảm thêm thông tin đúng; nhãn nhiễu có thể bị khuếch đại. Undersampling có thể bỏ mẫu đa số tốt. Chỉ resample **train trong từng fold**, giữ validation/test ở phân bố cần đánh giá. [[bài:classification-metrics]] giải thích vì sao accuracy đơn độc dễ gây hiểu nhầm; nó vẫn có giá trị khi đọc cùng baseline và metric từng class. Nếu “mẫu hiếm” có thể là tín hiệu thật, xem [[bài:missing-values-outliers]] trước khi xóa.
+:::
+
 ## Tóm tắt 1 phút
 
 :::recap
@@ -863,6 +873,8 @@ EN: Recall rises from 0.50 to ≈ 0.70 but AUC stays ≈ 0.81. Why?
 **A:** AUC measures ranking across all thresholds; balancing mainly
 > shifts the decision boundary (like lowering the threshold), so Recall
 > rises while the ranking — and AUC — barely changes.
+Q: Nhân bản một mẫu thiểu số nhiều lần có tạo nhiều quan sát độc lập không?
+A: Không. Nó tăng trọng lượng hoặc số lần mẫu đó xuất hiện trong quá trình học, không làm đa dạng nguồn quan sát. Mẫu tổng hợp cũng cần kiểm chứng, không tự có thông tin thật mới.
 @tier B | Phỏng vấn lý thuyết
 Q: Vì sao SMOTE trước split gây leakage?
 A: Mẫu tổng hợp dùng thông tin láng giềng trên toàn dataset nên có thể phụ thuộc các mẫu sau đó thuộc validation/test. Ngoài ra tập đánh giá bị đổi tỷ lệ. Split trước và đặt sampler trong pipeline từng fold.
@@ -876,6 +888,9 @@ EN: Class weighting changes the objective, resampling changes training data, and
 Q: ADASYN có rủi ro nào với nhãn sai?
 A: Điểm thiểu số nằm giữa đa số được coi khó và sinh nhiều mẫu quanh nó. Nếu nhãn gốc sai, ADASYN khuếch đại nhiễu; cần kiểm tra nhãn và overlap trước khi tăng độ phức tạp.
 EN: ADASYN can amplify mislabeled minority samples surrounded by majority neighbors.
+Q: “Hồi quy không có mất cân bằng” nên hiểu thế nào trong bài này?
+A: Regression không có các class rời rạc để cân bằng số lượng theo cách đang học. Tuy vậy target liên tục có thể có vùng hiếm và mô hình dự đoán kém ở vùng đó; phải thiết kế đánh giá/trọng số phù hợp chứ không phủ nhận vấn đề.
+EN: Regression lacks discrete classes to balance, but rare target regions can still be underrepresented.
 @tier C | Tình huống doanh nghiệp
 Q: Fraud 0.1%, chọn SMOTE hay class_weight?
 A: Giữ split thời gian/nhóm phù hợp và validation tỷ lệ thật, xây baseline score, weight và threshold trước. Đo PR, recall ở ngân sách duyệt và chi phí; thử SMOTE chỉ train nếu feature và láng giềng có nghĩa. Nội suy có thể tạo giao dịch không hợp lệ, weight đơn giản hơn nhưng vẫn cần chọn ngưỡng *(bổ sung)*.
@@ -886,10 +901,13 @@ WANT: Biện luận chất lượng ở điểm vận hành và giới hạn ngu
 Q: Dữ liệu chứa mã sản phẩm one-hot, team muốn SMOTE thường. Bạn xử lý sao?
 A: Nội suy có thể tạo giá trị category phân số không hợp lệ. Thử RandomOverSampler hoặc SMOTENC khi còn cấu trúc categorical và tiền xử lý đúng; so baseline weight. Giữ pipeline trong fold và kiểm tra schema đầu ra, đánh đổi đơn giản với khả năng mô tả vùng thiểu số *(bổ sung)*.
 WANT: Không áp khoảng cách và nội suy số liên tục một cách máy móc.
+Q: Khách VIP rất hiếm trong model dự đoán doanh thu. Có SMOTE nhãn doanh thu như các class được không?
+A: Không coi từng con số doanh thu là một class. Phân tích lỗi theo vùng target và nhóm khách, xác định chi phí rồi thử trọng số hoặc cách lấy mẫu phù hợp regression. Đánh giá trên phân bố triển khai, tránh áp kỹ thuật class balancing chỉ vì thấy nhóm hiếm.
+WANT: Phân biệt bài toán class imbalance với target liên tục phân bố lệch.
 :::
 
 ## Nối sang bài sau
 
 :::next
-Quay lại [[bài:ml-pipeline]] để ghép thống kê, missing, scaling, encoding, quan hệ feature và mất cân bằng thành quy trình hoàn chỉnh. Dùng [[bài:classification-metrics]] và [[bài:roc-auc]] để chọn cách đánh giá; các thuật toán cụ thể sẽ tiếp tục ở module Supervised Learning.
+Đã hoàn tất các phần chính của Step 3. [[bài:data-visualization]] chuyển sang Step 4: nhìn phân bố và quan hệ bằng biểu đồ trước khi chọn mô hình. Giữ [[bài:classification-metrics]] và [[bài:roc-auc]] làm công cụ kiểm chứng hiệu quả của cân bằng.
 :::

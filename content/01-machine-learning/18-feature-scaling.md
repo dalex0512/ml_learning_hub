@@ -1,7 +1,7 @@
 ---
 title: Step 3.3 — Feature scaling với MinMaxScaler và StandardScaler
 order: 18
-description: Vì sao phải đưa các feature số về cùng thang đo, công thức MinMaxScaler và StandardScaler đọc từ code slide 47, cách tính lại từng con số output, và quy tắc fit trên train rồi mới transform test.
+description: "Đổi đơn vị và scaling tác động tới model thế nào; MinMax, Standard, Robust, giới hạn của khoảng ±3 và quy tắc fit trên train."
 slides: 47
 needs: [missing-values-outliers]
 tags: [scaling, MinMaxScaler, StandardScaler, RobustScaler, data-leakage, preprocessing]
@@ -24,16 +24,16 @@ Thử so sánh hai bệnh nhân bằng "khoảng cách" giữa họ:
 | Bệnh nhân A | 100 | 0.2 |
 | Bệnh nhân B | 110 | 1.2 |
 
-Về y học, chênh lệch DPF 0.2 → 1.2 (từ tiền sử gia đình nhẹ lên rất nặng) quan trọng hơn nhiều so với Insulin 100 → 110.
-Nhưng về **con số**, Insulin chênh 10 còn DPF chỉ chênh 1 — mọi phép tính dựa trên khoảng cách sẽ coi Insulin quan trọng gấp 10 lần.
+Không thể kết luận tầm quan trọng y học của hai chênh lệch chỉ từ bảng này; điều đang xét là ảnh hưởng của đơn vị tới phép tính.
+Nhưng về **con số**, Insulin chênh 10 còn DPF chỉ chênh 1 — trong bình phương khoảng cách Euclid, hai phần đóng góp là 100 và 1, chưa phản ánh tầm quan trọng nghiệp vụ.
 Lý do duy nhất là **đơn vị đo**: Insulin tính bằng μU/ml với giá trị vài trăm, DPF là điểm số quanh 0–2.
 
 **Feature scaling** (chuẩn hóa thang đo) đưa mọi feature số về **cùng một thang** để không cột nào "lấn át" cột nào chỉ vì đơn vị.
 Đây là phần đầu của bước **03 Data Transformation**; slide 47 gọi là *"Tiền xử lý numerical features"* và giới thiệu hai công cụ
 của scikit-learn: **MinMaxScaler** và **StandardScaler**.
 
-> **EN:** Compare two patients by distance: Insulin differs by 10 and DPF by 1, so a distance-based computation treats
-> Insulin as 10x more important — purely because of its unit. **Feature scaling** puts all numeric features on a common
+> **EN:** Compare two patients by distance: Insulin differs by 10 and DPF by 1, giving squared contributions of 100 versus 1.
+> This does not establish business importance. **Feature scaling** puts numeric features on a common
 > scale so no column dominates because of its unit. Slide 47 introduces scikit-learn's **MinMaxScaler** and **StandardScaler**.
 
 ### Nó nằm ở đâu trong pipeline
@@ -126,7 +126,7 @@ Với cột Pregnancies: min = 0, max = 17 → `x' = x / 17`. Ví dụ 6 / 17 = 
 ## StandardScaler — đưa về mean 0, std 1
 
 Kết quả gọi là **z-score** (đã gặp ở [[bài:missing-values-outliers]] khi phát hiện outlier): giá trị cách trung bình bao nhiêu lần độ lệch chuẩn.
-Phần lớn giá trị nằm khoảng −3 đến 3 nhưng có thể vượt. Với Pregnancies: μ = 3.84505, σ = 3.36738 → z(6) = (6 − 3.84505) / 3.36738 ≈ **0.63995** — đúng dòng đầu slide.
+Nếu phân phối gần chuẩn, phần lớn giá trị nằm khoảng −3 đến 3 nhưng vẫn có thể vượt. Với Pregnancies: μ = 3.84505, σ = 3.36738 → z(6) = (6 − 3.84505) / 3.36738 ≈ **0.63995** — đúng dòng đầu slide.
 
 :::pitfall Chi tiết dễ nhầm: σ chia n hay n − 1?
 `StandardScaler` tính σ bằng cách **chia cho n** (độ lệch chuẩn tổng thể, `ddof=0`), còn pandas `describe()` / `.std()` ở
@@ -134,7 +134,7 @@ Phần lớn giá trị nằm khoảng −3 đến 3 nhưng có thể vượt. V
 Nếu tự tính z bằng `data.std()` của pandas sẽ lệch chút ít so với output slide (dùng `.std(ddof=0)` để khớp).
 :::
 
-> **EN:** StandardScaler: z = (x − μ)/σ with μ, σ learned at fit time → mean 0, std 1; mostly within ±3. Its σ divides by n
+> **EN:** StandardScaler: z = (x − μ)/σ with μ, σ learned at fit time → mean 0, std 1; mostly within ±3 only for approximately normal data. Its σ divides by n
 > (`ddof=0`), while pandas `.std()` divides by n − 1 (3.3674 vs 3.3696 for Pregnancies).
 
 ## So sánh và chọn scaler
@@ -229,8 +229,7 @@ Kiểm tra: tổng các z = 0 → mean = 0 ✓.
 Nhìn lại MinMax: chỉ vì số 10, bốn điểm còn lại bị dồn vào [0, 0.375] — minh họa "MinMax nhạy với outlier".
 
 **Một giá trị mới ở tập test: x = 12** (dùng thông số của train, không fit lại): MinMax: (12 − 2) / 8 = **1.25** (vượt [0, 1], bình thường);
-Standard: (12 − 5) / 2.6833 ≈ **2.6087**. Nếu lỡ fit lại trên tập test chỉ có giá trị 12 thì max − min = 0 → phép chia cho 0 —
-một minh họa vui cho việc vì sao **không được fit trên test**.
+Standard: (12 − 5) / 2.6833 ≈ **2.6087**. Nếu tự áp công thức trên riêng một điểm 12 thì max − min = 0; scikit-learn có xử lý cột hằng nên không trực tiếp báo chia 0 như phép tính tay. Dù vậy **không được fit lại trên test**: thang đo không còn là thang train.
 :::
 
 ## Code
@@ -323,6 +322,20 @@ scores = cross_val_score(model, Xc, y, cv=cv, scoring="f1")
 print(scores.round(3), scores.mean().round(3))   # [0.639 0.652 0.638 0.596 0.654] 0.636
 ```
 
+## Cùng độ dài, khác con số (bổ sung từ ghi chú)
+
+:::worked Ox tính km, Oy tính m
+Ox có dải 0–10 km, Oy có dải 0–10000 m: đó là cùng một độ dài vật lý. Nếu hai mẫu lệch 1 km theo Ox và 1000 m theo Oy, Euclidean distance trên số thô dùng 1² + 1000²; Oy đóng góp **1.000.000 lần** vào bình phương khoảng cách chỉ do khác đơn vị. Đổi cả hai sang km thì hai phần đóng góp bằng nhau. Scaling xử lý vấn đề thang đo, không tự quyết định feature nào quan trọng về nghiệp vụ.
+:::
+
+Trên Pima, DPF quanh 0–2 so với Insulin tới hàng trăm gợi đúng vấn đề này. Không nên nói model “không để ý DPF”: mức ảnh hưởng phụ thuộc thuật toán, dữ liệu và mục tiêu. KNN, RBF-SVM, model có regularization và tối ưu gradient nhạy thang; cây tách ngưỡng từng cột thường không cần scaling. Hồi quy tuyến tính giải không regularization không có cùng vấn đề phạt hệ số như bản regularized, dù scaling có thể giúp ổn định số.
+
+> **EN:** Different units can dominate numeric distances without implying greater business relevance. Scaling matters especially for distances, penalties and gradient optimization; threshold-based trees are usually invariant to positive rescaling.
+
+:::note StandardScaler không biến dữ liệu thành Gaussian (nhận xét)
+Khoảng ±3σ bao phủ khoảng 99.73% nếu phân phối thật sự chuẩn; đó không phải biên cứng của StandardScaler. Affine scaling giữ hình dạng phân bố, nên lệch vẫn lệch. Mean và std vẫn bị outlier kéo; không có định luật StandardScaler luôn ít nhạy hơn MinMax trên mọi tiêu chí. So cả RobustScaler hoặc biến đổi log trên validation nếu đuôi dài. Trên dữ liệu fit không hằng, mean 0 và variance chia n bằng 1; cột hằng sau scale là 0.
+:::
+
 ## Tóm tắt 1 phút
 
 :::recap
@@ -353,9 +366,11 @@ Q: Model nào sau đây **không** cần scaling: KNN, SVM, Random Forest, Logis
 A: **Random Forest** — mỗi nút chỉ so một feature với một ngưỡng; đổi thang giữ nguyên thứ tự nên cách chia không đổi. KNN và SVM dựa vào khoảng cách; Logistic Regression có regularization phạt độ lớn hệ số nên phụ thuộc thang đo.
 Q: Dữ liệu [10, 20, 30, 40, 1000]. MinMax của 20, 30, 40 là bao nhiêu? Nhận xét.
 A: min = 10, max = 1000, khoảng = 990. 20 → 10/990 ≈ **0.0101**; 30 → **0.0202**; 40 → **0.0303**. Bốn điểm bình thường bị nén vào [0, 0.03] chỉ vì một outlier 1000 — minh họa MinMax rất nhạy với outlier; nên dùng RobustScaler hoặc xử lý outlier trước.
+Q: StandardScaler cho mean 0, std 1 có nghĩa mọi điểm nằm trong [−3,3] không?
+A: Không. Scaler không chặn khoảng và không làm dữ liệu thành Gaussian. Với phân phối chuẩn, khoảng ±3σ chứa khoảng 99.73%, vẫn có điểm ngoài; với phân phối lệch, quy tắc đó không áp dụng trực tiếp.
 @tier B | Phỏng vấn lý thuyết
 Q: **B1.** Vì sao cần feature scaling? Cho một ví dụ cụ thể.
-A: Nhiều thuật toán đối xử với feature theo **độ lớn con số**, không theo ý nghĩa. Ví dụ KNN tính khoảng cách giữa hai bệnh nhân: Insulin chênh 10 và DPF chênh 1 → Insulin chiếm gần hết khoảng cách dù DPF mới quan trọng hơn về y học. Scaling đưa các feature về cùng thang để mỗi feature đóng góp công bằng, đồng thời giúp gradient descent hội tụ nhanh và ổn định hơn.
+A: Nhiều thuật toán đối xử với feature theo **độ lớn con số**, không theo ý nghĩa. Ví dụ KNN tính khoảng cách giữa hai bệnh nhân: Insulin chênh 10 và DPF chênh 1 → Insulin chiếm gần hết khoảng cách mà chưa xét ý nghĩa nghiệp vụ của hai cột. Scaling đưa các feature về cùng thang để mỗi feature đóng góp công bằng, đồng thời giúp gradient descent hội tụ nhanh và ổn định hơn.
 EN: Many algorithms treat features by numeric magnitude; without scaling, a large-unit feature dominates distance computations and slows gradient-based convergence.
 Q: **B2.** Phân biệt normalization (MinMax) và standardization. Khi nào dùng cái nào?
 A: MinMax đưa về [a, b] dựa trên min/max — dùng khi cần khoảng cố định (pixel ảnh, đầu vào mạng nơ-ron) và dữ liệu ít outlier. Standardization dùng mean/std, kết quả quanh 0, không chặn khoảng — mặc định tốt cho đa số thuật toán, đặc biệt khi dữ liệu gần phân phối chuẩn hoặc có outlier nhẹ. Có outlier thật cần giữ → RobustScaler (median/IQR). Lưu ý: thuật ngữ "normalization" đôi khi cũng chỉ việc chuẩn hóa từng vector về độ dài 1 (`Normalizer`) — nên hỏi lại ngữ cảnh.
@@ -369,6 +384,9 @@ EN: Computing scaling statistics on the full data lets test-set information infl
 Q: **B5.** Vì sao cây quyết định / Random Forest không cần scaling còn KNN, SVM thì cần?
 A: Cây chỉ so sánh từng feature với một ngưỡng ("Glucose > 127?"); phép biến đổi đơn điệu không đổi thứ tự nên không đổi cách chia → kết quả giống hệt. KNN và SVM (kernel RBF) dùng khoảng cách tới điểm khác/hyperplane nên độ lớn từng feature ảnh hưởng trực tiếp. Mô hình có regularization phạt độ lớn hệ số nên cũng phụ thuộc thang.
 EN: Trees compare one feature to a threshold, which a monotonic rescale doesn't change; distance- and penalty-based models depend on feature magnitude.
+Q: Vì sao “mô hình chú ý feature lớn hơn” chỉ là cách nói gợi nhớ?
+A: Độ lớn ảnh hưởng khoảng cách, gradient và regularization, không phải cơ chế chú ý chung của mọi model. Cây so ngưỡng từng cột, còn đổi đơn vị không tự tạo thêm thông tin. Phải nói rõ thuật toán và nguyên nhân.
+EN: Scale sensitivity comes from specific distances, optimization or penalties; it is not a universal attention mechanism.
 @tier C | Tình huống doanh nghiệp
 Q: **C1.** Model chạy tốt trong notebook nhưng khi triển khai API thì dự đoán sai lệch hẳn. Bạn phát hiện lúc training có StandardScaler nhưng code serving nạp dữ liệu thô. Bạn sửa thế nào và phòng ngừa ra sao?
 A: Nguyên nhân là **training–serving skew**: model học trên dữ liệu đã scale nhưng nhận dữ liệu thô khi phục vụ. Sửa: lưu **cả pipeline** (imputer + scaler + model) bằng `joblib`/`pickle` và gọi `pipeline.predict(raw)` khi serving, tuyệt đối không tự scale lại bằng thông số tính tay. Phòng ngừa: có test so sánh đầu ra giữa môi trường train và serving trên cùng mẫu, version hóa pipeline.
@@ -382,6 +400,9 @@ WANT: Bạn phân biệt được "scale" với "đổi hình dạng phân bố"
 Q: **C4.** Đồng nghiệp báo "thêm scaling thì F1 của KNN tăng từ 0.62 lên 0.71". Bạn kiểm tra gì trước khi tin?
 A: (1) Scaler có được fit **chỉ trên train** (hay Pipeline trong CV) — nếu fit trên toàn bộ dữ liệu thì điểm bị thổi phồng nhẹ; (2) chênh 0.09 có vượt độ dao động giữa các fold không (xem độ lệch chuẩn của score qua CV, dùng cùng `random_state`/cùng fold cho cả hai cấu hình); (3) so sánh công bằng: cùng hyperparameter (k) hoặc cùng quy trình tune; (4) mức tăng có hợp lý không — KNN rất nhạy thang nên tăng lớn là dễ hiểu.
 WANT: Bạn có thói quen xác minh cải tiến bằng quy trình đánh giá đúng thay vì tin một con số.
+Q: Dữ liệu có hai cột cùng đo chiều dài, một cột m và một cột km. Scale xong đã xử lý xong chưa?
+A: Kiểm tra trước xem đó là hai phép đo độc lập hay cùng một thông tin đổi đơn vị. Đổi về đơn vị chuẩn, kiểm tra consistency và cân nhắc bỏ cột trùng; scaling không xóa redundancy. So chất lượng và chi phí trên validation, không giữ hai cột chỉ vì đã cùng thang.
+WANT: Nhận ra đơn vị đo và đa cộng tuyến là hai vấn đề khác nhau.
 :::
 
 ## Nối sang bài sau
