@@ -25,7 +25,7 @@ Model chỉ làm toán được trên **số**. Nhưng rất nhiều dữ liệu
 "Khá, Giỏi"… **Encoding** (mã hóa) là việc đổi các giá trị chữ (category)
 thành số — phần thứ hai của bước **03 Data Transformation**.
 
-Cái khó là **đổi thế nào cho đúng nghĩa**. Bài 02 đã chia dữ liệu
+Cái khó là **đổi thế nào cho đúng nghĩa**. [[bài:feature-and-data-types]] đã chia dữ liệu
 categorical thành hai loại, và mỗi loại cần một cách mã hóa riêng:
 
 - **Ordinal** — các giá trị có **thứ tự**: XS < S < M < L < XL. Mã hóa phải
@@ -49,13 +49,13 @@ categorical thành hai loại, và mỗi loại cần một cách mã hóa riên
 3.1 Missing → 3.2 Outliers → [ 3.3 Transformation: Scaling (bài 18) + Encoding (bài này) ] → 3.4 Correlation → 3.5 Balance
 ```
 
-- Bài 02 — các loại dữ liệu: Numerical (discrete / continuous) và
+- [[bài:feature-and-data-types]] — các loại dữ liệu: Numerical (discrete / continuous) và
   Categorical (Nominal / Ordinal / Boolean). Bài này là "phần thực hành"
   của bảng phân loại đó.
-- Bài 16 — `data.dtypes`: cột có dtype `object` là dấu hiệu cần encoding.
+- [[bài:descriptive-statistics]] — `data.dtypes`: cột có dtype `object` là dấu hiệu cần encoding.
   Diabetes dataset toàn số nên không cần; Titanic ([[bài:missing-values-outliers]]) có `Sex`,
   `Embarked` là chữ → cần.
-- Bài 04 — feature vector: sau encoding, một cột chữ có thể biến thành
+- [[bài:labeled-data]] — feature vector: sau encoding, một cột chữ có thể biến thành
   **nhiều** cột số (one-hot), làm feature vector dài thêm.
 - Như scaler ([[bài:feature-scaling]]), encoder cũng **fit trên train** (học danh sách
   category) rồi transform test.
@@ -67,9 +67,7 @@ categorical thành hai loại, và mỗi loại cần một cách mã hóa riên
 > lengthening the feature vector (lesson 04). Like scalers, encoders are
 > **fitted on the training set** (they learn the category list).
 
-## Từng cách mã hóa và giới hạn
-
-## OrdinalEncoder cho ordinal features ([[slide:48]])
+## OrdinalEncoder cho ordinal features (slide 48)
 
 Code trên slide, viết lại:
 
@@ -116,7 +114,7 @@ Ví dụ ordinal khác *(bổ sung)*: học lực Yếu < Trung bình < Khá < G
 Xuất sắc; mức độ hài lòng 1–5 sao; trình độ Cử nhân < Thạc sĩ < Tiến sĩ;
 hạng vé Titanic `Pclass` 1 / 2 / 3 (đã là số).
 
-Hạn chế: OrdinalEncoder giả định các bậc **cách đều nhau** (S → M bằng M →
+Hạn chế: mã số liên tiếp có thể khiến model tuyến tính coi các bậc **cách đều nhau** (S → M bằng M →
 L, đều là +1). Thường chấp nhận được, nhưng cần nhớ đó là một giả định.
 
 > **EN:** [[slide:48]]'s `OrdinalEncoder(categories=[values])` declares the
@@ -126,8 +124,7 @@ L, đều là +1). Thường chấp nhận được, nhưng cần nhớ đó là
 > sorted **alphabetically** (L = 0, M = 1, S = 2, XL = 3, XS = 4) —
 > a nonsense order. The slide names the encoder `scaler`; `encoder` would
 > be clearer. *(Supplementary)* Other ordinal examples: academic grades,
-> star ratings, degrees, Titanic's `Pclass`. Limitation: steps are assumed
-> **equally spaced**.
+> star ratings, degrees, Titanic's `Pclass`. Limitation: a downstream linear model can impose **equally spaced** effects.
 
 ## Vì sao không dùng OrdinalEncoder cho nominal?
 
@@ -147,7 +144,7 @@ số cho cột màu, ép hiệu ứng của màu phải **tăng đều** theo th
 > force the colour effect to grow evenly along this fake order. Nominal
 > data needs order-free encodings ([[slide:49]]).
 
-## One-hot encoding ([[slide:49]], cột xanh lá)
+## One-hot encoding (slide 49, cột xanh lá)
 
 Mỗi category thành **một cột riêng**; mỗi dòng có đúng một số 1 ("hot") ở
 cột của nó, còn lại là 0. Ví dụ trên slide — feature **Color**:
@@ -194,7 +191,7 @@ cột của nó, còn lại là 0. Ví dụ trên slide — feature **Color**:
 > (`drop="first"`) for unregularized linear models; prefer
 > `OneHotEncoder` (fitted on train) over `pd.get_dummies` in pipelines.
 
-## Hash encoding ([[slide:49]], cột cam)
+## Hash encoding (slide 49, cột cam)
 
 Ý tưởng: chọn trước **số cột cố định** k (ví dụ k = 3), rồi dùng một **hàm
 băm (hash function)** — hàm biến chuỗi chữ bất kỳ thành một số nguyên — để
@@ -239,7 +236,7 @@ lớn hoặc luôn có category mới (từ trong văn bản, ID người dùng,
 > `FeatureHasher` uses MurmurHash3 (and may output −1 via
 > `alternate_sign`). Useful for huge or ever-growing category sets.
 
-## Word embedding ([[slide:49]], cột đỏ)
+## Word embedding (slide 49, cột đỏ)
 
 Mỗi category được biểu diễn bằng một **vector số thực dày (dense)** —
 vài chục đến vài trăm số, không phải 0/1 — và các vector này được **học từ
@@ -278,7 +275,7 @@ vector trên slide: cos(Lion, Tiger) ≈ **0.999**, cos(Dog, Lion) ≈
   nghĩa có thể cần hàng trăm chiều.
 
 *(Nhận xét của Claude)* Các con số trên slide là ví dụ minh họa (3 chiều),
-không phải vector Word2vec thật; ví dụ cos(Dog, Mouse) ≈ −0.36 không mang
+slide không ghi nguồn model để xác nhận có phải vector Word2vec thật; ví dụ cos(Dog, Mouse) ≈ −0.36 không mang
 nhiều ý nghĩa. Embedding chủ yếu dùng cho **văn bản** (từ, câu) và các
 category có số lượng khổng lồ; với cột vài giá trị như màu sắc thì one-hot
 là đủ.
@@ -291,7 +288,7 @@ là đủ.
 > cos(Dog, Lion) ≈ −0.879 (reused in NLP, P09, and recommenders, P15).
 > Pros: **memory efficient**, **relationships learnt**. Cons: needs a
 > **Word2vec**-style model; may need **many dimensions**. *(Claude's
-> note)* The slide's vectors are illustrative, not real Word2vec output;
+> note)* The slide's vectors are illustrative, with no specified model provenance;
 > embeddings suit text and huge category sets, while one-hot is enough
 > for a few colours.
 
@@ -326,9 +323,7 @@ Ví dụ thực tế Việt Nam *(bổ sung)*: dự đoán giá thuê phòng tr�
 > one-hot; furnishing None/Basic/Full (ordinal) → 0/1/2; balcony (boolean)
 > → 0/1; free-text description → embeddings or P09 techniques.
 
-## Mã hóa bảng sinh viên, hash và cosine
-
-## Mã hóa một bảng nhỏ *(tự soạn)*
+## Mã hóa một bảng nhỏ (tự soạn)
 
 5 sinh viên:
 
@@ -358,7 +353,7 @@ Ví dụ thực tế Việt Nam *(bổ sung)*: dự đoán giá thuê phòng tr�
 dùng `drop="first"` cho Quê thì bỏ cột `Que_Huế`, còn 4 cột: Huế được hiểu
 là "cả hai cột còn lại bằng 0".
 
-## Hash encoding bằng tay với một hàm băm đơn giản *(tự soạn)*
+## Hash encoding bằng tay với một hàm băm đơn giản (tự soạn)
 
 Hàm băm tự chọn: **cộng mã ASCII của các chữ cái, rồi lấy dư khi chia
 cho 3**.
@@ -407,9 +402,7 @@ khác nhau đều bằng **0** — one-hot không biểu diễn được "Lion g
 > 0.9992; Dog·Lion = −0.6007, ‖Dog‖ ≈ 0.6707 → cosine ≈ −0.879. Under
 > one-hot every distinct pair has cosine 0.
 
-## Tự tính rồi chạy encoder
-
-## Chạy lại code [[slide:48]] và thử bỏ `categories`
+## Chạy lại code slide 48 và thử bỏ categories
 
 ```python
 from pandas import DataFrame
@@ -429,7 +422,7 @@ print(wrong.categories_)               # [array(['L', 'M', 'S', 'XL', 'XS'], ...
 print(wrong.transform(before).ravel()) # [3. 0. 2. 1. 4. 4. 0. 1.]
 ```
 
-## One-hot encoding *(bổ sung)*
+## One-hot encoding (bổ sung)
 
 ```python
 import pandas as pd
@@ -446,7 +439,7 @@ print(OneHotEncoder(drop="first", sparse_output=False)
       .fit(colors).get_feature_names_out())  # ['Color_Blue' 'Color_Green' 'Color_Red'] - bỏ Black
 ```
 
-## Hash encoding *(bổ sung)*
+## Hash encoding (bổ sung)
 
 ```python
 from sklearn.feature_extraction import FeatureHasher
@@ -467,7 +460,7 @@ fh8 = FeatureHasher(n_features=8, input_type="string", alternate_sign=False)
 print(fh8.transform(countries).toarray())   # nhiều cột hơn -> ít va chạm hơn
 ```
 
-## Cosine similarity cho vector embedding của slide *(bổ sung)*
+## Cosine similarity cho vector embedding của slide (bổ sung)
 
 ```python
 import numpy as np
@@ -483,7 +476,7 @@ for a, b in [("Lion", "Tiger"), ("Dog", "Lion"), ("Dog", "Mouse")]:
     print(a, b, round(cosine(E[a], E[b]), 4))   # 0.9992  -0.8788  -0.3586
 ```
 
-## Mã hóa nhiều cột cùng lúc bằng ColumnTransformer *(bổ sung)*
+## Mã hóa nhiều cột cùng lúc bằng ColumnTransformer (bổ sung)
 
 ```python
 from sklearn.compose import ColumnTransformer
@@ -626,5 +619,5 @@ WANT: Nhận diện target leakage và nêu cách cross-fitting cụ thể.
 ## Nối sang bài sau
 
 :::next
-Tiếp theo, [[bài:correlation-multicollinearity]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+Encoding có thể tạo thêm cột và phụ thuộc tuyến tính, như bộ dummy cùng intercept. [[bài:correlation-multicollinearity]] xem quan hệ giữa feature, target và các cột với nhau.
 :::

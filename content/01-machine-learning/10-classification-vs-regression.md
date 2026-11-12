@@ -42,7 +42,7 @@ Một email không thể "nửa spam nửa không" → Classification.
 
 ## Dạng bài quyết định loss và metric
 
-Bài 03 đã chia ML thành Supervised / Unsupervised / Reinforcement. Bài này
+[[bài:learning-paradigms]] đã chia ML thành Supervised / Unsupervised / Reinforcement. Bài này
 đi sâu vào nhánh **Supervised**, chia tiếp thành hai dạng bài ([[slide:25]]):
 
 ```
@@ -62,7 +62,7 @@ thứ phía sau:
 2. **Cách chia dữ liệu** — Stratified K-fold ([[bài:stratified-k-fold]]) chỉ áp dụng được cho
    Classification.
 3. **Metric đánh giá** — Classification dùng Confusion Matrix, Accuracy,
-   Precision, Recall, F1, ROC/AUC ([[bài:confusion-matrix]]–13); Regression dùng MAE, RMSE
+   Precision, Recall, F1, ROC/AUC ([[bài:confusion-matrix]] đến [[bài:roc-auc]]); Regression dùng MAE, RMSE
    ([[bài:regression-metrics]]).
 
 > **EN:** Lesson 03 split ML into Supervised / Unsupervised /
@@ -74,7 +74,7 @@ thứ phía sau:
 
 ## Các dạng đầu ra cần phân biệt
 
-### 3.1. Classification — Binary
+### Classification — Binary
 
 Chỉ có **2 class**. Chú thích tay trong [[slide:26]] tóm gọn: *"one thing or
 another"* — cái này hoặc cái kia.
@@ -102,7 +102,7 @@ Trong Binary Classification thường gọi một class là **class dương
 > catching — and the other the **negative class (−)**. This convention
 > becomes central in the next lesson.
 
-### 3.2. Classification — Multiclass
+### Classification — Multiclass
 
 Từ **3 class trở lên**, mỗi mẫu thuộc **đúng một** class. Chú thích tay
 [[slide:26]]: *"more than one thing or another"*.
@@ -116,7 +116,7 @@ hay pizza?
 > another"*. Examples: animals (cat / dog / horse), fruits, flowers, or
 > "is this photo sushi, steak or pizza?".
 
-### 3.3. Classification — Multilabel
+### Classification — Multilabel
 
 [[slide:26]] nhắc thêm dạng thứ ba: **Multilabel Classification** — mỗi mẫu
 có thể mang **nhiều nhãn cùng lúc**. Chú thích tay: *"multiple label
@@ -145,7 +145,7 @@ trả lời "mẫu này có tag thứ k hay không".
 > slides)* A multilabel problem with K tags can be viewed as **K binary
 > classification problems running in parallel**.
 
-### 3.4. Regression
+### Regression
 
 Output là **một số thực liên tục**. Ví dụ [[slide:25]]: ước lượng giá nhà
 (house price estimation), dự đoán giá cổ phiếu (stock prediction), dự báo
@@ -156,7 +156,7 @@ nhiệt độ (temperature forecast). Ví dụ giá nhà chính là dataset đã
 > price estimation, stock prediction, temperature forecasting. The house
 > price example is the same dataset used in lesson 06 (Loss Function).
 
-### 3.5. Bẫy hay gặp khi phân loại dạng bài *(Bổ sung — không có trong slide)*
+### Bẫy hay gặp khi phân loại dạng bài *(Bổ sung — không có trong slide)*
 
 **Bẫy 1 — label là số nhưng vẫn là Classification.** Cột `Outcome` trong
 Diabetes dataset ([[bài:labeled-data]]) có giá trị `0` / `1`, trông như số, nhưng là
@@ -365,5 +365,5 @@ WANT: Biết cùng một dữ liệu có nhiều cách đặt bài toán hợp l
 ## Nối sang bài sau
 
 :::next
-Tiếp theo, [[bài:confusion-matrix]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+Khi đầu ra là class, sai không chỉ có một kiểu. [[bài:confusion-matrix]] tách báo động giả và bỏ sót thành bốn ô TP, FP, FN, TN.
 :::

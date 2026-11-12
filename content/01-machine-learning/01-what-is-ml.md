@@ -86,8 +86,6 @@ Learning. Toàn bộ khóa học này tập trung vào nhánh **ML**.
 >   behalf → AI (in general)
 :::
 
-## Từ khái niệm đến dữ liệu thật
-
 Ở bước tổng quan này chưa cần viết code — chỉ cần nắm chắc 4 khái niệm và
 mối quan hệ giữa chúng. Đoạn code đầu tiên sẽ xuất hiện ở bài tiếp theo
 ("Feature & Data types") khi bắt đầu đọc dữ liệu thật bằng pandas.
@@ -126,12 +124,12 @@ Q: Deep Learning có phải là một nhánh hoàn toàn tách biệt với
 Machine Learning không? Vì sao?
 A: Không. Deep Learning là **tập con** của Machine Learning —
 nó vẫn là học từ dữ liệu, chỉ khác ở chỗ dùng mạng nơ-ron nhiều lớp và
-cần lượng dữ liệu rất lớn.
+thường cần nhiều dữ liệu khi train từ đầu; lượng dữ liệu không phải định nghĩa của DL.
 EN: Is Deep Learning a completely separate branch from Machine
 Learning? Why or why not?
 **A:** No. Deep Learning is a **subset** of Machine Learning — it
 > still learns from data, just using multi-layer neural networks and
-> requiring a very large amount of data.
+> often requiring substantial data when trained from scratch.
 
 Q: Một chatbot trả lời câu hỏi hoàn toàn theo kịch bản lập trình
 sẵn (if-else, không học từ dữ liệu) có được coi là Machine Learning không?
@@ -175,5 +173,5 @@ WANT: Không coi DL là đồng nghĩa với tự train một mạng lớn từ 
 ## Nối sang bài sau
 
 :::next
-Tiếp theo, [[bài:feature-and-data-types]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+Đã biết ML học từ dữ liệu, giờ cần biết dữ liệu được mô tả bằng những gì. [[bài:feature-and-data-types]] giúp đọc sample, feature và ý nghĩa từng loại cột.
 :::

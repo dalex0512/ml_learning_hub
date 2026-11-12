@@ -34,13 +34,13 @@ sát), và **Reinforcement learning** (học tăng cường).
 
 Phần lớn dữ liệu xung quanh ta vốn là **dữ liệu thô** (unlabeled). Biến dữ
 liệu thô thành dữ liệu có nhãn (labeled) gọi là **data labelling/data
-annotation** — quá trình này luôn cần sự can thiệp của con người. Việc
+annotation** — quá trình này có thể do người thực hiện hoặc tận dụng tín hiệu từ quy trình nghiệp vụ *(bổ sung)*. Việc
 dữ liệu bạn có là loại nào (có nhãn hay không) quyết định bạn dùng được
 phương thức học nào.
 
 > **EN:** Most data around us starts out as **unlabeled, raw data**.
 > Turning raw data into labeled data is called **data labelling/data
-> annotation** — a process that always requires human involvement. Which
+> annotation** — a process that can use human annotation or operational signals. Which
 > learning paradigm you can use depends on whether your data is labeled.
 
 ## Ba phương thức học và các dạng bài toán
@@ -96,8 +96,6 @@ game theory, xe tự lái (autonomous cars).
 > - "Group customers by shopping behavior, without knowing the number of
 >   groups in advance" → Unsupervised, Clustering
 :::
-
-## Thuật toán cụ thể sẽ đến sau
 
 Chưa cần code ở bài này — mỗi thuật toán cụ thể (trong module Supervised
 Learning / Unsupervised Learning) sẽ có code riêng ở các bài sau. Bài này
@@ -188,5 +186,5 @@ WANT: Nhận ra điều kiện để dùng RL và tác hại của reward lệch
 ## Nối sang bài sau
 
 :::next
-Tiếp theo, [[bài:labeled-data]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+Với supervised learning, mỗi input cần gắn với target đúng. [[bài:labeled-data]] biến ý tưởng đó thành feature matrix X và label vector y.
 :::

@@ -68,8 +68,6 @@ chứ không chỉ một nhãn cứng. Hầu hết model phân loại đều là
 > just a hard label — most classifiers can (e.g. `predict_proba` in
 > scikit-learn).
 
-## Các công thức và cách đọc ROC
-
 ## Hai trục của ROC
 
 | Metric | Công thức | Ý nghĩa | Trục |
@@ -107,7 +105,7 @@ Specificity = TN / (TN + FP) nên 1 − Specificity = FP / (FP + TN) = FPR.
 > (TPR = FPR, AUC = 0.5). The blue **ROC** curve is the real model, and
 > the shaded region beneath it is the **AUC**.
 
-## Đường cong được vẽ ra như thế nào *(Bổ sung — slide chỉ cho hình, không cho cách vẽ)*
+## Đường cong được vẽ ra như thế nào (Bổ sung — slide chỉ cho hình, không cho cách vẽ)
 
 1. Model cho mỗi mẫu một **score** (xác suất là +).
 2. **Sắp xếp** các mẫu theo score giảm dần.
@@ -132,7 +130,7 @@ sang phải sau** → ôm góc trên trái. Model ngẫu nhiên xen lẫn + và 
 > flagged → (1, 1). A good model ranks positives first, so the curve goes
 > up before it goes right and hugs the top-left corner.
 
-## Ý nghĩa của AUC *(Bổ sung)*
+## Ý nghĩa của AUC (Bổ sung)
 
 AUC có một cách hiểu rất trực quan:
 
@@ -162,7 +160,7 @@ Các mốc 0.7 / 0.8 / 0.9 chỉ là quy ước phổ biến, không phải chu�
 > sign of flipped labels). These bands are common conventions, not hard
 > rules.
 
-## Chọn threshold từ ROC *(Bổ sung)*
+## Chọn threshold từ ROC (Bổ sung)
 
 ROC cho thấy mọi lựa chọn; việc chọn **một** điểm để triển khai phụ thuộc
 cái giá của FP và FN (giống [[bài:classification-metrics]], phần 3.10):
@@ -178,25 +176,23 @@ cái giá của FP và FN (giống [[bài:classification-metrics]], phần 3.10)
 > higher FPR; costly false alarms → low FPR; no clear preference → maximise
 > **TPR − FPR** (Youden's J), the point farthest above the diagonal.
 
-## Giới hạn của ROC và PR curve *(Bổ sung)*
+## Giới hạn của ROC và PR curve (Bổ sung)
 
 FPR chia cho số mẫu − thật. Khi class − **rất đông** (ví dụ 990 giao dịch
 bình thường so với 10 gian lận), dù model báo nhầm 40 giao dịch thì
 FPR = 40 / 990 ≈ 0.04 — trông rất nhỏ. Đường ROC vẫn đẹp và AUC vẫn cao,
-dù Precision thực tế chỉ khoảng 0.17.
+nếu TP = 8 thì Precision = 8 / (8 + 40) ≈ 0.17 *(bổ sung)*.
 
 Vì vậy với dữ liệu **rất mất cân bằng**, người ta hay xem thêm
 **Precision–Recall curve (PR curve)**: trục x là Recall, trục y là
-Precision, quét qua mọi threshold tương tự. Diện tích dưới PR curve gọi là
-**Average Precision (AP)**. PR curve nhạy với FP hơn vì Precision chia cho
+Precision, quét qua mọi threshold tương tự. **Average Precision (AP)** tổng hợp precision theo mức tăng recall; nó khác cách tính diện tích hình thang dưới PR curve. PR curve nhạy với FP hơn vì Precision chia cho
 số lần báo +, không phải cho cả nhóm − đông đảo.
 
 > **EN:** *(Supplementary)* FPR divides by the number of actual negatives.
 > When negatives vastly outnumber positives (990 normal vs 10 fraud), even
 > 40 false alarms give FPR ≈ 0.04 — so ROC/AUC can look great while real
-> precision is about 0.17. For **heavily imbalanced** data, also check the
-> **Precision–Recall curve** (x = Recall, y = Precision); its area is
-> **Average Precision (AP)**. It's more sensitive to FP because Precision
+> precision is about 0.17 when TP = 8. For **heavily imbalanced** data, also check the
+> **Precision–Recall curve** (x = Recall, y = Precision); **Average Precision (AP)** summarizes precision weighted by recall increments; it differs from trapezoidal PR area. It's more sensitive to FP because Precision
 > divides by predicted positives, not by the huge negative class.
 
 ## Quét điểm trên mười email
@@ -277,8 +273,6 @@ và 0.40 (TPR 1.0, FPR 0.4). Nếu bỏ sót spam đáng ngại hơn thì chọn
 > pairs: in 21 of 25 (spam, non-spam) pairs the spam scores higher →
 > 21/25 = 0.84. Youden's J peaks at 0.6 at thresholds 0.60 and 0.40.
 
-## Tự dựng ROC rồi đối chiếu scikit-learn
-
 ## Tự cài đặt ROC và AUC
 
 ```python
@@ -356,6 +350,8 @@ Với model thật, `scores` lấy từ cột xác suất của class +:
 
 :::note Hai chi tiết cần chính xác (nhận xét)
 AUC tính cả điểm hòa: P(score+ > score−) + 0.5 × P(score+ = score−). AP là tổng precision có trọng số theo mức tăng recall, không đồng nhất với diện tích hình thang dưới PR. ROC không đủ cho biết precision nếu chưa biết tỷ lệ class. Trong ví dụ 10 dương, 990 âm và 40 FP, precision khoảng 0.17 chỉ khi TP = 8: 8/(8+40) = 1/6. Chọn threshold trên validation, không trên test.
+
+Đối chiếu cách tính AP tại [tài liệu scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html).
 :::
 
 > **EN:** AUC gives half credit to tied pairs. Average precision weights precision by recall increments; it is distinct from trapezoidal PR area. Choose the operating threshold on validation data.
@@ -471,5 +467,5 @@ WANT: Debug có thứ tự trước khi áp mẹo 1 − score.
 ## Nối sang bài sau
 
 :::next
-Tiếp theo, [[bài:regression-metrics]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+ROC/AUC kết thúc phần metric phân loại. Nếu target là đại lượng, [[bài:regression-metrics]] thay câu hỏi đúng/sai nhãn bằng sai lệch số đo MAE và RMSE.
 :::

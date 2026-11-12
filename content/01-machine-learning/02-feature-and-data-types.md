@@ -191,5 +191,5 @@ WANT: Phân biệt thứ tự với khoảng cách định lượng.
 ## Nối sang bài sau
 
 :::next
-Tiếp theo, [[bài:learning-paradigms]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+Biết loại feature mới là hiểu đầu vào. [[bài:learning-paradigms]] đi tiếp: model sẽ học từ nhãn, cấu trúc dữ liệu hay phản hồi của môi trường?
 :::

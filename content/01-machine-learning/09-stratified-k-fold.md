@@ -249,5 +249,5 @@ WANT: Nhận diện leakage từ bản sao và mẫu tổng hợp.
 ## Nối sang bài sau
 
 :::next
-Tiếp theo, [[bài:classification-vs-regression]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+Stratification cần biết target là class. [[bài:classification-vs-regression]] giúp quyết định dạng bài từ ý nghĩa target trước khi chọn cách đánh giá.
 :::

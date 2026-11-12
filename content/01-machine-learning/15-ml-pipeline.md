@@ -69,14 +69,14 @@ giá, triển khai). Nguyên liệu hỏng thì đầu bếp giỏi mấy cũng 
 Bài này **chính là** pipeline, nên câu hỏi đúng ở đây là: *những bài đã
 học nằm ở đâu trong 7 bước?*
 
-- **Bài 02, 04** (dataset, feature, label, X và y) → cái ta có trong tay
+- **[[bài:feature-and-data-types]], 04** (dataset, feature, label, X và y) → cái ta có trong tay
   sau **Step 1**.
-- **Bài 05, 06** (model training, loss function) → bên trong **Step 5**.
+- **[[bài:model-training-pipeline]], 06** (model training, loss function) → bên trong **Step 5**.
   Sơ đồ Input → Model → Output → so với Label → Loss ở [[bài:model-training-pipeline]] chính là
   "phóng to" của bước Model building.
-- **Bài 07, 08, 09** (chia Train/Validation/Test, K-fold, Stratified
+- **[[bài:train-test-split]], 08, 09** (chia Train/Validation/Test, K-fold, Stratified
   K-fold) → cách tổ chức dữ liệu để **Step 5 và Step 6** làm việc đúng.
-- **Bài 10–14** (Classification/Regression, confusion matrix, Accuracy,
+- **[[bài:classification-vs-regression]] đến [[bài:regression-metrics]]** (Classification/Regression, confusion matrix, Accuracy,
   Precision, Recall, F1, ROC–AUC, MAE, RMSE) → công cụ của **Step 6**.
 
 Nói cách khác: phần đầu khóa học đã dạy "nửa sau" của pipeline (bước 5–6)
@@ -91,8 +91,6 @@ mới đi sâu vào các thuật toán của bước 5.
 > (metrics) are the tools of **Step 6**. So the course taught the second
 > half (steps 5–6) first; from lesson 16 on it goes back to steps 2–4,
 > then dives into the algorithms of step 5.
-
-## Bảy bước và đường đi học tiếp
 
 ## Step 1 — Data collection (Thu thập dữ liệu)
 
@@ -192,7 +190,7 @@ Chọn thuật toán, đưa dữ liệu train vào để model học (cơ chế 
 
 Đo model tốt đến đâu trên dữ liệu **chưa từng thấy** (Validation / Test).
 
-→ Phần công cụ đo **đã học ở [[bài:train-test-split]]–14**. Phần chẩn đoán và cải thiện
+→ Phần công cụ đo **đã học ở [[bài:train-test-split]] đến [[bài:regression-metrics]]**. Phần chẩn đoán và cải thiện
 model học ở **Module 05 — Model Evaluation**: bias, variance,
 underfitting, overfitting, regularization, giảm chiều dữ liệu, PCA
 (P11–P14).
@@ -231,18 +229,17 @@ vay–trả của khách hàng đã khác.
 | 3.5. Balance data | 52–54 | P03 | bài cuối phần tiền xử lý (module 01) |
 | 4. Data visualization | 55–63 | P04 | module 04 |
 | 5. Model building | 64–96, 132–139 | P05–P10, P15 | module 02, 03, 06 (đề xuất) |
-| 6. Model evaluation | 22–38, 97–131 | — / P11–P14 | **[[bài:train-test-split]]–14 (đã học)**; module 05 |
+| 6. Model evaluation | 22–38, 97–131 | — / P11–P14 | **[[bài:train-test-split]] đến [[bài:regression-metrics]] (đã học)**; module 05 |
 | 7. Model deployment | — | — | không có slide riêng |
 
-*Số thứ tự bài từ 17 trở đi là dự kiến, có thể đổi khi đọc slide thật.*
+*Các bài Step 2–3 đã có vị trí cố định trong roadmap; xem bản đồ chi tiết bên dưới.*
 
 > **EN:** Learning map — step 2 → lesson 16; steps 3.1–3.4 → lessons 17+;
 > step 3.5 → last preprocessing lesson; step 4 → module 04; step 5 →
 > modules 02, 03, 06 (proposed); step 6 → lessons 07–14 (done) and module
-> 05; step 7 → no dedicated slides. Lesson numbers from 17 on are
-> tentative.
+> 05; step 7 → no dedicated slides. The detailed preprocessing lesson map is now fixed below.
 
-## Pipeline không phải đường thẳng *(Nhận xét của Claude — không có trong slide)*
+## Pipeline không phải đường thẳng (Nhận xét của Claude — không có trong slide)
 
 Slide vẽ 7 bước nối nhau một chiều, nhưng ngoài thực tế có hai điều cần
 lưu ý:
@@ -521,9 +518,9 @@ with always predicting 0.
 > accuracy with Recall 0. The model is only ~6 points better and misses
 > half the patients.
 
-Q: Đã học xong các metric ở [[bài:confusion-matrix]]–14, vì sao vẫn còn cả module
+Q: Đã học xong các metric ở [[bài:confusion-matrix]] đến [[bài:regression-metrics]], vì sao vẫn còn cả module
 05 "Model Evaluation" phía sau?
-A: Bài 11–14 dạy cách **đo** model. Module 05 dạy cách **chẩn
+A: [[bài:confusion-matrix]] đến [[bài:regression-metrics]] dạy cách **đo** model. Module 05 dạy cách **chẩn
 đoán và cải thiện**: vì sao model kém (bias/variance, underfitting/
 overfitting) và cách sửa (regularization, chọn model, giảm chiều dữ
 liệu, PCA).
@@ -568,5 +565,5 @@ WANT: Phân biệt drift, lỗi vận hành và bằng chứng cần thay model.
 ## Nối sang bài sau
 
 :::next
-Tiếp theo, [[bài:descriptive-statistics]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+Bản đồ đã rõ; bước tiếp theo là khám dữ liệu trước khi sửa. [[bài:descriptive-statistics]] đọc bảng Diabetes bằng dtype, describe và phân bố class.
 :::

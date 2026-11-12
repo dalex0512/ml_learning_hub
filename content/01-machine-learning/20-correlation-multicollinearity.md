@@ -20,7 +20,7 @@ Nền để đọc bài này: [[bài:feature-scaling]], [[bài:categorical-encod
 :::slides 50-51 | Slide gốc — Step 3.4 — Correlation và Multicollinearity
 :::
 
-Sau khi làm sạch và biến đổi từng cột riêng lẻ ([[bài:missing-values-outliers]]–19), Step 3.4 nhìn
+Sau khi làm sạch và biến đổi từng cột riêng lẻ ([[bài:missing-values-outliers]] đến [[bài:categorical-encoding]]), Step 3.4 nhìn
 **các cột trong quan hệ với nhau**. Có hai câu hỏi khác nhau, [[slide:50]] và
 51 trả lời lần lượt:
 
@@ -51,12 +51,12 @@ Công cụ chung cho cả hai: **hệ số tương quan (correlation coefficient
 3.1 Missing → 3.2 Outliers → 3.3 Scaling, Encoding → [ 3.4 Correlation & Multicollinearity ] → 3.5 Balance (bài 21)
 ```
 
-- **Bài 16**: `groupby("Outcome").mean()` cho thấy người bệnh có Glucose
+- **[[bài:descriptive-statistics]]**: `groupby("Outcome").mean()` cho thấy người bệnh có Glucose
   trung bình cao hơn ~31 mg/dL. Correlation biến nhận xét đó thành **một
   con số**.
-- **Bài 17**: dữ liệu thiếu trá hình (số 0) làm **sai lệch** correlation —
+- **[[bài:missing-values-outliers]]**: dữ liệu thiếu trá hình (số 0) làm **sai lệch** correlation —
   ví dụ ở mục 3.6.
-- **Bài 19**: bộ cột one-hot đầy đủ luôn cộng lại bằng 1 — một trường hợp
+- **[[bài:categorical-encoding]]**: bộ cột one-hot đầy đủ luôn cộng lại bằng 1 — một trường hợp
   multicollinearity "hoàn hảo" (*dummy variable trap*).
 - **Sau này**: heatmap correlation (module 04), chọn feature theo
   correlation (P13), PCA dùng covariance / correlation (P14), regularization
@@ -68,9 +68,7 @@ Công cụ chung cho cả hai: **hệ số tương quan (correlation coefficient
 > Later: correlation heatmaps (module 04), feature selection (P13), PCA
 > (P14), regularization (P12).
 
-## Pearson, nhân quả và cộng tuyến
-
-## Correlation là gì ([[slide:50]])
+## Correlation là gì (slide 50)
 
 Ba gạch đầu dòng của slide:
 
@@ -90,7 +88,7 @@ về quan hệ **giữa các feature**.
 > **correlation does not imply causation**. Note "variables" (features
 > and target) on [[slide:50]] vs "features" on [[slide:51]].
 
-## Công thức Pearson ([[slide:50]])
+## Công thức Pearson (slide 50)
 
 ```
             Σ (xᵢ − x̄)(yᵢ − ȳ)
@@ -122,7 +120,7 @@ Hiểu công thức theo từng phần *(bổ sung)*:
 > removes units and bounds r to [−1, 1], so r is unchanged by unit changes
 > or scaling (lesson 18).
 
-## Đọc hệ số r (hình scatter [[slide:50]])
+## Đọc hệ số r (hình scatter slide 50)
 
 Slide vẽ 6 scatter plot với r = 0.7, 0.3, 0 (hàng trên) và −0.7, −0.3, 0
 (hàng dưới):
@@ -186,8 +184,7 @@ Với ML: model chỉ cần **dự đoán**, nên một feature tương quan v�
 vẫn hữu ích dù không phải nguyên nhân. Nhưng **đừng diễn giải** thành
 "tăng feature này sẽ làm thay đổi target" — đó là câu hỏi nhân quả, cần
 thí nghiệm hoặc phương pháp khác. Trong Diabetes dataset, Age tương quan
-dương với Outcome (r = 0.24), nhưng tuổi không "gây" tiểu đường trực tiếp —
-tuổi đi kèm nhiều yếu tố khác.
+dương với Outcome (r = 0.24), nhưng con số này không đủ kết luận tác động nhân quả của tuổi — tuổi đi kèm nhiều yếu tố khác.
 
 > **EN:** Co-movement doesn't prove cause. *(Supplementary — own
 > examples)* **Confounders** (air-conditioner sales and heatstroke cases
@@ -196,9 +193,9 @@ tuổi đi kèm nhiều yếu tố khác.
 > rates because severe cases are sent there), **coincidence** (two rising
 > time series). For ML, a correlated feature still helps **prediction**,
 > but don't interpret it causally — Age correlates with Outcome (r =
-> 0.24) without directly causing diabetes.
+> 0.24) without establishing a causal effect from correlation alone.
 
-## Correlation trên Diabetes dataset *(Bổ sung)*
+## Correlation trên Diabetes dataset (Bổ sung)
 
 **Feature với target** — `data.corr()["Outcome"]`:
 
@@ -234,9 +231,9 @@ càng lớn tuổi càng có thời gian mang thai nhiều lần.
 > (strongest), BMI 0.293, Age 0.238 … BloodPressure 0.065 (with a 0/1
 > target this is the point-biserial correlation). Largest feature–feature
 > pairs: Pregnancies–Age 0.544, SkinThickness–Insulin 0.437 — none above
-> 0.7, so no worrying multicollinearity.
+> 0.7, so no pair exceeds the stated threshold; multivariate checks are still needed.
 
-## Dữ liệu thiếu trá hình làm sai correlation *(Bổ sung — nối [[bài:missing-values-outliers]])*
+## Dữ liệu thiếu trá hình làm sai correlation (Bổ sung — nối Step 3.1–3.2 — Xử lý dữ liệu thiếu và Outliers)
 
 Tính lại sau khi đổi các số 0 vô lý thành NaN (pandas tự bỏ NaN theo từng
 cặp):
@@ -257,7 +254,7 @@ phải xử lý dữ liệu thiếu ([[bài:missing-values-outliers]]) **trướ
 > relationships look much weaker — clean missing data before analysing
 > correlation.
 
-## Multicollinearity ([[slide:51]])
+## Multicollinearity (slide 51)
 
 Hai gạch đầu dòng của slide:
 
@@ -292,7 +289,7 @@ vòng đỏ là phần target mà feature đó "giải thích" được.
 > they explain the **same** part of the target, so the model can't tell
 > which feature deserves the credit, and the second adds little.
 
-## Vì sao multicollinearity có hại, và xử lý thế nào *(Bổ sung)*
+## Vì sao multicollinearity có hại, và xử lý thế nào (Bổ sung)
 
 Tác hại chủ yếu với các model **tuyến tính** (Linear / Logistic
 Regression — P05):
@@ -316,7 +313,7 @@ Cách xử lý (bước 04 *Remove multicollinearity*):
 
 | Cách | Làm gì |
 |---|---|
-| **Bỏ bớt** | Trong cặp |r| > 0.7, giữ feature tương quan mạnh hơn với target hoặc dễ hiểu hơn |
+| **Bỏ bớt** | Trong cặp \|r\| > 0.7, giữ feature tương quan mạnh hơn với target hoặc dễ hiểu hơn |
 | **Gộp** | Tạo feature mới từ các feature trùng: trung bình, tỉ lệ (giá / m²) |
 | **PCA** (P14) | Biến các feature tương quan thành các thành phần không tương quan |
 | **Regularization** (P12) | Ridge (L2) giúp hệ số ổn định khi các feature tương quan |
@@ -331,8 +328,7 @@ VIF_j = 1 / (1 − R²ⱼ)
 ```
 
 VIF = 1: không cộng tuyến; > 5 đáng chú ý; > 10 nghiêm trọng (quy ước phổ
-biến). Diabetes dataset có VIF lớn nhất chỉ **1.59** (Age) → xác nhận
-không có đa cộng tuyến.
+biến). Diabetes dataset có VIF lớn nhất chỉ **1.59** (Age) → không gợi ý đa cộng tuyến mạnh theo phép đo này.
 
 > **EN:** *(Supplementary)* Harm is mainly to **linear models**:
 > **unstable coefficients** (with area and rooms ≈ area/30, the model can
@@ -344,9 +340,7 @@ không có đa cộng tuyến.
 > (P12). Pairwise r misses multi-feature dependencies; use **VIF** = 1/(1 −
 > R²ⱼ) (> 5 notable, > 10 severe). Diabetes' largest VIF is 1.59 (Age).
 
-## Ba cách kiểm tra bằng tính tay
-
-## Pearson r giữa diện tích và số phòng ngủ *(tự soạn)*
+## Pearson r giữa diện tích và số phòng ngủ (tự soạn)
 
 6 căn hộ:
 
@@ -423,8 +417,6 @@ hình doanh số chữ U ngược ở [[slide:50]].
 > **4.3** y = x² on −2…2: Σ products = 0 → r = 0, though y is fully
 > determined by x — the inverted-U effect from [[slide:50]].
 
-## Tính r, VIF và thử hệ số qua mẫu con
-
 ## Tính r bằng tay và bằng thư viện
 
 ```python
@@ -476,7 +468,7 @@ print(clean.corr().loc["SkinThickness", "BMI"].round(3))   # 0.648 (trước: 0.
 
 Heatmap của ma trận này sẽ vẽ ở module 04 (Data visualization).
 
-## VIF *(bổ sung)*
+## VIF (bổ sung)
 
 ```python
 from sklearn.linear_model import LinearRegression
@@ -492,7 +484,7 @@ def vif(df):
 print(vif(features))      # lớn nhất: Age 1.588 -> không đa cộng tuyến
 ```
 
-## Minh họa hệ số không ổn định khi có multicollinearity *(bổ sung — dữ liệu mô phỏng)*
+## Minh họa hệ số không ổn định khi có multicollinearity (bổ sung — dữ liệu mô phỏng)
 
 ```python
 rng = np.random.default_rng(0)
@@ -521,6 +513,10 @@ for seed in [1, 2, 3]:
 > coefficient stays near 0.04.
 
 ## Ngưỡng chỉ là tín hiệu điều tra (bổ sung)
+
+:::note Số đọc từ hình chưa phải bảng gốc (nhận xét)
+Các giá trị doanh số/nhiệt độ và r ≈ 0.007, +0.96, −0.94 ở phần đọc hình là ước lượng của nội dung cũ từ các điểm trên ảnh; slide không cung cấp bảng tọa độ để xác nhận độ chính xác đó. Chỉ dùng chúng để minh họa dạng U ngược. Ví dụ y = x² có dữ liệu tường minh và tính lại được là cách kiểm chứng chắc chắn hơn cho ý “r = 0 không đồng nghĩa không có quan hệ”.
+:::
 
 :::compare Correlation và multicollinearity
 | Câu hỏi | Công cụ | Giới hạn |
@@ -601,8 +597,7 @@ Q: Trong Diabetes dataset, r(SkinThickness, BMI) = 0.393 khi giữ
 nguyên số 0, nhưng 0.648 khi đổi số 0 thành NaN. Vì sao?
 A: Các số 0 là dữ liệu thiếu trá hình ([[bài:missing-values-outliers]]): một người có
 BMI 35 nhưng SkinThickness ghi 0 tạo ra những điểm "lạc" xa đường xu
-hướng, làm quan hệ trông yếu hơn thật. Bỏ chúng đi thì thấy được quan hệ
-thật mạnh hơn → phải xử lý dữ liệu thiếu trước khi tính correlation.
+hướng, làm quan hệ trông yếu hơn thật. Bỏ chúng đi thì thấy tương quan trên phần dữ liệu quan sát còn lại mạnh hơn → phải xử lý dữ liệu thiếu trước khi tính correlation.
 EN: Why does r(SkinThickness, BMI) jump from 0.393 to 0.648 when
 zeros become NaN?
 **A:** The zeros are disguised missing values creating stray points
@@ -635,5 +630,5 @@ WANT: Phân biệt ổn định dự đoán với ổn định diễn giải.
 ## Nối sang bài sau
 
 :::next
-Tiếp theo, [[bài:imbalanced-data]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+Quan hệ giữa các feature mới là một phần chất lượng dữ liệu. [[bài:imbalanced-data]] quay lại phân bố target để so cách học và ra quyết định khi class cần tìm rất hiếm.
 :::

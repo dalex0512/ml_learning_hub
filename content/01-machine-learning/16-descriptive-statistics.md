@@ -58,7 +58,7 @@ Step 1 Data collection → [ Step 2 Statistics ] → Step 3 Preprocessing → St
 
 Dataset ở đây là **Diabetes dataset** — đúng bộ đã gặp ở [[bài:labeled-data]] khi học
 feature matrix X và label vector y: 8 cột feature và cột label `Outcome`
-(1 = mắc tiểu đường, 0 = không). Bài 04 mới nhìn vài dòng để hiểu X và y;
+(1 = mắc tiểu đường, 0 = không). [[bài:labeled-data]] mới nhìn vài dòng để hiểu X và y;
 bài này nhìn **toàn bộ 768 dòng** qua con mắt thống kê.
 
 Những gì tìm được ở đây sẽ quyết định việc phải làm ở các bài sau:
@@ -82,9 +82,7 @@ Những gì tìm được ở đây sẽ quyết định việc phải làm ở 
 > split → step 3.5 (balancing), plus Stratified K-fold (lesson 09) and the
 > accuracy trap (lesson 12).
 
-## Đọc từng công cụ trên slide
-
-## Diabetes dataset ([[slide:40]])
+## Diabetes dataset (slide 40)
 
 [[slide:40]] cho xem 15 dòng đầu. Ý nghĩa từng cột *(bổ sung — slide chỉ ghi
 tên cột; theo mô tả gốc của bộ dữ liệu Pima Indians Diabetes, gồm các phụ
@@ -121,7 +119,7 @@ SkinThickness có 7/15 giá trị bằng 0. Người còn sống không thể c�
 > rows. A living person can't have zero blood pressure or BMI — the first
 > clue (section 3.6).
 
-## Xem dữ liệu — How data looks like ([[slide:41]])
+## Xem dữ liệu — How data looks like (slide 41)
 
 ```python
 import pandas as pd
@@ -154,7 +152,7 @@ data = pd.read_csv("diabetes.csv", delimiter=",")
 > only a viewing aid. *(Supplementary)* Elsewhere use `data.head()`,
 > `data.tail()` and `data.shape` → `(768, 9)`.
 
-## Kiểm tra kiểu dữ liệu — dtypes ([[slide:42]])
+## Kiểm tra kiểu dữ liệu — dtypes (slide 42)
 
 ```python
 print(data.dtypes)
@@ -207,7 +205,7 @@ dạng số 0.
 > `data.info()` shows `768 non-null` everywhere — no empty cells, yet
 > missing data hides as zeros (section 3.6).
 
-## Tóm tắt thống kê — describe() ([[slide:43]])
+## Tóm tắt thống kê — describe() (slide 43)
 
 ```python
 from pandas import read_csv
@@ -336,7 +334,7 @@ cột 0/1 luôn là tỉ lệ class 1.
 > 0/1 column is the share of class 1**: Outcome mean ≈ 0.349 → 34.9% of
 > patients are diabetic.
 
-## Phân bố class — Category distribution ([[slide:44]])
+## Phân bố class — Category distribution (slide 44)
 
 ```python
 count_class = data.groupby('Outcome').size()
@@ -363,7 +361,7 @@ Dog 10 ở [[bài:stratified-k-fold]]. Ba hệ quả:
 bệnh** đạt Accuracy = 500 / 768 ≈ **65.1%** mà chẳng học gì, và Recall =
 0 (bỏ sót **toàn bộ** 268 người bệnh). Vậy với dataset này, một model có
 Accuracy 70% **không hề ấn tượng**; phải nhìn Recall, Precision, F1 của
-class 1. Bài 15 đã thấy đúng chuyện này: model Logistic Regression đạt
+class 1. [[bài:ml-pipeline]] đã thấy đúng chuyện này: model Logistic Regression đạt
 Accuracy 0.708 nhưng Recall chỉ 0.5.
 
 **(2) Chia dữ liệu phải stratified ([[bài:train-test-split]], 09).** Khi chia train/test hay
@@ -392,7 +390,7 @@ hơn nhiều so với gọi nhầm một người khỏe đi xét nghiệm lại
 > over-sampling (e.g. SMOTE) or under-sampling. In medicine the "disease"
 > class is usually the minority *and* the one we care about most.
 
-## Giá trị 0 bất thường — dữ liệu thiếu trá hình *(Bổ sung — slide không nêu trực tiếp; gối đầu sang Step 3.1)*
+## Giá trị 0 bất thường — dữ liệu thiếu trá hình (Bổ sung — slide không nêu trực tiếp; gối đầu sang Step 3.1)
 
 `count` = 768 ở mọi cột và `data.isna().sum()` = 0 khiến ta tưởng dữ liệu
 đầy đủ. Nhưng **min = 0** ở 5 cột mà về mặt sinh học **không thể bằng 0**
@@ -453,7 +451,7 @@ hợp thống kê với **hiểu biết về ý nghĩa cột** (domain knowledge
 > always blank: it can hide as 0, −1, 999, "N/A"… — spotting it needs
 > **domain knowledge**.
 
-## So sánh theo class *(Bổ sung)*
+## So sánh theo class (Bổ sung)
 
 Một câu lệnh nữa cho thấy feature nào có vẻ "phân biệt" được hai class:
 
@@ -566,7 +564,7 @@ dòng đầu** — luôn tính trên toàn bộ dataset.
 Cần file `diabetes.csv` (Pima Indians Diabetes Database, có trên Kaggle)
 cùng thư mục.
 
-## Xem dữ liệu ([[slide:41]])
+## Xem dữ liệu (slide 41)
 
 ```python
 import pandas as pd
@@ -579,7 +577,7 @@ print(data.head())     # 5 dòng đầu
 print(data.shape)      # (768, 9)
 ```
 
-## Kiểu dữ liệu từng feature ([[slide:42]])
+## Kiểu dữ liệu từng feature (slide 42)
 
 ```python
 print(data.dtypes)
@@ -596,7 +594,7 @@ print(data.dtypes)
 data.info()   # (bổ sung) thêm số non-null: cột nào cũng 768 non-null
 ```
 
-## Tóm tắt thống kê ([[slide:43]])
+## Tóm tắt thống kê (slide 43)
 
 ```python
 from pandas import read_csv
@@ -606,7 +604,7 @@ out = data.describe()
 print(out.round(2).T)   # .T: xoay bảng cho dễ đọc khi nhiều cột
 ```
 
-## Phân bố class ([[slide:44]])
+## Phân bố class (slide 44)
 
 ```python
 count_class = data.groupby('Outcome').size()
@@ -621,7 +619,7 @@ print(f"Baseline luôn đoán 0: {count_class[0] / len(data):.4f}")    # 0.6510
 print(f"Tỉ lệ 0:1 = {count_class[0] / count_class[1]:.2f} : 1")     # 1.87 : 1
 ```
 
-## Phát hiện dữ liệu thiếu trá hình *(Bổ sung)*
+## Phát hiện dữ liệu thiếu trá hình (Bổ sung)
 
 ```python
 import numpy as np
@@ -653,7 +651,7 @@ print(data[["Glucose", "Insulin"]].agg(["mean", "median", "skew"]).round(2))
 print(data.groupby("Outcome").mean().round(2).T)
 ```
 
-## Kiểm tra ví dụ tay *(Bổ sung)*
+## Kiểm tra ví dụ tay (Bổ sung)
 
 ```python
 g = data["Glucose"].head(15)
@@ -795,5 +793,5 @@ WANT: Không lấy một số trung bình thay cho toàn bộ phân bố.
 ## Nối sang bài sau
 
 :::next
-Tiếp theo, [[bài:missing-values-outliers]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+Thống kê đã chỉ ra số 0 bất thường và đuôi phân bố dài. [[bài:missing-values-outliers]] phân biệt dữ liệu thiếu, lỗi đo và điểm hiếm có thật để chọn cách xử lý.
 :::

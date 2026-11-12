@@ -66,8 +66,6 @@ này.
 > Function** lesson, using this same pipeline diagram.
 :::
 
-## Code sẽ nối từ sơ đồ này
-
 Chưa có code ở bài này — xem bài **Loss Function** tiếp theo.
 
 > **EN:** No code in this lesson — see the next **Loss Function** lesson.
@@ -152,5 +150,5 @@ WANT: Không lấy prediction hoặc chỉ số thay thế làm bằng chứng c
 ## Nối sang bài sau
 
 :::next
-Tiếp theo, [[bài:loss-function]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+Sơ đồ train cần một cách lượng hóa sai lệch để model biết phải sửa. [[bài:loss-function]] tính L1, L2 trên cùng ví dụ giá nhà và giải thích độ nhạy với lỗi lớn.
 :::

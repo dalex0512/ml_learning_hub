@@ -249,5 +249,5 @@ WANT: Quan tâm tính ổn định và ý nghĩa của nhóm bị thất bại.
 ## Nối sang bài sau
 
 :::next
-Tiếp theo, [[bài:stratified-k-fold]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+Xoay fold chưa đảm bảo mỗi lượt có đủ class cần đánh giá. [[bài:stratified-k-fold]] giữ xấp xỉ tỷ lệ class trong các fold, đặc biệt khi lớp thiểu số ít mẫu.
 :::

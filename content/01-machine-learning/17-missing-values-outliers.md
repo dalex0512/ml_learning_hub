@@ -20,7 +20,7 @@ Nền để đọc bài này: [[bài:descriptive-statistics]].
 :::slides 45-46 | Slide gốc — Step 3.1–3.2 — Xử lý dữ liệu thiếu và Outliers
 :::
 
-Bài 16 đã "khám bệnh" cho Diabetes dataset và lập được danh sách vấn đề.
+[[bài:descriptive-statistics]] đã "khám bệnh" cho Diabetes dataset và lập được danh sách vấn đề.
 Từ bài này bắt đầu **chữa bệnh** — Step 3 *Data preprocessing* (tiền xử
 lý dữ liệu). [[slide:45-46]] vẽ Step 3 thành **4 bước con**:
 
@@ -96,8 +96,6 @@ nguyên cho validation/test.
 > to fix data (fill values, outlier cut-offs) must be **computed on the
 > training set** and then applied unchanged to validation/test.
 
-## Nhận diện, chọn phương án và kiểm tra giả định
-
 ## Ba dạng dữ liệu thiếu hoặc sai
 
 | Dạng | Trông như thế nào | Cách phát hiện | Ví dụ |
@@ -131,7 +129,7 @@ vì nó quyết định cách xử lý:
 > (depends on the missing value itself — the fact of being missing is
 > informative; add an indicator column).
 
-## Các cách xử lý dữ liệu thiếu *(Bổ sung — slide chỉ nêu tên bước, không liệt kê cách)*
+## Các cách xử lý dữ liệu thiếu (Bổ sung — slide chỉ nêu tên bước, không liệt kê cách)
 
 | Cách | Làm gì | Ưu | Nhược | Khi nào dùng |
 |---|---|---|---|---|
@@ -241,7 +239,7 @@ Forest — P07) thì ít bị ảnh hưởng.
 > Mean, std, MinMaxScaler and Linear Regression are pulled by outliers;
 > median, IQR and tree models are robust.
 
-## Phát hiện outlier: IQR và z-score *(Bổ sung — slide chỉ có hình minh họa)*
+## Phát hiện outlier: IQR và z-score (Bổ sung — slide chỉ có hình minh họa)
 
 **Cách 1 — Quy tắc IQR (của Tukey).**
 
@@ -310,7 +308,7 @@ toàn có thể. Chỉ SkinThickness = 99 mm (với BMI 34.7) là trông giống
 > high DPF is valuable family history and 17 pregnancies is rare but
 > possible; only SkinThickness = 99 mm looks like a measurement error.
 
-## Xử lý outlier *(Bổ sung)*
+## Xử lý outlier (Bổ sung)
 
 | Cách | Làm gì | Khi nào |
 |---|---|---|
@@ -339,9 +337,7 @@ Ba quy tắc an toàn:
 > set mimics real-world data; only apply train-learned transformations to
 > it.
 
-## Tính tay trên Titanic và Insulin
-
-## Điền dữ liệu thiếu trên bảng Titanic của [[slide:45]]
+## Điền dữ liệu thiếu trên bảng Titanic của slide 45
 
 6 hành khách trên slide có Age: 22, 38, 26, 35, 35, **trống**.
 
@@ -636,5 +632,5 @@ WANT: Không dùng một ngưỡng tỷ lệ thiếu làm quyết định tuyệ
 ## Nối sang bài sau
 
 :::next
-Tiếp theo, [[bài:feature-scaling]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+Sau khi hiểu và xử lý giá trị thiếu/ngoại lai, các cột vẫn có thể khác nhau rất xa về đơn vị. [[bài:feature-scaling]] đưa feature số về thang đo thích hợp và giữ quy tắc fit trên train.
 :::

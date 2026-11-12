@@ -57,7 +57,7 @@ feature:
                                                     MAE, RMSE (bài này)
 ```
 
-So với Classification ([[bài:confusion-matrix]]–13), luồng giống hệt: model → prediction →
+So với Classification ([[bài:confusion-matrix]] đến [[bài:roc-auc]]), luồng giống hệt: model → prediction →
 so với label. Chỉ khác **cách so**: Classification đếm đúng/sai theo
 nhãn; Regression đo **khoảng cách** giữa hai con số.
 
@@ -79,8 +79,6 @@ metric khác (ví dụ MAE) — tùy điều ta quan tâm khi dùng thực tế.
 > it lets the model **correct itself** during training; as a **metric**
 > (MAE/RMSE) it lets **us evaluate** the model on Validation/Test. A model
 > can be trained with one (e.g. L2) and evaluated with another (e.g. MAE).
-
-## MAE, RMSE và baseline
 
 ## MAE — Mean Absolute Error
 
@@ -120,7 +118,7 @@ Ba bước, đọc từ trong ra ngoài:
 > (that's **MSE**, in squared units like "billion²" — hard to interpret),
 > then take the **root** to return to the label's unit.
 
-## MAE và RMSE khác nhau thế nào? *(Bổ sung — slide chỉ cho công thức)*
+## MAE và RMSE khác nhau thế nào? (Bổ sung — slide chỉ cho công thức)
 
 **Luôn có RMSE ≥ MAE.** Hai giá trị bằng nhau chỉ khi mọi sai lệch có
 cùng độ lớn. **Khoảng cách giữa RMSE và MAE càng lớn thì sai lệch càng
@@ -151,7 +149,7 @@ Chọn cái nào?
 > costs the same or data is noisy; use RMSE when one big miss is far
 > worse than several small ones. In practice, report both.
 
-## R² — so với việc "đoán bừa bằng trung bình" *(Bổ sung)*
+## R² — so với việc "đoán bừa bằng trung bình" (Bổ sung)
 
 MAE = 0.3 tỉ là tốt hay tệ? Còn tùy: nhà 3 tỉ mà lệch 0.3 tỉ là 10%, nhà
 30 tỉ thì lệch 0.3 tỉ là rất ít. MAE và RMSE **phụ thuộc thang đo** của
@@ -212,14 +210,14 @@ RMSE (0.355) lớn hơn MAE (0.30) khoảng 18%, do dòng Huế (lệch 0.60) đ
 góp **0.36 / 0.5048 ≈ 71%** tổng bình phương sai lệch, dù chỉ chiếm 1/4
 số mẫu.
 
-## Liên hệ với [[bài:loss-function]]
+## Liên hệ với Loss Function (Hàm mất mát)
 
-Bài 06 đã tính trên chính dữ liệu này: L1 = 1.20, L2 = 0.5048. Vậy:
+[[bài:loss-function]] đã tính trên chính dữ liệu này: L1 = 1.20, L2 = 0.5048. Vậy:
 
 - MAE = L1 / N = 1.20 / 4 = 0.30 ✓
 - MSE = L2 / N = 0.5048 / 4 = 0.1262 ✓, RMSE = √MSE
 
-## Thí nghiệm outlier *(Bổ sung)*
+## Thí nghiệm outlier (Bổ sung)
 
 Như câu hỏi ở [[bài:loss-function]]: nếu model đoán căn ở Huế là **4.3 tỉ** (sai lệch
 +2.0 thay vì +0.6), ba dòng còn lại giữ nguyên:
@@ -233,7 +231,7 @@ Chỉ một căn bị đoán tệ hơn mà RMSE tăng gần gấp ba, trong khi 
 khoảng 2.2 lần. Khoảng cách RMSE − MAE nới từ 0.055 lên 0.368 — đúng là
 dấu hiệu "có một lỗi lớn bất thường".
 
-## R² và MAPE *(Bổ sung)*
+## R² và MAPE (Bổ sung)
 
 - Giá trung bình: ȳ = (3.75 + 4.12 + 2.2 + 2.3) / 4 = **3.0925**
 - Model "đoán bừa bằng trung bình" có Σ(y − ȳ)² = 0.6575² + 1.0275² +
@@ -250,8 +248,6 @@ dấu hiệu "có một lỗi lớn bất thường".
 > 4.3 (error +2.0), MAE rises to 0.65 (≈ 2.2×) but RMSE to ≈ 1.018
 > (≈ 2.9×). R² ≈ 0.827 against the mean-prediction baseline (ȳ = 3.0925);
 > MAPE ≈ 10.8%.
-
-## Tự tính và đối chiếu thư viện
 
 ## Tự cài đặt bằng NumPy
 
@@ -412,5 +408,5 @@ WANT: Hiểu phụ thuộc thang đo và điều kiện so sánh công bằng.
 ## Nối sang bài sau
 
 :::next
-Tiếp theo, [[bài:ml-pipeline]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+Đã có công cụ đo cho cả classification và regression. [[bài:ml-pipeline]] ghép chúng với thu thập, tiền xử lý, huấn luyện và triển khai thành bức tranh dự án.
 :::

@@ -164,5 +164,5 @@ WANT: Hiểu nhãn từ hành vi có điều kiện quan sát và không tự l�
 ## Nối sang bài sau
 
 :::next
-Tiếp theo, [[bài:model-training-pipeline]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+X và y đã sẵn sàng nhưng chưa có quy luật dự đoán. [[bài:model-training-pipeline]] nối chúng thành vòng prediction → loss → update.
 :::

@@ -64,7 +64,7 @@ label. Điểm khác:
   sánh cho ra **metric** để *con người* biết model tốt đến đâu.
 
 Confusion Matrix là bước đầu tiên của việc đánh giá model Classification:
-mọi metric ở [[bài:classification-metrics]]–13 (Accuracy, Precision, Recall, F1, ROC/AUC) đều
+mọi metric ở [[bài:classification-metrics]] đến [[bài:roc-auc]] (Accuracy, Precision, Recall, F1, ROC/AUC) đều
 được **tính ra từ 4 con số** của bảng này.
 
 > **EN:** [[slide:27]] sets up **Classification: dog vs cat**. Seven images
@@ -75,8 +75,6 @@ mọi metric ở [[bài:classification-metrics]]–13 (Accuracy, Precision, Reca
 > correct itself; during **evaluation** (on Validation/Test data), it
 > yields **metrics** that tell *us* how good the model is. Every metric in
 > lessons 12–13 is computed from the 4 numbers in this matrix.
-
-## Chọn class dương rồi đọc bốn ô
 
 ## Chọn class dương (+) và class âm (−)
 
@@ -179,7 +177,7 @@ Bốn tổng này sẽ là mẫu số của các metric ở [[bài:classificatio
 > predicted negatives (right column). These four totals become the
 > denominators of the metrics in lesson 12.
 
-## Bẫy: thứ tự hàng/cột trong scikit-learn *(Bổ sung — không có trong slide)*
+## Bẫy: thứ tự hàng/cột trong scikit-learn (Bổ sung — không có trong slide)
 
 Slide xếp class + lên **trước**. Nhưng hàm `confusion_matrix` của
 scikit-learn sắp class theo **thứ tự sắp xếp** (0 trước 1, chữ cái a→z).
@@ -232,7 +230,7 @@ Ma trận hoàn chỉnh:
 Kiểm tra: 3 + 1 + 2 + 1 = 7 ✓. Model đoán đúng 3 + 1 = 4 mẫu, sai
 1 + 2 = 3 mẫu.
 
-## Nếu đổi class + thành `cat` thì sao? *(Bổ sung)*
+## Nếu đổi class + thành cat thì sao? (Bổ sung)
 
 Không có dữ liệu nào thay đổi, nhưng **các ô đổi vai**:
 
@@ -254,8 +252,6 @@ phải ghi rõ class + là gì.
 > dog-view FNs (samples 2, 6) become cat-view FPs. TP/FP/FN/TN are **not**
 > fixed properties of a sample; they depend on which class is positive,
 > which is why every metric report must state the positive class.
-
-## Tự đếm rồi đối chiếu thư viện
 
 ## Tự đếm bằng Python thuần
 
@@ -409,5 +405,5 @@ WANT: Nối ma trận với năng lực vận hành và chi phí thay vì tối 
 ## Nối sang bài sau
 
 :::next
-Tiếp theo, [[bài:classification-metrics]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+Bốn ô đã đếm đủ nhưng cần tỷ lệ để so sánh model. [[bài:classification-metrics]] dùng chúng tính Accuracy, Precision, Recall và F1 theo câu hỏi cần trả lời.
 :::

@@ -213,5 +213,5 @@ WANT: Biết khôi phục quy trình và trình bày trung thực độ tin cậ
 ## Nối sang bài sau
 
 :::next
-Tiếp theo, [[bài:k-fold-cross-validation]] sẽ nối phần kiến thức này với bước kế tiếp của lộ trình.
+Một validation split có thể quá phụ thuộc vào cách lấy mẫu. [[bài:k-fold-cross-validation]] xoay vòng vai trò validation để kiểm tra cấu hình trên nhiều phần dữ liệu mà vẫn giữ riêng test.
 :::
