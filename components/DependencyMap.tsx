@@ -1,8 +1,11 @@
 import Link from "next/link";
 import type { DependencyNode } from "@/lib/markdown";
 
-export default function DependencyMap({ nodes }: { nodes: DependencyNode[] }) {
-  const lookup = new Map(nodes.map(node => [node.topicId, node]));
+export default function DependencyMap({ nodes, lookupNodes = nodes }: {
+  nodes: DependencyNode[];
+  lookupNodes?: DependencyNode[];
+}) {
+  const lookup = new Map(lookupNodes.map(node => [node.topicId, node]));
   const groups = Array.from(new Set(nodes.map(node => node.group)));
   return <section className="paper-card p-5 sm:p-7 mt-10" aria-labelledby="dependency-title">
     <p className="font-hand text-accent-red text-lg">Đọc trước → hiểu tiếp</p>

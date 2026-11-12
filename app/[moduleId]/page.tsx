@@ -17,7 +17,8 @@ export default function ModulePage({ params }: { params: { moduleId: string } })
   if (!module) notFound();
   const lessons = module.topics.map(topic => ({ topic, data: getTopicContent(module.id, topic.file, topic.id) }));
   const groups = Array.from(new Set(lessons.map(({ topic }) => topic.group ?? "Khác")));
-  const nodes = getDependencyGraph().filter(node => node.moduleId === module.id);
+  const graph = getDependencyGraph();
+  const nodes = graph.filter(node => node.moduleId === module.id);
   return <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
     <Link href="/#roadmap" className="text-sm text-text-muted hover:text-accent-red">← Roadmap 6 Module</Link>
     <p className="font-hand text-accent-red text-xl mt-6">Module {String(module.order).padStart(2, "0")} · {module.topics.length} bài học</p>
@@ -37,7 +38,7 @@ export default function ModulePage({ params }: { params: { moduleId: string } })
           </ol>
         </section>)}
       </div>
-      <DependencyMap nodes={nodes} />
+      <DependencyMap nodes={nodes} lookupNodes={graph} />
       <Link href="/phong-van" className="inline-block mt-8 notebook-button">Ôn câu hỏi phỏng vấn →</Link>
     </>}
   </div>;

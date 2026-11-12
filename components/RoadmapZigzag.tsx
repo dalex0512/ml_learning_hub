@@ -29,6 +29,7 @@ function buildPath(cards: DOMRect[], origin: DOMRect) {
 }
 
 export default function RoadmapZigzag({ modules }: Props) {
+  const currentModuleId = [...modules].reverse().find(module => module.topics.length > 0)?.id;
   const containerRef = useRef<HTMLDivElement>(null);
   const zigzagRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -145,7 +146,7 @@ export default function RoadmapZigzag({ modules }: Props) {
           <div className="flex flex-col gap-12 sm:gap-16 relative z-10">
             {modules.map((module, index) => {
               const isLeft = index % 2 === 0;
-              const isCurrent = module.id === "01-machine-learning";
+              const isCurrent = module.id === currentModuleId;
               const rotation = rotations[index % rotations.length];
               const hasTopics = module.topics && module.topics.length > 0;
 
@@ -162,7 +163,7 @@ export default function RoadmapZigzag({ modules }: Props) {
                     }}
                     className="w-full md:w-[500px] relative"
                   >
-                    {/* Chú thích tay "bạn đang ở đây ↓" cho Module 01 */}
+                    {/* Đánh dấu module cuối đã có nội dung trên lộ trình */}
                     {isCurrent && (
                       <div className="absolute -top-12 sm:-top-14 left-4 sm:left-8 z-20 flex items-center gap-2">
                         <span className="font-hand text-xl sm:text-2xl text-accent-red font-bold transform -rotate-6 animate-bounce">
