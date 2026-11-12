@@ -222,7 +222,7 @@ dùng `critique` rồi `polish` làm 1 vòng rà soát sau khi có bản code đ
 
 ## 7. Khi tiếp tục dự án
 
-Module 01 đã hoàn tất chuyển khung; không dựng lại hạ tầng hay ba bài pilot.
+Module 01 hiện có 23 bài, đã hoàn tất chuyển khung; không dựng lại hạ tầng hay ba bài pilot.
 Đọc roadmap và nội dung hiện có trước khi sửa. Mọi thay đổi giữ design Notebook,
 liên kết slide và quy tắc fit trong train. Module 02–06 chưa có nội dung;
 không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-restructure-report.md.
@@ -240,4 +240,21 @@ không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-res
   `python scripts/render-slides.py` (cần PyMuPDF và Pillow).
 - Kiểm tra: `npx tsc --noEmit`, `npx next build`; kiểm đủ frontmatter,
   liên kết/needs, container và quiz A/B/C, đối chiếu số liệu, duyệt desktop
-  và mobile khoảng 390px. Không đổi ba bài pilot khi chuyển nội dung khác.
+  và mobile khoảng 390px. Không viết lại pilot khi chuyển nội dung khác; đợt 2 cho phép bổ sung trực tiếp bài 18 theo ghi chú mới.
+
+## 9. Đợt 2 — ghi chú đến slide 63
+
+- Module 01 có 23 bài: 01–21 giữ thứ tự; 22 `data-visualization` thuộc nhóm
+  “Quy trình ML & tiền xử lý dữ liệu”, bao phủ slide 55–63 (cả Figure/Axes,
+  grid và legend); 23 `regular-expressions` thuộc “Công cụ hỗ trợ”.
+- Bài 23 do chủ repo yêu cầu bổ sung từ ghi chú dù không có ảnh slide tương
+  ứng: `slides: null`, không có `:::slides`, có note giải thích nguồn.
+  Đây là ngoại lệ có chủ đích; không gán slide 63 cho RegEx.
+- Step 4 hiện đọc ngay ở bài 22 trong module 01. Module 04 vẫn trống;
+  không chuyển hoặc nhân đôi nội dung tự động sang module này.
+- Bài 17 thêm giới hạn của imputation và iterative forest; bài 18 thêm
+  ví dụ đơn vị/giới hạn Gaussian; bài 20 làm rõ model phi tuyến và importance;
+  bài 21 làm rõ phạm vi class balancing. Bài 16/19 không cần sửa vì đã đủ
+  ý ghi chú liên quan.
+- Báo cáo đợt 2: `lesson-extend-55-63-report.md`. Báo cáo đợt 1 giữ nguyên
+  như tài liệu lịch sử với số bài/số câu tại thời điểm đó.

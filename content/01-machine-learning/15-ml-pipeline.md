@@ -161,12 +161,12 @@ Vẽ biểu đồ (histogram, boxplot, scatter, heatmap…) để **nhìn** th�
 điều bảng số khó cho thấy: phân bố lệch, outlier, quan hệ giữa feature và
 label. [[slide:55-63]] dùng `matplotlib` và `seaborn`.
 
-→ **Học ở module 04 — Data Visualization** (phần P04).
+→ **Đọc ngay [[bài:data-visualization]] trong module 01** để học phần slide 55–63; module 04 vẫn để trống, dành cho nội dung tiếp theo khi được ghi chú.
 
 > **EN:** Plot the data (histograms, boxplots, scatter plots, heatmaps…)
 > to **see** what tables of numbers hide: skewed distributions, outliers,
 > feature–label relationships. Slides 55–63 use `matplotlib` and
-> `seaborn`. → **Module 04 — Data Visualization** (part P04).
+> `seaborn`. → [[bài:data-visualization]] in module 01 covers slides 55–63; module 04 remains empty.
 
 ## Step 5 — Model building (Xây dựng và huấn luyện mô hình)
 
@@ -227,7 +227,7 @@ vay–trả của khách hàng đã khác.
 | 2. Statistics | 40–44 | P01 | **[[bài:descriptive-statistics]]** (module 01) |
 | 3. Data preprocessing (3.1–3.4) | 45–51 | P02 | [[bài:missing-values-outliers]] trở đi (module 01) |
 | 3.5. Balance data | 52–54 | P03 | bài cuối phần tiền xử lý (module 01) |
-| 4. Data visualization | 55–63 | P04 | module 04 |
+| 4. Data visualization | 55–63 | P04 | [[bài:data-visualization]] (module 01) |
 | 5. Model building | 64–96, 132–139 | P05–P10, P15 | module 02, 03, 06 (đề xuất) |
 | 6. Model evaluation | 22–38, 97–131 | — / P11–P14 | **[[bài:train-test-split]] đến [[bài:regression-metrics]] (đã học)**; module 05 |
 | 7. Model deployment | — | — | không có slide riêng |
@@ -235,7 +235,7 @@ vay–trả của khách hàng đã khác.
 *Các bài Step 2–3 đã có vị trí cố định trong roadmap; xem bản đồ chi tiết bên dưới.*
 
 > **EN:** Learning map — step 2 → lesson 16; steps 3.1–3.4 → lessons 17+;
-> step 3.5 → last preprocessing lesson; step 4 → module 04; step 5 →
+> step 3.5 → last preprocessing lesson; step 4 → [[bài:data-visualization]]; step 5 →
 > modules 02, 03, 06 (proposed); step 6 → lessons 07–14 (done) and module
 > 05; step 7 → no dedicated slides. The detailed preprocessing lesson map is now fixed below.
 
@@ -457,11 +457,13 @@ Ghi chú:
 | Step 3.3 — categorical | [[bài:categorical-encoding]] |
 | Step 3.4 — quan hệ feature | [[bài:correlation-multicollinearity]] |
 | Step 3.5 — class mất cân bằng | [[bài:imbalanced-data]] |
+| Step 4 — trực quan hóa | [[bài:data-visualization]] |
+| Công cụ xử lý text (bổ sung từ ghi chú) | [[bài:regular-expressions]] |
 :::
 
-Bước 4–7 sẽ tiếp tục ở các module sau; module chưa có nội dung sẽ hiển thị trạng thái đó. Ví dụ deployment trong bài là phần bổ sung để hình dung quy trình, không phải nội dung slide riêng.
+Step 4 đã có bài [[bài:data-visualization]] trong module 01; bước 5–7 sẽ tiếp tục ở các module sau; module chưa có nội dung sẽ hiển thị trạng thái đó. Ví dụ deployment trong bài là phần bổ sung để hình dung quy trình, không phải nội dung slide riêng.
 
-> **EN:** Lessons 16–21 cover statistics and preprocessing. Visualization, model algorithms, further evaluation and deployment continue in later modules; deployment examples here are supplementary.
+> **EN:** Lessons 16–21 cover statistics and preprocessing. [[bài:data-visualization]] now covers visualization in module 01; algorithms, further evaluation and deployment continue in later modules; deployment examples here are supplementary.
 
 ## Tóm tắt 1 phút
 

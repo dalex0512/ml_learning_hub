@@ -27,7 +27,9 @@
         { "id": "feature-scaling", "order": 18, "title": "Step 3.3 — Feature scaling với MinMaxScaler và StandardScaler", "file": "18-feature-scaling.md", "group": "Quy trình ML & tiền xử lý dữ liệu" },
         { "id": "categorical-encoding", "order": 19, "title": "Step 3.3 — Mã hóa categorical features (Ordinal, One-hot, Hash, Embedding)", "file": "19-categorical-encoding.md", "group": "Quy trình ML & tiền xử lý dữ liệu" },
         { "id": "correlation-multicollinearity", "order": 20, "title": "Step 3.4 — Correlation và Multicollinearity", "file": "20-correlation-multicollinearity.md", "group": "Quy trình ML & tiền xử lý dữ liệu" },
-        { "id": "imbalanced-data", "order": 21, "title": "Step 3.5 — Cân bằng dữ liệu (Imbalanced data)", "file": "21-imbalanced-data.md", "group": "Quy trình ML & tiền xử lý dữ liệu" }
+        { "id": "imbalanced-data", "order": 21, "title": "Step 3.5 — Cân bằng dữ liệu (Imbalanced data)", "file": "21-imbalanced-data.md", "group": "Quy trình ML & tiền xử lý dữ liệu" },
+        { "id": "data-visualization", "order": 22, "title": "Step 4 — Data Visualization với matplotlib và pandas", "file": "22-data-visualization.md", "group": "Quy trình ML & tiền xử lý dữ liệu" },
+        { "id": "regular-expressions", "order": 23, "title": "Regular Expression — tìm và làm sạch dữ liệu chuỗi với Python re", "file": "23-regular-expressions.md", "group": "Công cụ hỗ trợ" }
       ]
     },
     {
