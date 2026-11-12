@@ -2,7 +2,7 @@
 project: ML Learning Hub
 type: personal study notes site (KHÔNG phải đồ án tốt nghiệp)
 owner: Duong
-status: module 01 đã chuyển khung linh hoạt; có ngân hàng phỏng vấn và trang module
+status: module 01 có 23 bài; module 02 mở với tổng quan thuật toán và Linear Regression
 ---
 
 # ML Learning Hub — Project Brief cho AI coding agent (Antigravity)
@@ -124,7 +124,7 @@ Dùng ba bài pilot 06, 12, 18 làm chuẩn. Không bắt buộc khối EN trong
 ```
 
 Chi tiết topic bên trong từng module: xem `roadmap.json`. Module 01 đã có danh
-sách topic đầy đủ (dựa trên slide thật); các module 02–06 để trống, sẽ điền dần
+sách topic đầy đủ (dựa trên slide thật); module 02 đã mở, các module 03–06 để trống, sẽ điền dần
 khi Duong ghi chú tới đâu — component phải tự xử lý được module chưa có topic
 nào (hiện "Chưa có nội dung" thay vì lỗi).
 
@@ -216,7 +216,7 @@ dùng `critique` rồi `polish` làm 1 vòng rà soát sau khi có bản code đ
 ## 6. Việc CHƯA quyết định (đừng tự bịa, hỏi Duong nếu cần)
 
 - Stack đã chọn: Next.js 14 App Router, React, TypeScript và Tailwind
-- Nội dung topic của module 02–06 — chưa viết, chỉ có khung
+- Các bài tiếp theo của module 02 và nội dung module 03–06 — chưa viết, chỉ thêm khi học tới
 - Có cần lưu tiến độ học (đã hiểu/cần ôn) giữa các lần mở lại không — **đã xác
   nhận KHÔNG cần** (Duong chỉ dùng để đọc lại, không cần tracking)
 
@@ -224,7 +224,7 @@ dùng `critique` rồi `polish` làm 1 vòng rà soát sau khi có bản code đ
 
 Module 01 hiện có 23 bài, đã hoàn tất chuyển khung; không dựng lại hạ tầng hay ba bài pilot.
 Đọc roadmap và nội dung hiện có trước khi sửa. Mọi thay đổi giữ design Notebook,
-liên kết slide và quy tắc fit trong train. Module 02–06 chưa có nội dung;
+liên kết slide và quy tắc fit trong train. Module 02 đã có hai bài đầu; module 03–06 chưa có nội dung;
 không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-restructure-report.md.
 
 ## 8. Điều hướng, dữ liệu và kiểm chứng
@@ -233,7 +233,7 @@ không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-res
   tìm có hoặc không dấu, tự test, mở đáp án và rút câu ngẫu nhiên.
 - `/{moduleId}`: nhóm bài theo `group` tùy chọn trong roadmap, mô tả từ
   frontmatter và bản đồ tiên quyết từ `needs`; thiếu group vào “Khác”.
-  Module 02–06 vẫn chưa có bài và hiển thị “Chưa có nội dung”.
+  Module 03–06 chưa có bài và hiển thị “Chưa có nội dung”.
 - Breadcrumb module và tiêu đề trạm roadmap dẫn về trang module. Prev/Next
   vẫn dùng cơ chế lật trang hiện có.
 - `public/slides/` được quản lý trong git. Tạo lại từ PDF bằng
@@ -258,3 +258,19 @@ không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-res
   ý ghi chú liên quan.
 - Báo cáo đợt 2: `lesson-extend-55-63-report.md`. Báo cáo đợt 1 giữ nguyên
   như tài liệu lịch sử với số bài/số câu tại thời điểm đó.
+
+## 10. Đợt 3 — mở Supervised Learning
+
+- Module 02 có `01-supervised-algorithms.md` (slide 64) và
+  `02-linear-regression.md` (slide 65–66). Module 01 vẫn đủ 23 bài;
+  toàn site hiện 25 bài. Slide 67 chuyển sang Polynomial, chưa viết bài.
+- Nguồn nội dung chính là ảnh slide, không có ghi chú tay đợt này.
+  OLS/tính tay, code sklearn và chẩn đoán giả định được ghi rõ “bổ sung ngoài slide”.
+- ID bài duy nhất toàn roadmap; resolver/needs/backlinks/bank dùng toàn bộ
+  module. DependencyMap hiển thị node của module hiện tại nhưng tra cứu
+  tiên quyết trên toàn graph để giữ link sang module 01.
+- Prev/Next đã nối toàn roadmap: RegEx → bản đồ Supervised → Linear Regression;
+  giữ nguyên FlipLink. “Bạn đang ở đây” ở trang chủ đánh dấu module cuối đã có bài,
+  lấy từ roadmap, không phải tracking cá nhân.
+- Báo cáo đợt 3: `supervised-linear-regression-report.md`. Không thêm bài về
+  thuật toán tiếp theo khi chưa có yêu cầu; mục “Sắp có” không tạo link chết.
