@@ -2,7 +2,7 @@
 project: ML Learning Hub
 type: personal study notes site (KHÔNG phải đồ án tốt nghiệp)
 owner: Duong
-status: toàn site 31 bài; module 01 có 23 bài; module 02 có 8 bài, hoàn tất phạm vi slide 64–80 (Naive Bayes chưa có slide riêng)
+status: toàn site 33 bài; module 01 có 23 bài; module 02 có 8 bài; module 06 có 2 bài thực hành Diabetes
 ---
 
 # ML Learning Hub — Project Brief cho AI coding agent (Antigravity)
@@ -124,7 +124,7 @@ Dùng ba bài pilot 06, 12, 18 làm chuẩn. Không bắt buộc khối EN trong
 ```
 
 Chi tiết topic bên trong từng module: xem `roadmap.json`. Module 01 đã có danh
-sách topic đầy đủ (dựa trên slide thật); module 02 đã mở, các module 03–06 để trống, sẽ điền dần
+sách topic đầy đủ (dựa trên slide thật); module 02 có 8 bài, module 06 có 2 bài Diabetes; các module 03–05 để trống, sẽ điền dần
 khi Duong ghi chú tới đâu — component phải tự xử lý được module chưa có topic
 nào (hiện "Chưa có nội dung" thay vì lỗi).
 
@@ -216,7 +216,8 @@ dùng `critique` rồi `polish` làm 1 vòng rà soát sau khi có bản code đ
 ## 6. Việc CHƯA quyết định (đừng tự bịa, hỏi Duong nếu cần)
 
 - Stack đã chọn: Next.js 14 App Router, React, TypeScript và Tailwind
-- Các bài tiếp theo của module 02 và nội dung module 03–06 — chưa viết, chỉ thêm khi học tới
+- Ngoài 8 bài module 02 và 2 bài Diabetes module 06 hiện có, chỉ thêm bài khi học tới;
+  module 03–05 vẫn chưa viết
 - Có cần lưu tiến độ học (đã hiểu/cần ôn) giữa các lần mở lại không — **đã xác
   nhận KHÔNG cần** (Duong chỉ dùng để đọc lại, không cần tracking)
 
@@ -224,7 +225,7 @@ dùng `critique` rồi `polish` làm 1 vòng rà soát sau khi có bản code đ
 
 Module 01 hiện có 23 bài, đã hoàn tất chuyển khung; không dựng lại hạ tầng hay ba bài pilot.
 Đọc roadmap và nội dung hiện có trước khi sửa. Mọi thay đổi giữ design Notebook,
-liên kết slide và quy tắc fit trong train. Module 02 đã có sáu bài đầu; module 03–06 chưa có nội dung;
+liên kết slide và quy tắc fit trong train. Module 02 đã có 8 bài, module 06 có 2 bài Diabetes; module 03–05 chưa có nội dung;
 không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-restructure-report.md.
 
 ## 8. Điều hướng, dữ liệu và kiểm chứng
@@ -233,7 +234,7 @@ không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-res
   tìm có hoặc không dấu, tự test, mở đáp án và rút câu ngẫu nhiên.
 - `/{moduleId}`: nhóm bài theo `group` tùy chọn trong roadmap, mô tả từ
   frontmatter và bản đồ tiên quyết từ `needs`; thiếu group vào “Khác”.
-  Module 03–06 chưa có bài và hiển thị “Chưa có nội dung”.
+  Module 03–05 chưa có bài và hiển thị “Chưa có nội dung”.
 - Breadcrumb module và tiêu đề trạm roadmap dẫn về trang module. Prev/Next
   vẫn dùng cơ chế lật trang hiện có.
 - `public/slides/` được quản lý trong git. Tạo lại từ PDF bằng
@@ -342,7 +343,7 @@ không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-res
 
 ## 15. Đợt 8 — Cây quyết định và Rừng ngẫu nhiên
 
-- Hiện có 31 bài (23 module 01 + 8 module 02). Hai bài mới: `07-decision-tree.md`
+- Khi kết thúc đợt 8 có 31 bài (23 module 01 + 8 module 02). Hai bài mới: `07-decision-tree.md`
   (id `decision-tree`, slide 76–77) và `08-random-forest.md` (id `random-forest`, slide 78–80),
   cùng nhóm Phân loại; tên tiếng Việt đứng đầu tiêu đề.
 - Module 02 hoàn tất phạm vi các bài riêng của slide 64–80. Naive Bayes chỉ xuất hiện trong
@@ -356,3 +357,22 @@ không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-res
   Sklearn trung bình xác suất class, phân biệt hard majority voting trên hình slide.
 - Không sửa React/TypeScript/CSS; roadmap tự cấp index, dependency map và ngân hàng quiz.
   Xem `supervised-tree-forest-report.md` cho kết quả tính lại, verification và giới hạn.
+
+
+## 16. Đợt 9 — Thực hành Diabetes (module Projects)
+
+- Hiện33 bài: module01=23, module02=8, module06=2. Hai topic trong nhóm
+  “Thực hành 1 — Diabetes”: `diabetes-first-model` (bước0–5) và
+  `diabetes-evaluate-improve` (bước6–9). Làm trực tiếp trên main theo yêu cầu.
+- Commit `dataset/diabetes.csv` (768×9); không thay đổi CSV. Code chạy từ gốc repo,
+  đường dẫn `dataset/diabetes.csv`. Không gán slide vì đây là bài thực hành không có slide.
+- Không cần sửa TS/React/CSS: slides vốn tùy chọn; dùng fenced code có copy,
+  HTML details/summary để gấp đáp án và bộ code hoàn chỉnh. Không dùng container :::code
+  chưa được hỗ trợ để tránh hiển thị marker thừa.
+- Mỗi bài tối đa6 mục chính, từng bước theo mục tiêu → lý thuyết → code ngắn →
+  kết quả thật → bài tập có đáp án gấp. Bài1 có15 bài tập chính, bài2 có12,
+  cộng một khởi động ở bước0. Có8 hình matplotlib, hai bộ code sạch tự chạy.
+- Baseline split42 không stratify để đối chiếu code gốc; sklearn1.9.1/pandas3.1.1.
+  Bài2 CV chỉ trên614 development, fit imputer/scaler trong fold; test demo đã xem
+  nhiều lần không được gọi là kiểm định cuối độc lập. Xem `practice-diabetes-report.md`.
+- Unsupervised slide81+ vẫn chưa viết; không tự thêm chủ đề Projects tiếp theo.
