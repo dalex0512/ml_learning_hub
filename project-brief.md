@@ -2,7 +2,7 @@
 project: ML Learning Hub
 type: personal study notes site (KHÔNG phải đồ án tốt nghiệp)
 owner: Duong
-status: module 01 có 23 bài; module 02 mở với tổng quan thuật toán và Linear Regression
+status: module 01 có 23 bài; module 02 có tổng quan thuật toán, Linear và Polynomial Regression
 ---
 
 # ML Learning Hub — Project Brief cho AI coding agent (Antigravity)
@@ -224,7 +224,7 @@ dùng `critique` rồi `polish` làm 1 vòng rà soát sau khi có bản code đ
 
 Module 01 hiện có 23 bài, đã hoàn tất chuyển khung; không dựng lại hạ tầng hay ba bài pilot.
 Đọc roadmap và nội dung hiện có trước khi sửa. Mọi thay đổi giữ design Notebook,
-liên kết slide và quy tắc fit trong train. Module 02 đã có hai bài đầu; module 03–06 chưa có nội dung;
+liên kết slide và quy tắc fit trong train. Module 02 đã có ba bài đầu; module 03–06 chưa có nội dung;
 không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-restructure-report.md.
 
 ## 8. Điều hướng, dữ liệu và kiểm chứng
@@ -261,9 +261,9 @@ không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-res
 
 ## 10. Đợt 3 — mở Supervised Learning
 
-- Module 02 có `01-supervised-algorithms.md` (slide 64) và
-  `02-linear-regression.md` (slide 65–66). Module 01 vẫn đủ 23 bài;
-  toàn site hiện 25 bài. Slide 67 chuyển sang Polynomial, chưa viết bài.
+- Đợt 3 mở module 02 với `01-supervised-algorithms.md` (slide 64) và
+  `02-linear-regression.md` (slide 65–66). Khi kết thúc đợt 3 toàn site có
+  25 bài; Polynomial từ slide 67 được bổ sung ở đợt 4 bên dưới.
 - Nguồn nội dung chính là ảnh slide, không có ghi chú tay đợt này.
   OLS/tính tay, code sklearn và chẩn đoán giả định được ghi rõ “bổ sung ngoài slide”.
 - ID bài duy nhất toàn roadmap; resolver/needs/backlinks/bank dùng toàn bộ
@@ -274,3 +274,20 @@ không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-res
   lấy từ roadmap, không phải tracking cá nhân.
 - Báo cáo đợt 3: `supervised-linear-regression-report.md`. Không thêm bài về
   thuật toán tiếp theo khi chưa có yêu cầu; mục “Sắp có” không tạo link chết.
+
+## 11. Đợt 4 — Polynomial Regression
+
+- Module 02 có thêm `03-polynomial-regression.md`, order 3, group “Mô hình hồi quy”,
+  bao phủ đúng slide 67; slide 68–69 là Logistic Regression, chưa viết bài.
+  Module 01 vẫn 23 bài; module 02 có 3 bài, toàn site 26 bài.
+- Bài dùng b0/b1/b2 theo slide và giải thích tương ứng β ở Linear Regression.
+  Ví dụ tay, chọn bậc/CV, số học và code đều gắn nhãn bổ sung ngoài slide.
+- Ví dụ tay 5 điểm giải đầy đủ normal equations; demo nhiễu seed 42 so d = 1/2/3/5/9
+  bằng holdout, rồi chọn bằng CV trên development và giữ test riêng. Không lấy
+  train error 0 làm tiêu chí chọn bậc; phân biệt scale với center trước mở rộng.
+- Hình `public/plots/polynomial-degree-comparison.png` sinh bằng matplotlib từ
+  code trong bài; có link mở ảnh gốc, trục y các panel tự co và MSE dùng thang log.
+- Roadmap/overview/next Linear và bài K-fold đã liên kết tới bài mới.
+  Hạ tầng module/map/bank dùng lại cơ chế hiện có, không đổi giao diện.
+- Báo cáo: `supervised-polynomial-regression-report.md`; báo cáo đợt 3 giữ nguyên
+  như lịch sử. Các thuật toán tiếp theo chỉ thêm khi được yêu cầu.
