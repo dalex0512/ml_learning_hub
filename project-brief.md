@@ -2,7 +2,7 @@
 project: ML Learning Hub
 type: personal study notes site (KHÔNG phải đồ án tốt nghiệp)
 owner: Duong
-status: module 01 có 23 bài; module 02 có 6 bài gồm tổng quan, Linear, Polynomial, hồi quy logistic, SVM và KNN
+status: toàn site 31 bài; module 01 có 23 bài; module 02 có 8 bài, hoàn tất phạm vi slide 64–80 (Naive Bayes chưa có slide riêng)
 ---
 
 # ML Learning Hub — Project Brief cho AI coding agent (Antigravity)
@@ -327,9 +327,9 @@ không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-res
 ## 14. Đợt 7 — K láng giềng gần nhất (KNN)
 
 - Thêm `06-k-nearest-neighbours.md`, ID `k-nearest-neighbours`, order 6, nhóm “Phân loại”.
-  Hiện toàn site 29 bài (23 module 01 + 6 module 02), bài bao phủ đúng slide 75.
+  Khi kết thúc đợt 7, toàn site 29 bài (23 module 01 + 6 module 02), bài bao phủ đúng slide 75.
 - Slide chỉ có Before/After K-NN; nhãn Category 1 lệch tên Category A được chú thích.
-  Slide 76–77 là Decision Tree, 78 là Random Forest; chưa viết các bài ấy.
+  Tại thời điểm đợt 7, slide 76–77 là Decision Tree, 78 mở Random Forest; chưa viết các bài ấy.
 - Ngoài slide: khoảng cách/vote/hòa, lazy learning, chi phí lưu và predict,
   scale, nhiễu/số chiều, regression, so Logistic/SVM; quiz A/B/C=6/6/4.
 - Bốn Python block kiểm ví dụ tay, Pipeline/GridSearchCV trên development, test riêng,
@@ -338,3 +338,21 @@ không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-res
   module/map/bank đọc dữ liệu sẵn, không sửa TypeScript/React/CSS hoặc dependency.
 - Báo cáo `supervised-knn-report.md` nêu nhánh gốc SVM đã commit nhưng chưa merge main;
   file prompt chưa track giữ nguyên, không push/merge trong đợt viết bài.
+
+
+## 15. Đợt 8 — Cây quyết định và Rừng ngẫu nhiên
+
+- Hiện có 31 bài (23 module 01 + 8 module 02). Hai bài mới: `07-decision-tree.md`
+  (id `decision-tree`, slide 76–77) và `08-random-forest.md` (id `random-forest`, slide 78–80),
+  cùng nhóm Phân loại; tên tiếng Việt đứng đầu tiêu đề.
+- Module 02 hoàn tất phạm vi các bài riêng của slide 64–80. Naive Bayes chỉ xuất hiện trong
+  danh sách slide 64, không có slide riêng trong 64–80 nên chưa viết bài. Slide 81 mở
+  Unsupervised/K-Means thuộc module 03, chưa triển khai.
+- Gini slide 77: Age 0.342857, Income 0.440476, Student 0.367347, Credit 0.428571.
+  Mũi tên Best chỉ Age. Credit cộng thành 5 Yes/9 No, khác ba bảng còn lại 9 Yes/5 No;
+  bài giữ nguyên số đếm, ghi rõ giới hạn so sánh và các số Gini nút làm tròn sai.
+- Ví dụ ngoài slide có nhãn, seed cố định; code Python sinh 5 ảnh matplotlib trong `public/plots/`.
+  Bootstrap mặc định N lượt có hoàn lại (~63.2% dòng khác nhau), feature sampling từng split.
+  Sklearn trung bình xác suất class, phân biệt hard majority voting trên hình slide.
+- Không sửa React/TypeScript/CSS; roadmap tự cấp index, dependency map và ngân hàng quiz.
+  Xem `supervised-tree-forest-report.md` cho kết quả tính lại, verification và giới hạn.
