@@ -2,7 +2,7 @@
 project: ML Learning Hub
 type: personal study notes site (KHÔNG phải đồ án tốt nghiệp)
 owner: Duong
-status: module 01 có 23 bài; module 02 có tổng quan thuật toán, Linear và Polynomial Regression
+status: module 01 có 23 bài; module 02 có 4 bài gồm tổng quan, Linear, Polynomial và hồi quy logistic
 ---
 
 # ML Learning Hub — Project Brief cho AI coding agent (Antigravity)
@@ -224,7 +224,7 @@ dùng `critique` rồi `polish` làm 1 vòng rà soát sau khi có bản code đ
 
 Module 01 hiện có 23 bài, đã hoàn tất chuyển khung; không dựng lại hạ tầng hay ba bài pilot.
 Đọc roadmap và nội dung hiện có trước khi sửa. Mọi thay đổi giữ design Notebook,
-liên kết slide và quy tắc fit trong train. Module 02 đã có ba bài đầu; module 03–06 chưa có nội dung;
+liên kết slide và quy tắc fit trong train. Module 02 đã có bốn bài đầu; module 03–06 chưa có nội dung;
 không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-restructure-report.md.
 
 ## 8. Điều hướng, dữ liệu và kiểm chứng
@@ -278,8 +278,8 @@ không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-res
 ## 11. Đợt 4 — Polynomial Regression
 
 - Module 02 có thêm `03-polynomial-regression.md`, order 3, group “Mô hình hồi quy”,
-  bao phủ đúng slide 67; slide 68–69 là Logistic Regression, chưa viết bài.
-  Module 01 vẫn 23 bài; module 02 có 3 bài, toàn site 26 bài.
+  bao phủ đúng slide 67; tại thời điểm kết thúc đợt 4, slide 68–69 là Logistic Regression chưa viết bài.
+  Khi kết thúc đợt 4: module 01 vẫn 23 bài; module 02 có 3 bài, toàn site 26 bài.
 - Bài dùng b0/b1/b2 theo slide và giải thích tương ứng β ở Linear Regression.
   Ví dụ tay, chọn bậc/CV, số học và code đều gắn nhãn bổ sung ngoài slide.
 - Ví dụ tay 5 điểm giải đầy đủ normal equations; demo nhiễu seed 42 so d = 1/2/3/5/9
@@ -291,3 +291,19 @@ không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-res
   Hạ tầng module/map/bank dùng lại cơ chế hiện có, không đổi giao diện.
 - Báo cáo: `supervised-polynomial-regression-report.md`; báo cáo đợt 3 giữ nguyên
   như lịch sử. Các thuật toán tiếp theo chỉ thêm khi được yêu cầu.
+
+## 12. Đợt 5 — Hồi quy logistic (Logistic Regression)
+
+- Module 02 có `04-logistic-regression.md`, order 4, nhóm “Phân loại”, slide 68–69.
+  Tiêu đề tiếng Việt đứng trước tên tiếng Anh trong frontmatter và roadmap.
+  Hiện module 01 có 23 bài, module 02 có 4 bài, toàn site 27 bài.
+- Bài nối predictor tuyến tính → sigmoid φ → xác suất → ngưỡng; giải thích
+  log-odds, log loss, gradient một bước và so Linear/Logistic, gắn nhãn ngoài slide.
+- Bảng mười hồ sơ giữ nguyên score để so ba ngưỡng; recall không giảm khi hạ
+  ngưỡng, precision không bảo đảm đơn điệu. Phần metrics cũ được làm rõ tương ứng.
+- Demo sklearn dùng Pipeline, train/validation/test, chọn ngưỡng trên validation;
+  không refit sau chọn ngưỡng trong ví dụ và không tune theo test. Quiz A/B/C = 5/6/4.
+- Overview, Polynomial và các bài nền có liên kết thật. Module index, dependency
+  map và bank dùng hạ tầng hiện có; không đổi TypeScript/React hoặc design.
+- Slide 70 bắt đầu Support Vector Machine, chưa viết bài. Báo cáo đợt này:
+  `supervised-logistic-regression-report.md`; báo cáo cũ giữ nguyên như lịch sử.
