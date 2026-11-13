@@ -2,7 +2,7 @@
 project: ML Learning Hub
 type: personal study notes site (KHÔNG phải đồ án tốt nghiệp)
 owner: Duong
-status: module 01 có 23 bài; module 02 có 5 bài gồm tổng quan, Linear, Polynomial, hồi quy logistic và SVM
+status: module 01 có 23 bài; module 02 có 6 bài gồm tổng quan, Linear, Polynomial, hồi quy logistic, SVM và KNN
 ---
 
 # ML Learning Hub — Project Brief cho AI coding agent (Antigravity)
@@ -224,7 +224,7 @@ dùng `critique` rồi `polish` làm 1 vòng rà soát sau khi có bản code đ
 
 Module 01 hiện có 23 bài, đã hoàn tất chuyển khung; không dựng lại hạ tầng hay ba bài pilot.
 Đọc roadmap và nội dung hiện có trước khi sửa. Mọi thay đổi giữ design Notebook,
-liên kết slide và quy tắc fit trong train. Module 02 đã có năm bài đầu; module 03–06 chưa có nội dung;
+liên kết slide và quy tắc fit trong train. Module 02 đã có sáu bài đầu; module 03–06 chưa có nội dung;
 không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-restructure-report.md.
 
 ## 8. Điều hướng, dữ liệu và kiểm chứng
@@ -311,9 +311,9 @@ không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-res
 ## 13. Đợt 6 — Máy vector hỗ trợ (SVM)
 
 - Module 02 thêm `05-support-vector-machine.md`, ID `svm`, order 5, nhóm “Phân loại”.
-  Một bài nối margin → soft margin → ánh xạ/kernel để giữ liền mạch; hiện 28 bài (23+5).
+  Một bài nối margin → soft margin → ánh xạ/kernel để giữ liền mạch; kết thúc đợt 6 có 28 bài (23+5).
 - Slide 70–73 có nội dung SVM; 74 chỉ có khung đen không đọc được, vẫn nằm trong
-  dải viewer 70–74 và được chú thích. Slide 75 bắt đầu KNN, chưa viết bài.
+  dải viewer 70–74 và được chú thích. Tại thời điểm đợt 6, slide 75 bắt đầu KNN chưa viết bài.
 - Ngoài slide: tính tay 1D/2D, C/hinge loss, kernel đa thức/RBF/gamma, lấy mẫu khó,
   code Pipeline/GridSearchCV và năm hình matplotlib, không dùng ảnh AI.
 - Demo tuyến tính có nhiễu so C trên cùng split; demo vòng tròn độc lập chọn cả
@@ -323,3 +323,18 @@ không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-res
 - Phân biệt support vector hard/soft margin, margin mỗi bên/toàn dải, score với
   khoảng cách/xác suất; dữ liệu nhiều chiều và mẫu khó không tự động tốt hơn.
 - Báo cáo đợt này: `supervised-svm-report.md`. Không push/merge trong đợt viết bài.
+
+## 14. Đợt 7 — K láng giềng gần nhất (KNN)
+
+- Thêm `06-k-nearest-neighbours.md`, ID `k-nearest-neighbours`, order 6, nhóm “Phân loại”.
+  Hiện toàn site 29 bài (23 module 01 + 6 module 02), bài bao phủ đúng slide 75.
+- Slide chỉ có Before/After K-NN; nhãn Category 1 lệch tên Category A được chú thích.
+  Slide 76–77 là Decision Tree, 78 là Random Forest; chưa viết các bài ấy.
+- Ngoài slide: khoảng cách/vote/hòa, lazy learning, chi phí lưu và predict,
+  scale, nhiễu/số chiều, regression, so Logistic/SVM; quiz A/B/C=6/6/4.
+- Bốn Python block kiểm ví dụ tay, Pipeline/GridSearchCV trên development, test riêng,
+  thí nghiệm thêm feature nhiễu. Hai hình matplotlib trong `public/plots/knn-*.png`.
+- Overview/SVM next và các bài Scaling/K-fold/Imbalanced/Correlation/Linear có link thật;
+  module/map/bank đọc dữ liệu sẵn, không sửa TypeScript/React/CSS hoặc dependency.
+- Báo cáo `supervised-knn-report.md` nêu nhánh gốc SVM đã commit nhưng chưa merge main;
+  file prompt chưa track giữ nguyên, không push/merge trong đợt viết bài.
