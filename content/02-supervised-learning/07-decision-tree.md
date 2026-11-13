@@ -484,4 +484,6 @@ WANT: Liên hệ mất cân bằng với tiêu chí học và mục tiêu vận 
 
 :::next
 Một cây có thể đổi nhiều khi dữ liệu thay nhẹ. [[bài:random-forest]] kết hợp nhiều cây được tạo khác nhau để giảm biến động; bài tiếp theo giải thích bootstrap, feature ngẫu nhiên và vì sao “70% dữ liệu” không phải mặc định của sklearn.
+
+Thực hành: [[bài:diabetes-evaluate-improve]] — so tree/forest với logistic và kiểm thực nghiệm việc không cần scale.
 :::

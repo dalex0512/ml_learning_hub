@@ -433,4 +433,6 @@ WANT: Chẩn đoán mất cân bằng, leakage và metric; hiểu OOB hay nhiề
 
 :::next
 Module Supervised kết thúc phạm vi slide 64–80 tại đây. [[slide:81]] mở **Unsupervised Learning**, minh họa Before/After K-Means: các mô hình supervised vừa học cần label khi huấn luyện, còn K-Means tìm nhóm không dùng label làm đáp án học. Phần đó thuộc module 03, chưa viết bài nên chưa có liên kết bài học. Có thể quay về [[bài:supervised-algorithms]] để ôn bản đồ hoặc [[bài:decision-tree]] để đọc lại nền tảng từng cây.
+
+Thực hành: [[bài:diabetes-evaluate-improve]] — kiểm forest trên bảng diabetes và chọn pipeline bằng cv.
 :::

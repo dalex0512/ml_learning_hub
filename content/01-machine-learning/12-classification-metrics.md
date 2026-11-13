@@ -366,4 +366,6 @@ WANT: Một danh sách chẩn đoán có thứ tự, bắt đầu từ lỗi quy
 
 :::next
 Mọi metric trong bài này phụ thuộc vào **một ngưỡng cố định** (thường 0.5). Nếu đổi ngưỡng liên tục từ 0 đến 1 và vẽ lại TPR theo FPR, ta được đường cong ROC và con số AUC — thước đo không phụ thuộc ngưỡng: [[bài:roc-auc]].
+
+Thực hành: [[bài:diabetes-evaluate-improve]] — đọc report thật và tự tính metric từ ma trận79/20/18/37.
 :::

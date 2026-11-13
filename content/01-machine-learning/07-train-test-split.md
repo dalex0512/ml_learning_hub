@@ -214,4 +214,6 @@ WANT: Biết khôi phục quy trình và trình bày trung thực độ tin cậ
 
 :::next
 Một validation split có thể quá phụ thuộc vào cách lấy mẫu. [[bài:k-fold-cross-validation]] xoay vòng vai trò validation để kiểm tra cấu hình trên nhiều phần dữ liệu mà vẫn giữ riêng test.
+
+Thực hành: [[bài:diabetes-first-model]] — tự chia614/154 hàng và kiểm index tái lập.
 :::

@@ -554,4 +554,6 @@ WANT: Nhìn ra baseline lớp đa số và thiết kế đánh giá theo giá tr
 
 :::next
 Quay lại [[bài:supervised-algorithms]] để đặt [[bài:linear-regression]], [[bài:polynomial-regression]] và hồi quy logistic vào đúng nhóm. Tiếp theo là [[bài:svm]], bắt đầu ở slide 70: trong trường hợp tách tuyến tính, SVM hướng tới biên có khoảng cách tới các điểm gần nhất lớn nhất (maximum margin), còn Logistic học ranh giới theo log loss và regularization.
+
+Thực hành: [[bài:diabetes-first-model]] — tự gõ logistic từ csv đến prediction trên dữ liệu diabetes.
 :::

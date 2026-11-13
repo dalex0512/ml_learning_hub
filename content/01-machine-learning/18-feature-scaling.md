@@ -410,4 +410,6 @@ WANT: Nhận ra đơn vị đo và đa cộng tuyến là hai vấn đề khác 
 :::next
 Scaling xử lý cột **số**. Nhưng còn cột chữ như giới tính, thành phố, size áo (S/M/L) thì sao? Model cần số, nên phải mã hóa — Ordinal, One-hot, Hash, Embedding.
 Đó là nửa còn lại của Step 3.3: [[bài:categorical-encoding]]. Sau đó, [[bài:correlation-multicollinearity]] sẽ kiểm tra các feature đã scale xem có trùng lặp thông tin không.
+
+Thực hành: [[bài:diabetes-first-model]] — tự gõ fit/transform và kiểm mean/std train khác test.
 :::

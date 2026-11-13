@@ -262,4 +262,6 @@ WANT: Quan tâm tính ổn định và ý nghĩa của nhóm bị thất bại.
 
 :::next
 Xoay fold chưa đảm bảo mỗi lượt có đủ class cần đánh giá. [[bài:stratified-k-fold]] giữ xấp xỉ tỷ lệ class trong các fold, đặc biệt khi lớp thiểu số ít mẫu.
+
+Thực hành: [[bài:diabetes-evaluate-improve]] — so pipeline trên development với cùng fold, không chọn model bằng test.
 :::

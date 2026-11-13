@@ -734,4 +734,6 @@ WANT: Phân biệt thuật toán MissForest với ví dụ iterative regressor, 
 
 :::next
 Sau khi hiểu và xử lý giá trị thiếu/ngoại lai, các cột vẫn có thể khác nhau rất xa về đơn vị. [[bài:feature-scaling]] đưa feature số về thang đo thích hợp và giữ quy tắc fit trên train.
+
+Thực hành: [[bài:diabetes-evaluate-improve]] — đổi sentinel0 đúng cột và học median trong train/fold.
 :::
