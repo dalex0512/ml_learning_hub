@@ -11,6 +11,7 @@ import TopicNavigation from "@/components/TopicNavigation";
 import LessonMap from "@/components/LessonMap";
 import { SlideButton, SlideLightbox } from "@/components/SlideViewer";
 import { TopicHeroIllustration } from "@/components/TopicIllustrations";
+import PracticeLesson from "@/components/PracticeLesson";
 
 interface PageProps {
   params: {
@@ -105,6 +106,27 @@ export default function TopicPage({ params }: PageProps) {
   const toItem = (x: { module: { id: string }; topic: { id: string; title: string } } | null) =>
     x ? { moduleId: x.module.id, topicId: x.topic.id, title: x.topic.title } : null;
 
+
+  if (topicData.layout === "practice") {
+    return (
+      <div className="min-h-screen">
+        <TopicBreadcrumb
+          moduleId={currentModule.id}
+          moduleTitle={currentModule.title}
+          topicTitle={topicItem.title}
+          currentOrder={topicOrderInModule + 1}
+          totalTopics={totalTopicsInModule}
+        />
+        <PracticeLesson
+          topicData={topicData}
+          moduleId={currentModule.id}
+          partLabel={`${topicItem.group ?? "Thực hành"} · Phần ${String.fromCharCode(64 + topicItem.order)}`}
+          prev={toItem(prev)}
+          next={toItem(next)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-20">

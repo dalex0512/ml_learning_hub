@@ -30,6 +30,12 @@ const BOX_STYLE: Record<BoxKind, { label: string; wrap: string; tag: string }> =
   recap: { label: "Tóm tắt 1 phút", wrap: "bg-[#F3F7EC] border-[#C9D9B5]", tag: "bg-[#DCE9C8]" },
   next: { label: "Nối sang bài sau", wrap: "bg-sticky border-paper-border", tag: "bg-accent-sticky-yellow/70" },
   note: { label: "Ghi chú", wrap: "bg-[#FDFBF3] border-paper-dashed", tag: "bg-sticky" },
+  goal: { label: "Mục tiêu", wrap: "bg-sticky border-paper-border", tag: "bg-accent-sticky-yellow/70" },
+  learn: { label: "Hiểu nhanh", wrap: "bg-[#FDFBF3] border-paper-dashed", tag: "bg-sticky" },
+  code: { label: "Code", wrap: "bg-[#FDFBF3] border-paper-dashed", tag: "bg-sticky" },
+  see: { label: "Bạn phải thấy", wrap: "bg-[#F3F7EC] border-[#C9D9B5]", tag: "bg-[#DCE9C8]" },
+  en: { label: "EN", wrap: "bg-[#FDFBF3] border-paper-dashed", tag: "bg-sticky" },
+  check: { label: "Checklist", wrap: "bg-[#F3F7EC] border-[#C9D9B5]", tag: "bg-[#DCE9C8]" },
 };
 
 function handleProseClick(e: React.MouseEvent<HTMLElement>) {
@@ -130,6 +136,12 @@ function BlockView({ block }: { block: Block }) {
       return <SlideViewer from={block.from} to={block.to} caption={block.caption} />;
     case "quiz":
       return <Quiz tiers={block.tiers} />;
+    case "exercise":
+      return <Prose md={`**${block.level} ${block.title}**
+
+${block.prompt}
+
+${block.answer}`} copy="lang" />;
     case "box": {
       const s = BOX_STYLE[block.kind];
       return (

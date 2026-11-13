@@ -75,8 +75,8 @@
       "title": "Projects",
       "subtitle": "Xây dựng mô hình với các datasets",
       "topics": [
-        { "id": "diabetes-first-model", "order": 1, "title": "Thực hành 1 — Diabetes: từ file CSV đến mô hình đầu tiên", "file": "01-diabetes-first-model.md", "group": "Thực hành 1 — Diabetes" },
-        { "id": "diabetes-evaluate-improve", "order": 2, "title": "Thực hành 1 — Diabetes: đánh giá, so sánh mô hình và cải thiện", "file": "02-diabetes-evaluate-improve.md", "group": "Thực hành 1 — Diabetes" }
+        { "id": "diabetes-first-model", "order": 1, "title": "Từ file CSV đến mô hình đầu tiên", "file": "01-diabetes-first-model.md", "group": "Thực hành 1 — Diabetes" },
+        { "id": "diabetes-evaluate-improve", "order": 2, "title": "Đánh giá, so sánh và cải thiện mô hình", "file": "02-diabetes-evaluate-improve.md", "group": "Thực hành 1 — Diabetes" }
       ]
     }
   ]

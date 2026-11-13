@@ -1,455 +1,512 @@
 ---
-title: "Thực hành 1 — Diabetes: đánh giá, so sánh mô hình và cải thiện"
+title: "Đánh giá, so sánh và cải thiện mô hình"
 order: 2
-description: "Đọc confusion matrix thật, kiểm giả thuyết mô hình, điền số 0 thiếu và chọn Pipeline bằng cross-validation."
+layout: practice
+description: "Bốn bước: đọc confusion matrix, so sánh năm mô hình, xử lý số 0 thiếu, rồi làm như thật với Pipeline và cross-validation."
 needs: [diabetes-first-model, confusion-matrix, classification-metrics, k-fold-cross-validation, missing-values-outliers]
-tags: [diabetes, practice, pipeline, confusion-matrix, cross-validation, data-leakage, imputation, model-selection]
+tags: [diabetes, practice, confusion-matrix, precision, recall, pipeline, cross-validation, imputer, model-selection, data-leakage]
 ---
 
-## Bước 6 — Đọc model sai theo cách nào
+## Bước 7 — Đọc kết quả: mô hình sai ở đâu?
 
-:::intro
-Đi tiếp từ [[bài:diabetes-first-model]], mỗi lần chỉ thêm một bước. Các bảng thử model/ngưỡng là thí nghiệm học cách đọc kết quả, không dùng chúng làm chứng cứ chọn model bằng test. Bài không có slide gốc.
+:::goal
+Đọc **confusion matrix**, **precision**, **recall**, **F1** và hiểu vì sao accuracy một mình dễ đánh lừa.
 :::
 
-**Bản đồ:** 6 Đọc lỗi → 7 Thử model → 8 Xử lý missing → 9 Pipeline và CV.
-
-**Mục tiêu:** giải thích được từng ô confusion matrix và từng dòng report.
-
-**Lý thuyết cần biết:** như chấm bài phải xem sai câu nào, accuracy không cho biết model bỏ sót ai. Ở đây class dương là **Outcome=1**. Sklearn xếp **hàng nhãn thật, cột dự đoán**, thứ tự0 rồi1. Nối [[bài:confusion-matrix]], [[bài:classification-metrics]].
-
-Mở **Console mới**, chạy phần chuẩn bị gấp dưới đây rồi các bước6–9 theo thứ tự. Đây là các dòng quen thuộc của bài1, thêm import để dùng tiếp; ở bài2 giữ `x_train/x_test` là bảng thô, `z_train/z_test` là mảng đã scale. Bộ code cuối bài ghép sẵn phần này nên cũng chạy độc lập.
-
-<details>
-<summary>Mở phần chuẩn bị bài 2 — chạy một lần từ gốc repo</summary>
+:::learn Khởi động lại từ Phần A
+Phần B dùng lại đoạn chuẩn bị ở cuối Phần A. Nếu Console đã đóng, chạy lại đoạn này trước (có thêm vài import cho các bước sau):
 
 ```python
-import pandas as pd
 import numpy as np
-from sklearn.base import clone
-from sklearn.model_selection import train_test_split, StratifiedKFold, cross_validate
+import pandas as pd
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.impute import SimpleImputer
-from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
-```
+from sklearn.metrics import (accuracy_score, precision_score, recall_score,
+                             f1_score, classification_report, confusion_matrix)
 
-```python
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import (accuracy_score, precision_score, recall_score, f1_score,
-                             confusion_matrix, classification_report)
-```
-
-```python
 data = pd.read_csv("dataset/diabetes.csv")
 x = data.drop(labels="Outcome", axis=1)
 y = data["Outcome"]
-x_train, x_test, y_train, y_test = train_test_split(
-    x, y, test_size=0.2, random_state=42)
-scaler = StandardScaler().fit(x_train)
-z_train, z_test = scaler.transform(x_train), scaler.transform(x_test)
-model = LogisticRegression().fit(z_train, y_train)
-y_predict = model.predict(z_test)
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+scaler = StandardScaler()
+x_train = scaler.fit_transform(x_train)
+x_test = scaler.transform(x_test)
+model = LogisticRegression().fit(x_train, y_train)
+y_predict = model.predict(x_test)
 ```
-
-```python
-def evaluate(model, x, y):
-    pred = model.predict(x)
-    return {"accuracy": accuracy_score(y, pred),
-            "precision": precision_score(y, pred, zero_division=0),
-            "recall": recall_score(y, pred, zero_division=0),
-            "f1": f1_score(y, pred, zero_division=0)}
-```
-
-</details>
-
-```python
-from sklearn.metrics import classification_report, confusion_matrix  # bổ sung import bị thiếu
-print(confusion_matrix(y_test, y_predict, labels=[0, 1]))  # thứ tự nhãn tường minh
-print(classification_report(y_test, y_predict, digits=6, zero_division=0))  # report đầy đủ
-print("Baseline:", accuracy_score(y_test, np.zeros(len(y_test), dtype=int)))  # đoán toàn0
-```
-
-**Bạn phải thấy:** matrix **[[79,20],[18,37]]**, baseline accuracy **99/154=0.642857**, recall class1 bằng0. Code gốc thiếu hai import trên nên gọi lần đầu sẽ có `NameError: name 'classification_report' is not defined`; sau sửa import report mới chạy tới matrix. Biến `X_test` khác `x_test` cũng là bài học đọc lỗi tên.
-
-![Confusion matrix baseline Logistic với tên bốn loại kết quả](/plots/diabetes-confusion.png)
-
-[Mở hình gốc](/plots/diabetes-confusion.png). Đọc FN=18 người mang nhãn1 bị đoán0 trước khi chỉ nhìn116 dự đoán đúng.
-
-:::worked Tính tay bằng ma trận thật
-TN=79, FP=20, FN=18, TP=37; tổng154. Accuracy=(79+37)/154=**0.753247**. Precision class1=37/(37+20)=**0.649123**; recall=37/(37+18)=**0.672727**; F1=2×37/(2×37+20+18)=**0.660714**. Precision hỏi trong người bị báo1 có bao nhiêu đúng; recall hỏi trong55 người nhãn1 bắt được bao nhiêu. Đây là metric theo nhãn dataset, không là xác nhận chẩn đoán thực tế.
 :::
 
-Report thực tế (`digits=6`):
+:::learn Confusion matrix — bảng đếm bốn loại kết quả
+Ở bài này **"dương tính" = có tiểu đường (nhãn 1)**. Trong sklearn, **hàng = thực tế, cột = dự đoán**.
 
-```text
+|  | Đoán 0 | Đoán 1 |
+|---|---|---|
+| **Thực 0** | **TN** — đúng, khoẻ | **FP** — báo nhầm có bệnh |
+| **Thực 1** | **FN** — bỏ sót bệnh | **TP** — đúng, có bệnh |
+
+- **Accuracy** = (TN + TP) / tất cả — tỉ lệ đoán đúng chung.
+- **Precision** = TP / (TP + FP) — trong số mô hình *báo có bệnh*, bao nhiêu phần thật sự bệnh.
+- **Recall** = TP / (TP + FN) — trong số người *thật sự bệnh*, mô hình tìm ra bao nhiêu phần.
+- **F1** = trung bình điều hoà của precision và recall.
+
+Xem lại [[bài:confusion-matrix]] và [[bài:classification-metrics]] nếu cần.
+:::
+
+:::code Đọc kết quả của mô hình Phần A
+```python
+print(confusion_matrix(y_test, y_predict))        # bảng 2x2
+print(classification_report(y_test, y_predict))   # báo cáo theo từng lớp
+```
+:::
+
+:::see
+```
+[[79 20]
+ [18 37]]
               precision    recall  f1-score   support
-           0   0.814433  0.797980  0.806122        99
-           1   0.649123  0.672727  0.660714        55
-    accuracy                       0.753247       154
-   macro avg   0.731778  0.735354  0.733418       154
-weighted avg   0.755394  0.753247  0.754191       154
+           0       0.81      0.80      0.81        99
+           1       0.65      0.67      0.66        55
+    accuracy                           0.75       154
+   macro avg       0.73      0.74      0.73       154
+weighted avg       0.76      0.75      0.75       154
 ```
+Đọc: **TN = 79, FP = 20, FN = 18, TP = 37**. `support` là số mẫu thật của mỗi lớp (99 và 55). `macro avg` là trung bình đơn giản hai lớp; `weighted avg` có tính trọng số theo support.
 
-**support** là số mẫu thật mỗi class, không phải số dự đoán. Dòng0 cũng tính precision/recall/F1 nhưng xem0 là class đang xét: precision0=79/(79+18). **macro avg** trung bình đều hai class, ví dụ F1=(.806122…+.660714…)/2=.733418. **weighted avg** dùng trọng số support99/55, F1=(99×F1_0+55×F1_1)/154=.754191; không phải lấy precision/recall trung bình rồi mới tính F1. Xem [[bài:imbalanced-data]] để hiểu vì sao baseline đông class có thể khá cao.
-
-**Tự làm:** ★ gọi tên bốn ô. ★★ tự tính precision/recall rồi so thư viện. ★★★ đổi ngưỡng0.3, mô tả đổi FN/FP và có đáng đổi không.
-
-<details>
-<summary>Đáp án bước 6 — ngưỡng không tự là chính sách tốt</summary>
-
-```python
-from sklearn.metrics import precision_score, recall_score
-print("Precision/recall tay:", 37/57, 37/55)
-probabilities = model.predict_proba(z_test)[:, 1]  # cùng chuẩn train của bài2
-for threshold in [0.3, 0.5, 0.7]:
-    pred = (probabilities >= threshold).astype(int)
-    print(threshold, precision_score(y_test, pred), recall_score(y_test, pred))
-```
-
-Luôn dùng **z_test** cho baseline đã scale, vì x_test ở bài2 là bảng thô.
-
-| Ngưỡng | Precision class1 | Recall class1 |
-|---|---|---|
-| .3 | .545455 | .763636 |
-| .5 | .649123 | .672727 |
-| .7 | .818182 | .490909 |
-
-Ở.3 bắt42/55 thay vì37/55, nhưng FP tăng20→35 (FN18→13). Sàng lọc có thể ưu tiên recall vì bỏ sót đắt, nhưng còn chi phí kiểm tra lại, năng lực xử lý và đối tượng sử dụng; không có luật “y tế luôn chọn.3”. Chọn ngưỡng trên validation, chưa dùng test làm nơi tìm ngưỡng đẹp. [[bài:roc-auc]] mở rộng cách nhìn nhiều ngưỡng.
-
-</details>
-
-![Precision và recall class1 theo ngưỡng dự đoán](/plots/diabetes-thresholds.png)
-
-[Mở hình gốc](/plots/diabetes-thresholds.png). Các điểm.3/.5/.7 được đánh dấu. Recall không tăng khi nâng ngưỡng trên cùng score; precision có thể dao động, không bắt buộc tăng đều.
-
-> **EN:** Read the confusion matrix using true labels as rows and predicted labels as columns. Report support counts actual class members; macro averages weight classes equally, while weighted averages use support. Threshold trade-offs require validation and context-specific costs, not a universal clinical rule.
-
-## Bước 7 — Tương quan là gợi ý, không chọn hộ model
-
-**Mục tiêu:** thử cả mô hình tuyến tính và phi tuyến với cùng split.
-
-**Lý thuyết cần biết:** nhìn mặt nước phẳng không chứng minh bên dưới không có dòng chảy. **Pearson** chỉ đo liên hệ tuyến tính từng cặp, thấp không chứng minh bắt buộc dùng phi tuyến hay feature không ảnh hưởng target. [[bài:correlation-multicollinearity]] giải thích kỹ. Tính trên CSV thô, xếp giảm dần với Outcome: **Glucose .466581, BMI .292695, Age .238356, Pregnancies .221898, DPF .173844, Insulin .130548, SkinThickness .074752, BloodPressure .065068**. DPF viết tắt DiabetesPedigreeFunction.
-
-Spearman (tương quan thứ hạng) cho Glucose **.475776**, BMI **.309707**, Age **.309040**. Các số được nhắc trong prompt/ảnh ghi chú **.487/.317/.314** không khớp cả hai cách ở CSV này. Chưa có ảnh gốc kèm lượt gửi này để đối chiếu toàn bảng; không kết luận ảnh dùng Spearman. Khác bản dữ liệu/làm sạch/cách tính là điều cần xác nhận. Các số trên chỉ là khảo sát, chưa dùng để chọn/bỏ feature.
-
-Tiếp tục Console đã chuẩn bị ở bước6; hàm `evaluate` trong phần chuẩn bị nhận model **đã fit**, x dùng để chấm, y thật, trả dict metric. Nó không fit lại trên tập đang chấm. Năm thuật toán đã có bài: [[bài:logistic-regression]], [[bài:k-nearest-neighbours]], [[bài:svm]], [[bài:decision-tree]], [[bài:random-forest]].
-
-```python
-models = {"Logistic": LogisticRegression(max_iter=1000),  # tăng lượt tối ưu
-          "KNN": KNeighborsClassifier(), "SVM": SVC(random_state=200),  # model xác định/seed
-          "Tree": DecisionTreeClassifier(random_state=200),  # seed model riêng
-          "Forest": RandomForestClassifier(random_state=200, n_jobs=1)}  # cố định rừng
-for name, candidate in models.items():  # cùng bảng train/test đã scale
-    fitted = clone(candidate).fit(z_train, y_train)  # bản sao, không ghi đè baseline
-    print(name, evaluate(fitted, z_test, y_test))  # cùng metric
-```
-
-**Bạn phải thấy** (sklearn1.9.1; split42, cây/rừng200; chưa xử lý0):
-
-| Model | Accuracy | Recall | F1 |
-|---|---|---|---|
-| Logistic | .753247 | .672727 | .660714 |
-| KNN | .694805 | .509091 | .543689 |
-| SVM | .733766 | .563636 | .601942 |
-| Tree | .753247 | .709091 | .672414 |
-| Forest | .740260 | .654545 | .642857 |
-
-Logistic hơn Forest về ba metric này trên split này, còn Tree có F1 cao hơn Logistic. Không suy “phi tuyến luôn tốt hơn” hay “Logistic luôn thắng”. Đây là **bảng thử để học, chưa chọn người thắng bằng test**. Lặp nhiều lần nhìn test để đổi model gây thiên lệch lựa chọn; bước9 dùng CV trên development. Fit scaler trên train đúng vẫn chưa làm việc chọn model theo test thành đúng.
-
-**Tự làm:** ★ chạy vòng5 model. ★★ so raw/scale trên cùng split. ★★★ đổi seed split7/42/123 và xem thứ hạng, giữ seed model200.
-
-<details>
-<summary>Đáp án bước 7 — kiểm quy tắc bằng thực nghiệm</summary>
-
-```python
-for name, candidate in models.items():
-    raw = clone(candidate).fit(x_train, y_train).predict(x_test)
-    scaled = clone(candidate).fit(z_train, y_train).predict(z_test)
-    print(name, "changed:", (raw != scaled).sum())
-for seed in [7, 42, 123]:
-    a, b, c, d = train_test_split(x, y, test_size=0.2, random_state=seed)
-    s = StandardScaler().fit(a)
-    print(seed, {name: evaluate(clone(m).fit(s.transform(a), c), s.transform(b), d)["f1"]
-                 for name, m in models.items()})
-```
-
-Raw vs scale đổi **1/35/17/0/0** nhãn test theo thứ tự Logistic/KNN/SVM/Tree/Forest. Scale có thể làm score tăng hoặc giảm với cấu hình mặc định; quan trọng là đổi hình học và penalty, không bảo đảm tăng điểm. Tree/Forest ở đây cho cùng nhãn vì split so ngưỡng từng cột, khác KNN/SVM; sai số số học có thể tạo khác biệt ở dữ liệu khác. [[bài:feature-scaling]] giải thích giới hạn.
-
-Seed7: F1 tốt nhất trong nhóm là SVM **.686869**; seed42 là Tree **.672414**; seed123 là Forest **.707965**. Một split chưa đủ để tin thứ hạng. Không chọn seed cho đẹp rồi báo đó là test độc lập.
-
-</details>
-
-> **EN:** Pairwise correlation suggests hypotheses, not a required model family. The reported image values match neither raw Pearson nor Spearman on this CSV. Compare candidates on development folds; test-set rankings and sensitivity to scaling or split seeds are demonstrations, not selection evidence.
-
-## Bước 8 — Số 0 thiếu: học median trên train
-
-**Mục tiêu:** thay sentinel hợp lý rồi điền missing mà không nhìn test.
-
-**Lý thuyết cần biết:** ô “chưa đo” không phải phép đo bằng0. Chỉ đổi0 trong năm cột đã xác định; giữ Pregnancies/Outcome. [[bài:missing-values-outliers]]: **imputer** học giá trị điền; cũng phải fit train, transform test. Median ít bị cực trị kéo hơn mean. Trên train sau bỏ0, Insulin còn324 phép đo: mean **154.330247**, median **120**, max **846**; đó là lý do thử median, không bảo đảm điểm tăng.
-
-```python
-zero_missing = ["Glucose", "BloodPressure", "SkinThickness", "Insulin", "BMI"]  # sentinel
-x_clean = x.copy()  # không sửa bảng gốc
-x_clean[zero_missing] = x_clean[zero_missing].replace(0, np.nan)  # chỉ cột được chọn
-clean_train, clean_test = x_clean.loc[x_train.index], x_clean.loc[x_test.index]  # cùng split
-imputer = SimpleImputer(strategy="median").fit(clean_train)  # học median train
-filled_train, filled_test = imputer.transform(clean_train), imputer.transform(clean_test)  # dùng lại
-clean_scaler = StandardScaler().fit(filled_train)  # học thang sau khi điền train
-clean_model = LogisticRegression(max_iter=1000).fit(  # fit model mới
-    clean_scaler.transform(filled_train), y_train)  # input train hoàn chỉnh
-print("After imputation:", evaluate(clean_model, clean_scaler.transform(filled_test), y_test))  # chấm
-```
-
-**Bạn phải thấy:** median năm cột theo thứ tự trên **[118,72,28.5,120,32]**. Accuracy **.753247**, recall **.618182**, F1 **.641509**, so baseline **.753247/.672727/.660714**: accuracy bằng nhưng recall/F1 **giảm**. Không viết “điền median chắc chắn cải thiện”. Quyết định cách xử lý dựa vào hiểu dữ liệu và validation, không làm sạch test để đổi kết quả đẹp.
-
-![Số 0 trong tám feature, chỉ năm cột được coi là missing](/plots/diabetes-zeros.png)
-
-[Mở hình gốc](/plots/diabetes-zeros.png). Insulin thiếu nhiều nhất; Pregnancies=0 được đánh dấu hợp lệ. Có thể tìm hiểu `add_indicator=True` để báo cho model ô nào từng thiếu; chưa thêm vào baseline này.
-
-**Tự làm:** ★ in NaN trước/sau thay0, giữ Pregnancies. ★★ so mean/median Insulin train và xem `statistics_`. ★★★ viết cách sai fit imputer toàn bộ x_clean rồi giải thích rò rỉ, không dùng cách ấy để chọn model.
-
-<details>
-<summary>Đáp án bước 8 — thống kê không được học trên test</summary>
-
-```python
-print(data.isna().sum())
-print(x_clean.isna().sum())
-print(clean_train["Insulin"].mean(), clean_train["Insulin"].median())
-print(dict(zip(x.columns, imputer.statistics_)))
-wrong_imputer = SimpleImputer(strategy="median").fit(x_clean)  # SAI: có cả test
-print(wrong_imputer.statistics_)
-```
-
-NaN thô đều0; sau đổi0, số NaN năm cột là5/35/227/374/11, Pregnancies vẫn0 NaN. Median train được học trên các ô quan sát của train. Cách sai để test góp vào thống kê điền; median có thể trùng cách đúng ở một số cột, vẫn không đúng quy trình. Giữ nguyên số dòng và nhãn, không bỏ mọi hàng thiếu.
-
-</details>
-
-> **EN:** Replace only justified sentinel zeros, then fit imputation on training observations. Median imputation is a defensible baseline, not a promise of higher predictive performance; in this split recall and F1 decrease. Missing indicators are an optional later experiment.
-
-## Bước 9 — Pipeline và CV: chọn trước, chấm sau
-
-**Mục tiêu:** cho mọi fold tự học lại imputer, scaler và model.
-
-**Lý thuyết cần biết:** như bó ba việc thành một đơn hàng, **Pipeline** gói imputer→scaler→model. Khi CV gọi fit từng fold, chỉ phần train của fold học thống kê. `replace(0,NaN)` là quy tắc cố định không học thống kê, nên làm trước CV được; median/scale phải bên trong. Nối [[bài:k-fold-cross-validation]], [[bài:stratified-k-fold]], [[bài:ml-pipeline]].
-
-```python
-def make_workflow(candidate):  # một pipeline mới cho mỗi ứng viên
-    return Pipeline([("imputer", SimpleImputer(strategy="median")),  # median trong fold
-                     ("scaler", StandardScaler()), ("model", clone(candidate))])  # scale rồi model
-cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)  # cùng fold cho các model
-cv_rows = {}  # lưu kết quả development
-for name in ["Logistic", "KNN", "SVM", "Forest"]:  # chỉ 4 baseline
-    scores = cross_validate(make_workflow(models[name]), clean_train, y_train,  # chỉ614 train
-        cv=cv, scoring=["accuracy", "recall", "f1"], n_jobs=1)  # nhiều metric cùng fold
-    cv_rows[name] = {metric: (scores["test_"+metric].mean(),  # test_ ở đây là validation fold
-                             scores["test_"+metric].std(ddof=0))  # std mô tả5 điểm
-                     for metric in ["accuracy", "recall", "f1"]}  # một dict/model
-print("Development CV:", cv_rows)  # không mở test để chọn
-```
-
-**Bạn phải thấy:** mean±std trên614 development (chưa dùng154 held-out trong CV):
-
-| Model | CV F1 | CV Recall |
-|---|---|---|
-| Logistic | .602202 ± .071747 | .540089 ± .111092 |
-| KNN | .622593 ± .041217 | .605648 ± .078152 |
-| SVM | .593329 ± .059601 | .526135 ± .065986 |
-| Forest | **.641642 ± .044954** | .601550 ± .057183 |
-
-![Mean và std CV F1, recall của bốn pipeline](/plots/diabetes-cv.png)
-
-[Mở hình gốc](/plots/diabetes-cv.png). Std cho biết dao động giữa các fold trong lần chia này, không là confidence interval và không chứng minh hai model khác nhau có ý nghĩa. KNN có F1 std nhỏ hơn Forest, nhưng mean thấp hơn; “ổn định” không thay metric mục tiêu.
-
-Demo **chốt F1 làm tiêu chí trước CV**, chọn Forest mean cao nhất trong4 ứng viên, fit lại toàn614 development rồi gọi test: accuracy **.759740**, precision **.650000**, recall **.709091**, F1 **.678261**. Nếu mục tiêu khác là recall ở cùng ngưỡng mặc định, mean recall KNN **.605648** nhỉnh hơn Forest **.601550**; chênh nhỏ và std khá lớn, không đủ khẳng định thắng thật. Bài sàng lọc thật cần xác định chi phí FN/FP, ràng buộc precision và chọn ngưỡng bằng validation trước khi khóa quy trình.
-
-:::pitfall Test trong bài này đã được xem để học
-Bước6–8 và bài tập seed đã xem đi xem lại154 hàng held-out. Bước9 minh họa đúng **cơ chế chọn bằng CV**, nhưng không khiến tập test ấy mới trở lại. Không công bố điểm demo như ước lượng cuối hoàn toàn độc lập; dự án thật cần test chưa đụng từ đầu, hoặc thêm dữ liệu độc lập mới. Cũng không CV trên cả768 rồi chấm lại154 dòng từng vào CV.
+![Confusion matrix của mô hình Phần A](/plots/diabetes-confusion.png)
 :::
 
-**Tự làm:** ★ fit pipeline Logistic, so prediction với làm tay. ★★ dùng `cross_val_score` F1 cho Logistic/Forest. ★★★ viết `evaluate` trả dict, chạy4 pipeline và giải thích nếu chọn theo recall thay cho F1.
+:::worked Tính tay từ bảng trên
+- Accuracy = (79 + 37) / 154 = **0.7532**
+- Precision = 37 / (37 + 20) = 37/57 = **0.6491**
+- Recall = 37 / (37 + 18) = 37/55 = **0.6727**
+- F1 = 2 × 0.6491 × 0.6727 / (0.6491 + 0.6727) = **0.6607**
 
-<details>
-<summary>Đáp án bước 9 — gom code mà không fit trên bộ chấm</summary>
+Khớp với `precision_score`, `recall_score`, `f1_score` của sklearn.
+:::
 
+:::learn Vì sao accuracy dễ đánh lừa, và nên ưu tiên gì?
+- **Baseline ngu:** đoán *tất cả là 0* cho đúng 99/154 = **64.3%**. Mô hình của ta 75.3% chỉ hơn khoảng 11 điểm — chưa ấn tượng như con số bề ngoài ([[bài:imbalanced-data]]).
+- **Bối cảnh y tế:** bỏ sót người bệnh (FN) thường tệ hơn báo nhầm (FP) — vì báo nhầm còn có thể xét nghiệm lại. Nên ta quan tâm **recall**. Đây là lựa chọn theo bối cảnh, không phải luật chung.
+- **Ngưỡng:** `predict` mặc định chọn lớp 1 khi xác suất ≥ 0.5. Hạ ngưỡng thì tìm được nhiều người bệnh hơn nhưng báo nhầm nhiều hơn (liên quan [[bài:roc-auc]]).
+:::
+
+:::code Đổi ngưỡng bằng predict_proba
 ```python
-from sklearn.model_selection import cross_val_score
-for name in ["Logistic", "Forest"]:
-    scores = cross_val_score(make_workflow(models[name]), clean_train, y_train,
-                             cv=cv, scoring="f1")
-    print(name, scores.mean(), scores.std(ddof=0))
-manual_pipe = make_workflow(models["Logistic"]).fit(clean_train, y_train)
-assert np.array_equal(manual_pipe.predict(clean_test),
-                      clean_model.predict(clean_scaler.transform(filled_test)))
+proba = model.predict_proba(x_test)[:, 1]            # xác suất là lớp 1
+for t in [0.3, 0.5, 0.7]:
+    pred = (proba >= t).astype(int)                  # nhãn theo ngưỡng t
+    print(t, round(precision_score(y_test, pred), 3),
+          round(recall_score(y_test, pred), 3),
+          confusion_matrix(y_test, pred).ravel())    # TN FP FN TP
 ```
+:::
 
+:::see
+| Ngưỡng | Precision | Recall | TN / FP / FN / TP |
+|---|---|---|---|
+| 0.3 | 0.545 | **0.764** | 64 / 35 / 13 / 42 |
+| 0.5 | 0.649 | 0.673 | 79 / 20 / 18 / 37 |
+| 0.7 | **0.818** | 0.491 | 93 / 6 / 28 / 27 |
+
+Ngưỡng thấp: recall tăng, precision giảm. Không có ngưỡng "đúng" tuyệt đối; chọn theo chi phí của FN và FP.
+
+![Precision và recall theo ngưỡng](/plots/diabetes-thresholds.png)
+:::
+
+:::pitfall Code gốc thiếu import
+Code của bạn gọi `classification_report` và `confusion_matrix` nhưng không import hai hàm này, nên Python báo `NameError: name 'classification_report' is not defined`. Cách đọc lỗi: tên nào "not defined" thì thiếu `import` hoặc gõ sai tên. Thêm vào `from sklearn.metrics import ...`.
+:::
+
+:::ex ★ Gọi tên bốn ô
+In `confusion_matrix(y_test, y_predict)` và viết bằng lời ý nghĩa của từng ô.
+@answer
+`[[79, 20], [18, 37]]`: 79 người khoẻ đoán đúng (TN); 20 người khoẻ bị báo bệnh (FP); 18 người bệnh bị bỏ sót (FN); 37 người bệnh đoán đúng (TP).
+:::
+
+:::ex ★★ Tự tính precision và recall từ ma trận
+So với hàm của sklearn.
+@answer
 ```python
-def evaluate(model, x, y):
-    pred = model.predict(x)
-    return {"accuracy": accuracy_score(y, pred),
-            "precision": precision_score(y, pred, zero_division=0),
-            "recall": recall_score(y, pred, zero_division=0),
-            "f1": f1_score(y, pred, zero_division=0)}
+tn, fp, fn, tp = confusion_matrix(y_test, y_predict).ravel()
+print(tp / (tp + fp), precision_score(y_test, y_predict))   # 0.6491
+print(tp / (tp + fn), recall_score(y_test, y_predict))      # 0.6727
 ```
+:::
 
-Hàm evaluate chỉ chấm model đã fit; dùng trong vòng5 model hoặc với `final_model`. Chọn theo recall phải đọc **CV**, không đọc dict test để quyết định: trong4 ứng viên KNN có mean recall cao nhất nhưng không bảo đảm đáp ứng sàng lọc. `cross_val_score` một metric cho cùng số F1 như `cross_validate` nhiều metric vì cùng pipeline/fold. Pipeline Logistic khớp toàn bộ154 prediction làm tay vì cùng split, median, scale và model.
+:::ex ★★★ Hạ ngưỡng xuống 0.3: có đáng không?
+Mô tả recall và precision thay đổi ra sao.
+@answer
+Với ngưỡng 0.3: recall tăng từ 0.673 lên **0.764** (tìm thêm 5 người bệnh: FN giảm 18 → 13) nhưng FP tăng từ 20 lên **35**, precision giảm xuống 0.545. Có đáng hay không tuỳ chi phí: nếu xét nghiệm lại rẻ và bỏ sót rất nguy hiểm thì đáng; nếu mỗi báo nhầm gây tốn kém lớn thì không.
+:::
 
-</details>
+:::en
+**Why is accuracy misleading on imbalanced data?** — A model that always predicts the majority class gets high accuracy while finding no positives. Precision, recall and F1 look at the positive class directly, and the right choice depends on the cost of false negatives versus false positives.
+:::
 
-> **EN:** Cross-validation must refit learned preprocessing within each training fold. Choose a prespecified metric on development data, refit the selected workflow, then evaluate on untouched test data. This tutorial has already inspected its held-out examples; the final demonstration must not be described as a fresh independent evaluation. See [scikit-learn's leakage guidance](https://scikit-learn.org/stable/common_pitfalls.html).
+## Bước 8 — So sánh nhiều mô hình: tuyến tính hay phi tuyến?
 
-### Bộ code hoàn chỉnh để gõ lại
+:::goal
+Chọn mô hình bằng **thực nghiệm**, không bằng linh cảm — và thấy vì sao cây/forest không cần scale.
+:::
 
-Chạy trong Console mới từ gốc repo. Bản sạch tự dựng lại baseline, rồi thực hiện6–9; bài tập thử sai không nằm trong luồng chính. Giữ x_train/x_test thô, z_train/z_test đã scale để không lẫn thang.
+:::learn Câu hỏi phỏng vấn của bạn
+*"Dựa vào bảng dữ liệu, nên chọn mô hình nào?"* Bạn đã ghi: tương quan giữa các feature và Outcome không lớn → dùng phi tuyến. Làm rõ cho trọn:
 
-<details>
-<summary>Mở bộ code hoàn chỉnh — bài 2</summary>
+- Hệ số tương quan Pearson chỉ đo quan hệ **tuyến tính** từng cặp. Với Outcome: Glucose **0.467**, BMI 0.293, Age 0.238, Pregnancies 0.222, DPF 0.174, Insulin 0.131, SkinThickness 0.075, BloodPressure 0.065 ([[bài:correlation-multicollinearity]]). Hệ số nhỏ *gợi ý*, **không chứng minh** cần phi tuyến.
+- Lý thuyết chỉ là **giả thuyết để thử**. Bạn đã thử và thấy Logistic (tuyến tính) không thua Random Forest.
+- Câu trả lời phỏng vấn tốt: *"Tôi nhìn tương quan để đoán, rồi thử cả hai bằng cross-validation và chọn theo metric phù hợp."*
+:::
+
+:::learn Ai cần scale, ai không?
+- **Cần scale:** Logistic, SVM, KNN (và linear nói chung) — vì dựa vào phép cộng/nhân/khoảng cách trên giá trị feature.
+- **Không cần:** Decision Tree, Random Forest — vì chúng chỉ **so sánh** (`Glucose ≤ 127?`), mà thứ tự các giá trị không đổi khi scale ([[bài:decision-tree]], [[bài:feature-scaling]]).
+:::
+
+:::code Chạy năm mô hình trên cùng một split
+Dùng `x_train`, `x_test` đã scale từ Phần A:
 
 ```python
-import pandas as pd
-import numpy as np
-from sklearn.base import clone
-from sklearn.model_selection import train_test_split, StratifiedKFold, cross_validate
-from sklearn.preprocessing import StandardScaler
-from sklearn.impute import SimpleImputer
-from sklearn.pipeline import Pipeline
-from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import (accuracy_score, precision_score, recall_score, f1_score,
-                             confusion_matrix, classification_report)
 
-data = pd.read_csv("dataset/diabetes.csv")
-x = data.drop(labels="Outcome", axis=1)
-y = data["Outcome"]
-x_train, x_test, y_train, y_test = train_test_split(
-    x, y, test_size=0.2, random_state=42)
-scaler = StandardScaler().fit(x_train)
-z_train, z_test = scaler.transform(x_train), scaler.transform(x_test)
-model = LogisticRegression().fit(z_train, y_train)
-y_predict = model.predict(z_test)
+models = {
+    "Logistic": LogisticRegression(),
+    "KNN": KNeighborsClassifier(),
+    "SVM": SVC(),
+    "Tree": DecisionTreeClassifier(random_state=42),
+    "Forest": RandomForestClassifier(random_state=42),
+}
+for name, m in models.items():
+    pred = m.fit(x_train, y_train).predict(x_test)
+    print(name, round(accuracy_score(y_test, pred), 3),
+          round(recall_score(y_test, pred), 3), round(f1_score(y_test, pred), 3))
+```
+:::
 
-def evaluate(model, x, y):
-    pred = model.predict(x)
-    return {"accuracy": accuracy_score(y, pred),
-            "precision": precision_score(y, pred, zero_division=0),
-            "recall": recall_score(y, pred, zero_division=0),
-            "f1": f1_score(y, pred, zero_division=0)}
+:::see
+| Mô hình | Accuracy | Recall | F1 |
+|---|---|---|---|
+| Logistic | **0.753** | 0.673 | 0.661 |
+| KNN | 0.695 | 0.509 | 0.544 |
+| SVM | 0.734 | 0.564 | 0.602 |
+| Tree | 0.747 | **0.727** | **0.672** |
+| Forest | 0.721 | 0.618 | 0.613 |
 
-print(confusion_matrix(y_test, y_predict, labels=[0, 1]))
-print(classification_report(y_test, y_predict, digits=6, zero_division=0))
-print("Baseline:", accuracy_score(y_test, np.zeros(len(y_test), dtype=int)))
-probabilities = model.predict_proba(z_test)[:, 1]
-for threshold in [0.3, 0.5, 0.7]:
-    pred = (probabilities >= threshold).astype(int)
-    print(threshold, precision_score(y_test, pred, zero_division=0),
-          recall_score(y_test, pred, zero_division=0))
+Logistic cao nhất về accuracy; Tree lại có recall/F1 cao nhất. Forest *không* thắng dù là mô hình phi tuyến mạnh. Đây là kết quả **trên đúng một lần chia**.
+:::
 
-models = {"Logistic": LogisticRegression(max_iter=1000),
-          "KNN": KNeighborsClassifier(), "SVM": SVC(random_state=200),
-          "Tree": DecisionTreeClassifier(random_state=200),
-          "Forest": RandomForestClassifier(random_state=200, n_jobs=1)}
-for name, candidate in models.items():
-    fitted = clone(candidate).fit(z_train, y_train)
-    print(name, evaluate(fitted, z_test, y_test))
+:::pitfall Chọn mô hình bằng bộ test là rò rỉ nhẹ
+Nếu thử nhiều mô hình rồi chọn con có điểm test cao nhất, bộ test đã bị dùng để *chọn* — nó không còn là phép chấm độc lập. Cách đúng là chọn bằng cross-validation (Bước 10), test chỉ dùng **một lần** cuối.
+:::
 
-zero_missing = ["Glucose", "BloodPressure", "SkinThickness", "Insulin", "BMI"]
-x_clean = x.copy()
-x_clean[zero_missing] = x_clean[zero_missing].replace(0, np.nan)
-clean_train, clean_test = x_clean.loc[x_train.index], x_clean.loc[x_test.index]
-imputer = SimpleImputer(strategy="median").fit(clean_train)
-filled_train, filled_test = imputer.transform(clean_train), imputer.transform(clean_test)
-clean_scaler = StandardScaler().fit(filled_train)
-clean_model = LogisticRegression(max_iter=1000).fit(
-    clean_scaler.transform(filled_train), y_train)
-print("After imputation:", evaluate(clean_model, clean_scaler.transform(filled_test), y_test))
+:::ex ★★ Chạy có và không scale
+Mô hình nào đổi nhiều, mô hình nào gần như không đổi? Giải thích.
+@answer
+```python
+raw_train, raw_test, y_tr, y_te = train_test_split(x, y, test_size=0.2, random_state=42)
+for name, m in models.items():
+    pred = m.fit(raw_train.values, y_tr).predict(raw_test.values)
+    print(name, round(accuracy_score(y_te, pred), 3))
+```
+Không scale: KNN tụt từ 0.695 xuống **0.662**, SVM nhảy từ 0.734 lên 0.766 (SVM không scale rất thất thường), Logistic gần như đổi ít nhưng có thể cảnh báo chưa hội tụ. **Tree (0.747) và Forest (0.721) không đổi một chút nào** — vì cây chỉ so sánh với ngưỡng nên scale không làm đổi cách chia.
+:::
 
-def make_workflow(candidate):
-    return Pipeline([("imputer", SimpleImputer(strategy="median")),
-                     ("scaler", StandardScaler()), ("model", clone(candidate))])
-cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-cv_rows = {}
-for name in ["Logistic", "KNN", "SVM", "Forest"]:
-    scores = cross_validate(make_workflow(models[name]), clean_train, y_train,
-        cv=cv, scoring=["accuracy", "recall", "f1"], n_jobs=1)
-    cv_rows[name] = {metric: (scores["test_"+metric].mean(),
-                             scores["test_"+metric].std(ddof=0))
-                     for metric in ["accuracy", "recall", "f1"]}
-print("Development CV:", cv_rows)
+:::ex ★★★ Đổi `random_state` của split: 7, 42, 123
+Thứ hạng các mô hình có đổi không?
+@answer
+```python
+for rs in [7, 42, 123]:
+    a, b, c, d = train_test_split(x, y, test_size=0.2, random_state=rs)
+    s = StandardScaler().fit(a)
+    res = {n: round(accuracy_score(d, m.fit(s.transform(a), c).predict(s.transform(b))), 3)
+           for n, m in models.items()}
+    print(rs, res)
+```
+Accuracy theo seed 7 / 42 / 123: Logistic 0.786 / 0.753 / 0.799; Forest **0.805** / 0.721 / 0.760; SVM 0.799 / 0.734 / 0.766. Người dẫn đầu **đổi theo seed** (Forest ở seed 7, Logistic ở 42 và 123). Một lần chia chưa đủ tin → cần cross-validation.
+:::
 
-best_name = max(cv_rows, key=lambda name: cv_rows[name]["f1"][0])
-final_model = make_workflow(models[best_name]).fit(clean_train, y_train)
-print("Selected by CV F1:", best_name)
-print("Held-out demonstration:", evaluate(final_model, clean_test, y_test))
-manual_pipe = make_workflow(models["Logistic"]).fit(clean_train, y_train)
-assert np.array_equal(manual_pipe.predict(clean_test),
-                      clean_model.predict(clean_scaler.transform(filled_test)))
+:::en
+**How do you choose between a linear and a non-linear model?** — Correlation only measures linear association, so it can only suggest a direction. I would try both under cross-validation, with preprocessing inside each fold, and pick by the metric that matches the business cost.
+:::
+
+## Bước 9 — Cái bẫy của dữ liệu: số 0 thật ra là thiếu
+
+:::goal
+Biến các số `0` vô lý thành *thiếu*, điền bằng **median học từ train**, rồi xem điểm thay đổi ra sao.
+:::
+
+:::learn
+- Năm cột (Glucose, BloodPressure, SkinThickness, Insulin, BMI) có `0` không thể xảy ra ở người thật → coi là **thiếu dữ liệu bị mã hoá bằng 0** ([[bài:missing-values-outliers]]). Pregnancies = 0 vẫn giữ.
+- Cách làm: thay `0` bằng `NaN`, rồi **điền bằng median** của cột. Dùng median vì ít bị kéo bởi giá trị cực lớn (Insulin có giá trị tới 846).
+- `SimpleImputer` cũng là bộ tiền xử lý → **cùng luật thợ may**: `fit` (tính median) **chỉ trên train**, `transform` cho cả train và test.
+
+![Số giá trị 0 trong từng cột](/plots/diabetes-zeros.png)
+:::
+
+:::code Thay 0 bằng NaN và điền median
+```python
+from sklearn.impute import SimpleImputer
+
+cols = ["Glucose", "BloodPressure", "SkinThickness", "Insulin", "BMI"]
+data2 = data.copy()                                   # giữ nguyên bảng gốc
+data2[cols] = data2[cols].replace(0, np.nan)          # 0 -> thiếu
+x2 = data2.drop(labels="Outcome", axis=1)
+print(x2.isna().sum().to_dict())                      # đếm ô thiếu
+
+a_train, a_test, b_train, b_test = train_test_split(x2, y, test_size=0.2, random_state=42)
+imputer = SimpleImputer(strategy="median").fit(a_train)       # median CHỈ từ train
+a_train, a_test = imputer.transform(a_train), imputer.transform(a_test)
+s = StandardScaler().fit(a_train)
+m2 = LogisticRegression().fit(s.transform(a_train), b_train)
+pred = m2.predict(s.transform(a_test))
+print(accuracy_score(b_test, pred), recall_score(b_test, pred), f1_score(b_test, pred))
+```
+:::
+
+:::see
+- Số ô thiếu: Glucose 5, BloodPressure 35, SkinThickness 227, Insulin 374, BMI 11; các cột khác 0.
+- Median học từ train: Glucose **118**, BloodPressure **72**, SkinThickness **28.5**, Insulin **120**, BMI **32.0**.
+
+| Cùng split 42 | Accuracy | Precision | Recall | F1 |
+|---|---|---|---|---|
+| Logistic, giữ số 0 | 0.753 | 0.649 | 0.673 | 0.661 |
+| Logistic, điền median | 0.753 | 0.667 | 0.618 | 0.642 |
+| Forest, giữ số 0 | 0.721 | 0.607 | 0.618 | 0.613 |
+| Forest, điền median | 0.740 | 0.623 | 0.691 | 0.655 |
+
+Kết quả **không cải thiện đều**: Logistic gần như không đổi (recall còn giảm), Forest tăng. Trên một lần chia, đừng vội kết luận — xử lý dữ liệu đúng vẫn là việc nên làm dù điểm một lần chia không tăng.
+:::
+
+:::ex ★ Thay 0 bằng NaN và kiểm tra
+Chỉ năm cột phù hợp; Pregnancies giữ nguyên. Kiểm bằng `isna().sum()`.
+@answer
+Làm như đoạn code ở trên. Kỳ vọng: Pregnancies, DPF và Age đều 0 ô thiếu; năm cột kia có số ô thiếu như bảng trên.
+:::
+
+:::ex ★★ So median và mean của Insulin trên train
+Vì sao median phù hợp hơn?
+@answer
+```python
+col = train_test_split(x2, y, test_size=0.2, random_state=42)[0]["Insulin"]
+print(col.median(), col.mean())
+```
+Median = **120**, mean ≈ **154**: Insulin lệch phải, có giá trị rất lớn, nên mean cao hơn median khá nhiều; điền mean sẽ gán cho người thiếu một giá trị lớn hơn hầu hết người thật sự được đo. Median bền hơn với giá trị cực đoan.
+:::
+
+:::ex ★★★ Cố tình `fit` imputer trên toàn bộ x2
+Leakage nằm ở đâu?
+@answer
+```python
+imp_all = SimpleImputer(strategy="median").fit(x2)   # SAI: có cả hàng test
+```
+Median được tính từ cả hàng test, nên giá trị điền cho train mang thông tin của test. Trong bài nhỏ này chênh lệch ít, nhưng nguyên tắc không đổi: **mọi bước học từ dữ liệu (imputer, scaler, encoder) chỉ fit trên train hoặc trên phần train của từng fold.**
+:::
+
+## Bước 10 — Làm như thật: Pipeline và cross-validation
+
+:::goal
+Gói mọi bước vào một **Pipeline** và chọn mô hình bằng **K-fold cross-validation** thay vì một lần chia.
+:::
+
+:::learn
+- **Pipeline** xếp các bước theo thứ tự: điền thiếu → scale → mô hình. Gọi `fit` một lần là cả chuỗi chạy; `predict` cũng vậy. Không thể quên bước, không thể fit nhầm trên test ([[bài:ml-pipeline]]).
+- **K-fold CV** chia dữ liệu thành K phần; lần lượt dùng mỗi phần làm validation, K−1 phần còn lại để train; lấy trung bình điểm ([[bài:k-fold-cross-validation]]). Trong mỗi fold, Pipeline **tự fit lại** imputer và scaler chỉ trên phần train của fold → không leak.
+- `StratifiedKFold(shuffle=True, random_state=42)` giữ tỉ lệ nhãn mỗi fold và cố định cách xáo.
+- Đọc cả **mean** (mức điểm) lẫn **std** (độ dao động) của các fold.
+- Quy trình chuẩn: **chọn mô hình bằng CV → rồi mới chấm MỘT lần trên bộ test.**
+:::
+
+:::code Pipeline và CV cho bốn mô hình
+```python
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import StratifiedKFold, cross_val_score
+
+skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+candidates = {
+    "Logistic": LogisticRegression(),
+    "KNN": KNeighborsClassifier(),
+    "SVM": SVC(),
+    "Forest": RandomForestClassifier(random_state=42),
+}
+for name, m in candidates.items():
+    pipe = Pipeline([("imputer", SimpleImputer(strategy="median")),
+                     ("scaler", StandardScaler()),
+                     ("model", m)])
+    f1 = cross_val_score(pipe, x2, y, cv=skf, scoring="f1")
+    rec = cross_val_score(pipe, x2, y, cv=skf, scoring="recall")
+    print(name, "F1 %.3f ± %.3f" % (f1.mean(), f1.std()),
+          "| recall %.3f ± %.3f" % (rec.mean(), rec.std()))
+```
+:::
+
+:::see
+| Mô hình | F1 (mean ± std) | Recall (mean ± std) |
+|---|---|---|
+| Logistic | **0.636 ± 0.021** | 0.571 ± 0.047 |
+| KNN | 0.587 ± 0.043 | 0.567 ± 0.041 |
+| SVM | 0.607 ± 0.026 | 0.545 ± 0.026 |
+| Forest | 0.635 ± 0.041 | **0.597 ± 0.040** |
+
+Logistic và Forest **gần như hoà** về F1 (0.636 vs 0.635). Logistic ổn định hơn (std nhỏ hơn một nửa) và đơn giản hơn; Forest hơn một chút về recall nhưng nằm trong mức dao động. Với bài sàng lọc bệnh ưu tiên recall, Forest hợp lý; nếu cần mô hình dễ giải thích và ổn định, chọn Logistic.
+
+![Mean và std của CV](/plots/diabetes-cv.png)
+:::
+
+:::code Chốt mô hình và chấm test đúng một lần
+```python
+final = Pipeline([("imputer", SimpleImputer(strategy="median")),
+                  ("scaler", StandardScaler()),
+                  ("model", LogisticRegression())])
+t_train, t_test, u_train, u_test = train_test_split(x2, y, test_size=0.2, random_state=42)
+final.fit(t_train, u_train)                       # pipeline tự fit từng bước trên train
+pred = final.predict(t_test)                      # và tự transform test
+print(accuracy_score(u_test, pred), recall_score(u_test, pred))   # 0.7532, 0.6182
 ```
 
-</details>
+Kết quả **khớp từng chữ số** với cách làm tay ở Bước 9 (accuracy 0.753, recall 0.618): Pipeline chỉ là gói gọn, không đổi toán.
+:::
+
+:::ex ★ Dùng Pipeline cho Logistic và so với làm tay
+Kết quả phải khớp.
+@answer
+Dùng đoạn "Chốt mô hình" ở trên: accuracy 0.7532 và recall 0.6182 — đúng bằng kết quả làm tay ở Bước 9.
+:::
+
+:::ex ★★ So Logistic và Forest bằng 5-fold CV
+Nhận xét mean và std.
+@answer
+Dùng vòng lặp ở trên với hai mô hình này. F1 gần bằng nhau (0.636 và 0.635) nhưng std của Forest (0.041) gấp đôi Logistic (0.021): Forest dao động nhiều giữa các fold hơn.
+:::
+
+:::ex ★★★ Viết hàm `evaluate(model, x, y)`
+Trả về dict mean F1 và recall; chạy cho bốn mô hình và chọn theo recall.
+@answer
+```python
+def evaluate(model, x, y):
+    pipe = Pipeline([("imputer", SimpleImputer(strategy="median")),
+                     ("scaler", StandardScaler()),
+                     ("model", model)])
+    f1 = cross_val_score(pipe, x, y, cv=skf, scoring="f1")
+    rec = cross_val_score(pipe, x, y, cv=skf, scoring="recall")
+    return {"f1": round(float(f1.mean()), 3), "recall": round(float(rec.mean()), 3)}
+
+for name, m in candidates.items():
+    print(name, evaluate(m, x2, y))
+```
+Theo recall, Forest (0.597) cao nhất, nhưng chênh với Logistic (0.571) nằm trong sai số (std ≈ 0.04–0.05). Trả lời tốt nêu được: chọn Forest nếu bỏ sót bệnh rất đắt, kèm lưu ý chênh lệch nhỏ, rồi chấm test đúng một lần.
+:::
+
+:::en
+**What does a Pipeline give you, and why use cross-validation instead of a single split?** — A Pipeline keeps preprocessing and the model as one object, so every step is fitted only on training data, including inside each fold. Cross-validation averages over several splits, so we see both the typical score and its variance instead of trusting one lucky or unlucky split.
+:::
+
+## Tổng kết Phần B
 
 :::recap
-- Đọc matrix theo hàng thật/cột đoán, class dương1.
-- Precision, recall, F1 và baseline trả lời những câu hỏi khác nhau.
-- Correlation chỉ gợi ý; thử tuyến tính và phi tuyến bằng validation.
-- Median/scale chỉ fit train; imputation không luôn tăng score.
-- Pipeline giữ fit trong fold; chọn metric/model bằng CV, test để cuối.
+1. **Đọc confusion matrix trước**: TN, FP, FN, TP rồi mới tính precision, recall, F1.
+2. **Accuracy không đủ**: baseline đoán toàn 0 đã được 64.3%; chọn metric theo chi phí sai lầm (y tế: chú ý recall).
+3. **Tuyến tính hay phi tuyến phải thử**: tương quan chỉ là gợi ý; cây/forest không cần scale, KNN/SVM/Logistic cần.
+4. **Số 0 trong năm cột là thiếu**: thay NaN, điền median **fit trên train**.
+5. **Pipeline + CV**: chọn mô hình bằng mean ± std của CV, rồi chấm test đúng một lần.
 :::
 
-### Checklist tự kiểm
+:::check
+- Tôi đọc được confusion matrix và tính tay precision, recall.
+- Tôi giải thích được vì sao accuracy một mình dễ đánh lừa.
+- Tôi trả lời được câu hỏi phỏng vấn "chọn tuyến tính hay phi tuyến".
+- Tôi biết vì sao cây/forest không cần scale còn Logistic/KNN/SVM thì cần.
+- Tôi biết các số 0 ở năm cột là dữ liệu thiếu và cách xử lý không rò rỉ.
+- Tôi biết chọn mô hình bằng CV, không bằng bộ test.
+- Tôi viết lại được cả đường ống mà không nhìn.
+:::
 
-- [ ] Tôi gọi tên được79/20/18/37 và tính precision/recall.
-- [ ] Tôi giải thích được support, macro và weighted avg.
-- [ ] Tôi biết vì sao không chọn phi tuyến chỉ từ correlation thấp.
-- [ ] Tôi giữ Pregnancies0, chỉ đổi sentinel đúng cột.
-- [ ] Tôi viết lại được pipeline và evaluate không nhìn.
-- [ ] Tôi chỉ chọn trên CV và nhận ra test của tutorial đã bị xem.
+:::code Bộ code hoàn chỉnh của Phần B
+```python
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import (accuracy_score, recall_score, f1_score,
+                             classification_report, confusion_matrix)
 
-### Câu hỏi ôn và phỏng vấn
+data = pd.read_csv("dataset/diabetes.csv")
+cols = ["Glucose", "BloodPressure", "SkinThickness", "Insulin", "BMI"]
+data[cols] = data[cols].replace(0, np.nan)          # số 0 vô lý -> thiếu
+x = data.drop(labels="Outcome", axis=1)
+y = data["Outcome"]
+
+def make_pipe(model):
+    return Pipeline([("imputer", SimpleImputer(strategy="median")),
+                     ("scaler", StandardScaler()),
+                     ("model", model)])
+
+candidates = {
+    "Logistic": LogisticRegression(),
+    "KNN": KNeighborsClassifier(),
+    "SVM": SVC(),
+    "Forest": RandomForestClassifier(random_state=42),
+}
+skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+for name, m in candidates.items():                  # chọn bằng CV
+    f1 = cross_val_score(make_pipe(m), x, y, cv=skf, scoring="f1")
+    print(name, "F1 %.3f ± %.3f" % (f1.mean(), f1.std()))
+
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+final = make_pipe(LogisticRegression()).fit(x_train, y_train)   # chốt, chấm test 1 lần
+y_predict = final.predict(x_test)
+print(accuracy_score(y_test, y_predict), recall_score(y_test, y_predict))
+print(confusion_matrix(y_test, y_predict))
+print(classification_report(y_test, y_predict))
+```
+:::
 
 :::quiz
-@tier A | Hiểu bài
-Q: Matrix[[79,20],[18,37]] có precision/recall class1 bao nhiêu?
-A: **37/57=.649123 và37/55=.672727.** FP20 nằm trong57 lần báo1, FN18 nằm trong55 nhãn thật1. Đổi hàng/cột sẽ dẫn tới nhầm hai mẫu số.
-Q: Đoán toàn0 đúng bao nhiêu? Có tìm được ca1 nào không?
-A: **99/154=.642857, recall1=0.** Accuracy khá cao vì test có99 nhãn0. Model chưa phát hiện ca1 nào nên metric đó không đủ cho sàng lọc.
-Q: Điền median có cải thiện mọi metric trong demo không?
-A: **Không.** Accuracy giữ.753247 nhưng recall giảm.672727→.618182 và F1 giảm.660714→.641509. Xử lý missing có lý do dữ liệu nhưng cần validation để đánh giá lợi ích model.
-Q: Bảng CV chọn model nào theo F1, theo recall?
-A: **F1 chọn Forest; recall cao nhất là KNN trong4 ứng viên.** MeanF1=.641642 của Forest, mean recall=.605648 của KNN. Chênh nhỏ/std khá lớn nên không tuyên bố thắng phổ quát hay đổi metric sau khi nhìn test.
+@tier A | Kiểm tra đã hiểu
+Q: Từ ma trận `[[79, 20], [18, 37]]`, tính precision và recall của lớp 1.
+A: **Precision = 37/57 ≈ 0.649; recall = 37/55 ≈ 0.673.** Precision chia cho số mẫu bị báo dương (37 + 20), recall chia cho số mẫu thật sự dương (37 + 18).
+Q: Đoán toàn bộ là 0 trên bộ test (99 mẫu 0, 55 mẫu 1) đạt accuracy bao nhiêu? Recall của lớp 1 là bao nhiêu?
+A: **Accuracy 99/154 ≈ 0.643; recall = 0.** Mô hình không tìm được người bệnh nào nhưng accuracy vẫn trông tạm ổn — vì vậy phải nhìn recall/precision.
+Q: Bảng CV cho Logistic F1 0.636 ± 0.021 và Forest 0.635 ± 0.041. Chọn mô hình nào?
+A: **Hai mô hình gần như hoà.** Logistic ổn định hơn và đơn giản hơn; Forest hơn một chút ở recall. Quyết định theo chi phí bỏ sót bệnh, rồi chấm test một lần.
+Q: Hạ ngưỡng từ 0.5 xuống 0.3 thì TP, FP, FN thay đổi thế nào ở mô hình Phần A?
+A: **TP tăng 37 → 42, FN giảm 18 → 13, FP tăng 20 → 35.** Recall lên 0.764 nhưng precision tụt xuống 0.545: đánh đổi giữa hai metric.
 @tier B | Phỏng vấn lý thuyết
 Q: **B1.** How do you choose between a linear and a non-linear model?
-A: **Dùng hiểu biết dữ liệu để lập giả thuyết rồi so bằng CV cùng mục tiêu.** Pearson thấp không loại quan hệ phi tuyến/tương tác và không chứng minh phải dùng chúng. Ví dụ baseline Logistic hơn Forest ở test demo nhưng CV pipeline sau xử lý chọn Forest theo F1.
-EN: Use domain knowledge and exploratory analysis to propose candidates, then compare properly preprocessed workflows on development folds with a prespecified metric. Low pairwise correlation does not determine the model family.
+A: **Dùng tương quan để gợi ý, rồi thử cả hai bằng cross-validation.** Pearson chỉ đo quan hệ tuyến tính nên hệ số thấp không chứng minh cần phi tuyến. Ở bài này Logistic ngang Forest.
+EN: Use correlation as a hint only, then compare both model families under cross-validation with preprocessing inside the folds.
 Q: **B2.** Why is accuracy misleading on imbalanced data?
-A: **Nó có thể cao chỉ vì đoán class đông.** Test có99/154 nhãn0 nên đoán toàn0 đạt.642857 dù recall1=0. Cần baseline, matrix và metric theo chi phí FP/FN, không loại bỏ accuracy hoàn toàn.
-EN: A majority-class predictor can have substantial accuracy while missing every minority-class case. Read accuracy alongside a baseline, per-class metrics and error costs.
+A: **Vì dự đoán lớp đông cho accuracy cao mà không tìm được lớp hiếm.** Ví dụ baseline đoán toàn 0 đã đúng 64.3% nhưng recall bằng 0.
+EN: Predicting the majority class gives high accuracy with zero recall on the minority class, so precision, recall and F1 are needed.
 Q: **B3.** What is data leakage and how do you avoid it?
-A: **Thông tin ngoài train lọt vào quá trình học/chọn.** Chia trước, fit median/scale trong fold, không chọn model hay ngưỡng trên test. Ví dụ fit imputer cả768 khiến154 dòng test góp thống kê; điểm không đổi vẫn là leakage.
-EN: Split before fitting learned preprocessing, refit it within validation folds, and keep test data out of model and threshold selection. Unchanged scores do not legitimize leakage.
+A: **Thông tin ngoài train lọt vào bước học.** Tránh bằng cách chia trước, fit mọi bộ tiền xử lý (scaler, imputer) chỉ trên train, và dùng Pipeline để chuỗi bước luôn đúng thứ tự.
+EN: Leakage is when training uses information unavailable at prediction time. Split first, fit preprocessing on train only, and wrap steps in a Pipeline.
 Q: **B4.** What does a Pipeline give you?
-A: **Gói preprocessing và estimator thành quy trình fit/predict nhất quán.** CV fit lại toàn chuỗi trong train mỗi fold, giảm nguy cơ quên fit imputer/scaler đúng chỗ. Ví dụ pipeline Logistic cho cùng prediction làm tay khi mọi cấu hình giống nhau; nó không tự chữa feature rò rỉ tương lai.
-EN: A Pipeline composes transformations and an estimator into one workflow so cross-validation refits the complete sequence within each training fold. It does not automatically fix invalid features or split design.
+A: **Một đối tượng gói tiền xử lý và mô hình.** Mỗi lần fit/predict chạy đúng chuỗi, và trong CV mỗi fold tự fit lại imputer/scaler nên không rò rỉ.
+EN: It chains preprocessing and the estimator into one object so every step is fitted only on the training portion, including inside each CV fold.
 Q: **B5.** Why use cross-validation instead of a single split?
-A: **Để xem chất lượng thay đổi trên nhiều phần development thay vì tin một đề thi.** Dùng cùng fold cho các ứng viên, đọc mean và độ dao động, chấp nhận chi phí fit nhiều lần. Ví dụ seed7/42/123 đổi người có F1 test cao nhất; std fold vẫn không là kiểm định chắc chắn.
-EN: Cross-validation compares candidates across multiple development partitions and exposes variability at additional fitting cost. Fold standard deviation is descriptive, not proof of statistical superiority or a replacement for final testing.
-@tier C | Tình huống doanh nghiệp
-Q: **C1.** Thiết kế sàng lọc cần ít bỏ sót. Có chọn ngưỡng.3 vì recall tăng không?
-A: **Chỉ coi đó là ứng viên để validation theo chi phí.** Xác định khả năng kiểm tra lại và FP chấp nhận được, chọn ngưỡng trên development, rồi khóa trước test. Ví dụ.3 bắt thêm5 ca1 nhưng tăng15 FP so.5; không tự là chính sách tốt cho mọi cơ sở.
-WANT: Liên hệ recall với FN/FP và tài nguyên, không biến số demo thành khuyến nghị y tế.
-Q: **C2.** CSV không có NaN nhưng nhiều Insulin0. Bạn xử lý sao?
-A: **Kiểm ý nghĩa sentinel rồi thay đúng cột, giữ số0 hợp lệ.** Đổi0 thành NaN trong năm phép đo đã xác định, học median trên train/fold và đo lại. Ví dụ Insulin374 số0 đáng ngờ nhưng Pregnancies111 số0 hợp lệ; không thay0 toàn bảng hay hứa score tăng.
-WANT: Dùng ngữ nghĩa dữ liệu, chống leakage và báo trung thực hiệu quả imputation.
-Q: **C3.** Train tốt, test tệ; nhóm đã thử nhiều model trên test. Báo kết quả nào?
-A: **Ghi rõ giới hạn và khôi phục quy trình chọn trên development.** Kiểm leakage, drift, split/nhóm và độ phức tạp, so baseline bằng CV; cần test độc lập mới nếu có thể. Ví dụ xem154 ca nhiều lần rồi làm CV không biến154 ca đó trở lại test chưa xem; không báo điểm đẹp nhất như kết quả khách quan cuối.
-WANT: Chẩn đoán quy trình trước thuật toán, phân biệt overfit với thiên lệch lựa chọn và giới hạn đánh giá.
+A: **Vì một lần chia có thể may hoặc rủi.** Ở bài này người dẫn đầu đổi giữa các seed 7, 42, 123. CV cho mean và std nên đo được cả mức điểm lẫn độ dao động.
+EN: A single split can be lucky or unlucky; cross-validation averages several splits and exposes the variance.
+@tier C | Tình huống
+Q: Bài toán sàng lọc bệnh: bỏ sót người bệnh nguy hiểm hơn báo nhầm. Bạn chọn metric và ngưỡng thế nào?
+A: **Ưu tiên recall, hạ ngưỡng dự đoán và chấp nhận thêm báo nhầm.** Trình bày đánh đổi bằng số: ngưỡng 0.3 cho recall 0.764 nhưng precision 0.545. Chốt ngưỡng cùng chuyên gia theo chi phí xét nghiệm lại.
+WANT: Nêu recall, ngưỡng, đánh đổi precision, hỏi chi phí nghiệp vụ.
+Q: Dữ liệu có cột Insulin chứa rất nhiều số 0. Bạn xử lý thế nào để không bị rò rỉ?
+A: **Coi 0 là thiếu, thay NaN, điền median fit trên train bằng Pipeline.** Không điền trên toàn bộ dữ liệu; có thể thêm cờ "đã thiếu" làm feature và kiểm bằng CV xem có cải thiện thật không.
+WANT: Nhận ra sentinel, median, fit trên train/fold, Pipeline.
+Q: Mô hình train rất tốt nhưng test tệ. Bạn kiểm tra những gì?
+A: **Overfitting hoặc lỗi quy trình.** Kiểm tra độ phức tạp mô hình, so train với CV, và rà soát leakage (scale/impute trước khi chia, nhãn lọt vào x).
+WANT: Phân biệt overfit và leakage, đề xuất CV.
 :::
 
 :::next
-Hướng luyện tiếp theo trong Projects: thử pipeline trên một bảng mới, tự xác định label, split và metric trước khi chạy; hoặc học lựa chọn ngưỡng từ dự đoán out-of-fold. Chưa có bài tiếp nên chưa tạo link. Có thể quay [[bài:diabetes-first-model]] và gõ lại toàn bộ hai bài từ trí nhớ.
+Bạn đã đi hết một dự án phân loại nhỏ từ CSV đến mô hình chọn bằng CV. Bước tiếp theo là làm lại trên một bộ dữ liệu khác, tự gõ toàn bộ đường ống mà không nhìn đáp án.
 :::

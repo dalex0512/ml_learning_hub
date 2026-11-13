@@ -1,361 +1,439 @@
 ---
-title: "Thực hành 1 — Diabetes: từ file CSV đến mô hình đầu tiên"
+title: "Từ file CSV đến mô hình đầu tiên"
 order: 1
-description: "Tự gõ đường ống đọc CSV, tách x/y, chia dữ liệu, chuẩn hóa và huấn luyện Logistic Regression trong PyCharm."
+layout: practice
+description: "Sáu bước ngắn: đọc CSV, tách x/y, chia train/test, chuẩn hoá, huấn luyện Logistic Regression và dự đoán trong PyCharm."
 needs: [labeled-data, train-test-split, feature-scaling, classification-metrics]
-tags: [diabetes, practice, pandas, scikit-learn, train-test-split, standardscaler, data-leakage]
+tags: [diabetes, practice, pandas, scikit-learn, train-test-split, standardscaler, data-leakage, random-state]
 ---
 
-## Bước 0 — Mở đúng môi trường và file
+## Bước 1 — Chuẩn bị môi trường
 
-:::intro
-Tự gõ từng bước, chạy và mở từng biến để hiểu dữ liệu đi đâu. Bài này tái hiện baseline của chủ repo, chưa xử lý số 0 bất thường. Không có slide gốc; mọi kết quả lấy từ file `dataset/diabetes.csv` trong repo.
+:::goal
+Chạy được Python trong PyCharm và tìm thấy file `dataset/diabetes.csv`.
 :::
 
-**Bản đồ:** 0 Chuẩn bị → 1 Đọc bảng → 2 Tách x/y → 3 Chia bộ → 4 Scale → 5 Fit và predict.
-
-**Mục tiêu:** chạy được Python với đúng file CSV. Làm trong một project PyCharm, đặt **Working directory** ở thư mục gốc `D:\ML_VNAI`. Terminal dùng interpreter của project: `python -m pip install pandas scikit-learn matplotlib`. Matplotlib chỉ cần cho bài tập vẽ. Kết quả đã kiểm với Python **3.14.6**, pandas **3.1.1**, NumPy **2.5.4**, sklearn **1.9.1**; phiên bản khác có thể lệch chút kết quả.
-
-**Lý thuyết cần biết:** đường dẫn tương đối được tính từ working directory, giống địa chỉ “ngõ bên cạnh” phải biết đang đứng ở đâu. Bản học dùng `dataset/diabetes.csv`; code chủ repo dùng `diabetes.csv` chỉ chạy nếu CWD chứa trực tiếp file ấy. Trong Run → Edit Configurations đặt Working directory; Python Console có working directory riêng trong Settings → Build, Execution, Deployment → Console → Python Console. Kiểm `os.getcwd()` ở chính nơi đang chạy.
-
-```python
-import os  # kiểm thư mục đang chạy
-import pandas as pd  # đọc và xem bảng
-import numpy as np  # kiểm các mảng số
-from sklearn.model_selection import train_test_split  # chia bộ
-from sklearn.preprocessing import StandardScaler  # chuẩn hóa
-from sklearn.linear_model import LogisticRegression  # classifier đầu tiên
-from sklearn.metrics import accuracy_score  # chấm dự đoán
-print("Working directory:", os.getcwd())  # phải là thư mục gốc repo
-```
-
-**Bạn phải thấy:** đường dẫn gốc repo, chưa có lỗi import. Nếu `FileNotFoundError`, kiểm CWD rồi đường dẫn, không đổi model. Bôi đen code → chuột phải **Execute Selection in Python Console**, mặc định Windows **Alt+Shift+E**. Mỗi khi xuất hiện `data`, `x`, `y`, `x_train`, mở xem một lần bằng **View as DataFrame / Series / Array** trong panel biến; vị trí panel tùy phiên bản/keymap. Chạy từ trên xuống; khi đổi bước trước, chạy lại các bước sau hoặc khởi động Console mới. [Tài liệu PyCharm](https://www.jetbrains.com/help/pycharm/interactive-console.html).
-
-**Tự làm:** ★ mở Console, in CWD và xác nhận tìm được CSV. Chưa cần bài tập nặng.
-
-<details>
-<summary>Đáp án bước 0 — mở sau khi thử</summary>
-
-Nếu CWD là `D:\ML_VNAI`, `dataset/diabetes.csv` trỏ đúng file. Nếu đang ở `D:\ML_VNAI\dataset`, đường dẫn phù hợp là `diabetes.csv`. Chọn một cách, giữ nhất quán cả bài; Python Console và Run Configuration có thể khác CWD.
-
-</details>
-
-> **EN:** Relative paths resolve from the current working directory. Use the same project interpreter and verify the directory in the execution surface you actually use. Execute selections in order and inspect new variables in the console's data viewer.
-
-## Bước 1 — Đọc bảng trước khi học model
-
-**Mục tiêu:** biết mỗi hàng/cột là gì và nhãn có bao nhiêu mẫu.
-
-**Lý thuyết cần biết:** như đọc đề trước khi giải, cần xem bảng trước khi chọn thuật toán. Đây là bảng y tế công khai thường dùng để học, thường gọi **Pima Diabetes**; bản CSV không kèm hồ sơ nguồn nên không suy thêm dân số hay tính đại diện. Có 8 feature số và `Outcome`: 0/1 là nhãn không/có tiểu đường của dataset. Đây là [[bài:classification-vs-regression|phân loại nhị phân]], không phải dự đoán mức đường huyết. Đọc thêm [[bài:feature-and-data-types]] và [[bài:descriptive-statistics]]; bài tập này không là công cụ chẩn đoán.
-
-```python
-data = pd.read_csv("dataset/diabetes.csv")  # đọc file từ gốc repo
-print(data.shape)  # số hàng và cột
-print(data.head())  # xem 5 hàng đầu
-data.info()  # dtype và số ô không thiếu
-print(data.describe())  # thống kê các cột số
-print(data["Outcome"].value_counts())  # đếm nhãn
-```
-
-**Bạn phải thấy:** `(768, 9)`, không có NaN; 7 cột `int64`, BMI và DiabetesPedigreeFunction là `float64`. Chín cột: Pregnancies, Glucose, BloodPressure, SkinThickness, Insulin, BMI, DiabetesPedigreeFunction, Age, Outcome. Outcome=0 có **500** mẫu (**65.1042%**), Outcome=1 có **268** (**34.8958%**). Hàng đầu: `[6,148,72,35,0,33.6,0.627,50,1]`.
-
-![Số mẫu Outcome 0 và 1 trong toàn bộ CSV](/plots/diabetes-outcome.png)
-
-[Mở hình gốc](/plots/diabetes-outcome.png). Cột 0 đông hơn, nên cần so với baseline ở bài 2.
-
-:::pitfall Không có NaN chưa nghĩa là dữ liệu đầy đủ
-Glucose có **5**, BloodPressure **35**, SkinThickness **227**, Insulin **374**, BMI **11** giá trị 0 đáng ngờ: trong thực hành này coi là thiếu được mã hóa bằng 0. Pregnancies có **111** số 0 hợp lệ, Outcome có 500 nhãn 0 hợp lệ. Chưa thay gì ở bài này; [[bài:missing-values-outliers]] giải thích sentinel, bài 2 mới xử lý.
+:::learn
+- **Đường dẫn tương đối** được tính từ *working directory* (thư mục Python đang đứng). Giống hỏi đường: phải biết mình đang đứng ở đâu thì "ngõ bên cạnh" mới có nghĩa.
+- Bài này dùng `dataset/diabetes.csv`, nên working directory phải là **thư mục gốc dự án** (`D:\ML_VNAI`). Code gốc của bạn dùng `diabetes.csv` — cách đó chỉ chạy khi working directory đã nằm trong thư mục `dataset`. Chọn một cách và giữ nhất quán.
+- **Chạy từng đoạn trong PyCharm:** bôi đen code → chuột phải → *Execute Selection in Python Console* (phím tắt Windows `Alt+Shift+E`).
+- **Xem bảng:** mỗi khi có biến mới (`data`, `x`, `y`, `x_train`…), mở panel biến bên phải và chọn *View as DataFrame / Series / Array*. Nhìn tận mắt là cách học nhanh nhất.
+- Console chạy theo thứ tự bạn bôi đen. Nếu sửa một bước phía trên, hãy chạy lại các bước phía dưới (hoặc khởi động lại Console).
 :::
 
-**Tự làm:** ★ đếm nhãn và tính phần trăm. ★★ đếm số 0 từng cột, giải thích hai cột không nên đổi 0 thành thiếu. ★★★ vẽ histogram Glucose theo Outcome rồi mô tả vùng chồng lấn; dùng [[bài:data-visualization]] khi cần.
+:::code Cài thư viện và kiểm tra thư mục
+Chạy một lần trong Terminal của PyCharm:
 
-<details>
-<summary>Đáp án bước 1 — số đếm và histogram</summary>
+```bash
+python -m pip install pandas scikit-learn matplotlib
+```
 
+Rồi chạy trong Python Console:
+
+```python
+import os                                              # kiểm tra thư mục đang đứng
+import pandas as pd                                    # đọc và xử lý bảng
+import numpy as np                                     # mảng số
+from sklearn.model_selection import train_test_split   # chia dữ liệu
+from sklearn.preprocessing import StandardScaler       # chuẩn hoá
+from sklearn.linear_model import LogisticRegression    # mô hình đầu tiên
+from sklearn.metrics import accuracy_score             # chấm điểm
+
+print(os.getcwd())                                     # phải là thư mục gốc dự án
+```
+:::
+
+:::see
+Đường dẫn thư mục gốc dự án và **không có lỗi import**. Bài đã kiểm với Python 3.14, pandas 3.0, scikit-learn 1.9; phiên bản khác có thể lệch vài chữ số cuối.
+:::
+
+:::pitfall Console và nút Run có thể đứng ở hai thư mục khác nhau
+Gặp `FileNotFoundError`? Đừng đổi mô hình. In `os.getcwd()` **ở đúng nơi bạn đang chạy** rồi sửa đường dẫn hoặc đặt lại Working directory (Run → Edit Configurations, hoặc Settings → Build, Execution, Deployment → Console → Python Console).
+:::
+
+:::ex ★ In thư mục hiện tại và kiểm tra file tồn tại
+Dùng `os.path.exists("dataset/diabetes.csv")`. Kết quả phải là `True`.
+@answer
+```python
+print(os.path.exists("dataset/diabetes.csv"))
+```
+Nếu ra `False`: working directory đang sai, không phải file hỏng.
+:::
+
+## Bước 2 — Đọc và hiểu bảng dữ liệu
+
+:::goal
+Biết bảng có gì: **768 hàng, 8 feature + cột Outcome**, nhãn lệch 500/268, và có số `0` đáng ngờ.
+:::
+
+:::learn
+- Đây là bài toán **phân loại nhị phân** ([[bài:classification-vs-regression|Classification vs Regression]]): đoán `Outcome` = 0 (không) hoặc 1 (có tiểu đường).
+- Bộ dữ liệu y tế công khai, thường gọi *Pima Indians Diabetes*, dùng để học. **Không phải công cụ chẩn đoán.**
+- 8 feature đều là số: Pregnancies (số lần mang thai), Glucose (đường huyết), BloodPressure (huyết áp), SkinThickness (độ dày nếp da), Insulin, BMI, DiabetesPedigreeFunction (chỉ số tiền sử gia đình), Age.
+- Quy tắc của người làm thật: **nhìn dữ liệu trước, chọn mô hình sau** ([[bài:descriptive-statistics]]).
+:::
+
+:::code Đọc bảng
+```python
+data = pd.read_csv("dataset/diabetes.csv")   # đọc file vào DataFrame
+print(data.shape)                            # (số hàng, số cột)
+print(data.head())                           # 5 hàng đầu
+data.info()                                  # kiểu dữ liệu, ô thiếu
+print(data.describe())                       # thống kê từng cột
+print(data["Outcome"].value_counts())        # đếm nhãn
+```
+:::
+
+:::see
+- `(768, 9)`, không có ô NaN; hàng đầu tiên là `6, 148, 72, 35, 0, 33.6, 0.627, 50, 1`.
+- Outcome = 0 có **500** mẫu (65.1%), Outcome = 1 có **268** mẫu (34.9%).
+
+![Số mẫu Outcome 0 và 1](/plots/diabetes-outcome.png)
+:::
+
+:::pitfall Không có NaN không có nghĩa là dữ liệu đầy đủ
+Các cột Glucose (**5** số 0), BloodPressure (**35**), SkinThickness (**227**), Insulin (**374**), BMI (**11**) có giá trị `0` vô lý — thực chất là *thiếu dữ liệu bị mã hoá thành 0*. Ở Phần A ta **chưa xử lý** (để đúng baseline của bạn); Bước 9 ở Phần B sẽ xử lý. Pregnancies = 0 thì hợp lệ (chưa mang thai).
+:::
+
+:::ex ★ Đếm nhãn và tính phần trăm
+Dùng `value_counts(normalize=True)`.
+@answer
 ```python
 print(data["Outcome"].value_counts(normalize=True) * 100)
+```
+Ra khoảng 65.10% và 34.90%. Vì lớp 0 đông hơn, một mô hình "đoán toàn bộ là 0" đã đúng ~65% — nhớ con số này cho Bước 7.
+:::
+
+:::ex ★★ Đếm số 0 từng cột
+Cột nào đáng ngờ? Vì sao Pregnancies thì không?
+@answer
+```python
 print((data == 0).sum())
+```
+Năm cột Glucose, BloodPressure, SkinThickness, Insulin, BMI không thể bằng 0 ở người sống → đáng ngờ. Pregnancies = 0 là có thật. Cột `Outcome` có 500 số 0 là *nhãn*, không phải thiếu.
+:::
+
+:::ex ★★★ Vẽ histogram Glucose tách theo Outcome
+Hai nhóm khác nhau thế nào? Có tách hẳn được không?
+@answer
+```python
 import matplotlib.pyplot as plt
 for label in [0, 1]:
     values = data.loc[data["Outcome"] == label, "Glucose"]
     plt.hist(values, bins=np.arange(0, 221, 10), alpha=0.5, label=str(label))
 plt.xlabel("Glucose"); plt.ylabel("Count"); plt.legend(); plt.show()
 ```
+Nhóm 1 lệch sang Glucose cao hơn nhưng hai nhóm **chồng lấn nhiều** → một feature không đủ để phân loại. (Cột đứng ở Glucose = 0 chính là các số 0 thiếu.)
 
-DPF/Age có 0 số 0. Pregnancies=0 nghĩa chưa mang thai, Outcome=0 là nhãn, không phải missing. Histogram cho nhóm 1 thường dịch sang Glucose cao hơn nhưng hai nhóm chồng lấn; một feature không phân loại hoàn hảo. Số 0 Glucose chưa làm sạch vẫn có mặt trong hình. Đây là quan sát, không chứng minh nhân quả.
+![Histogram Glucose theo nhãn](/plots/diabetes-glucose.png)
+:::
 
-</details>
+## Bước 3 — Tách x (đề bài) và y (đáp án)
 
-![Histogram Glucose theo nhãn với cùng khoảng chia](/plots/diabetes-glucose.png)
+:::goal
+Tạo `x` (8 feature) và `y` (nhãn), **không để nhãn lọt vào x**.
+:::
 
-[Mở hình gốc](/plots/diabetes-glucose.png). So vị trí hai nhóm, đồng thời thấy phần chồng lấn; không dùng histogram để quyết định ngưỡng y tế.
+:::learn
+- Như đi thi: `x` là thông tin được phép xem, `y` là đáp án. Toán thường viết X hoa, y thường; code của bạn dùng `x`, `y` thường — giữ nguyên ([[bài:labeled-data]]).
+- `data.drop(labels="Outcome", axis=1)`: bỏ **cột** `Outcome`, trả bảng mới (không sửa `data`).
+- `axis=1` = theo cột, `axis=0` = theo hàng. Dùng `axis=0` thì pandas đi tìm *hàng* tên "Outcome" → không có → `KeyError`.
+- `data["Outcome"]` lấy một cột, cho ra `Series` (một vector).
+- Để `Outcome` lọt vào `x` thì mô hình nhìn thẳng đáp án: đó là **data leakage (rò rỉ dữ liệu)**.
+:::
 
-> **EN:** Inspect shape, types, class counts and implausible sentinel zeros before modeling. The raw glucose distributions overlap; absence of NaN does not imply complete measurements. This is a learning dataset, not a validated diagnostic system.
-
-## Bước 2 — Tách đề bài x khỏi đáp án y
-
-**Mục tiêu:** tạo input không chứa nhãn cần dự đoán.
-
-**Lý thuyết cần biết:** như làm bài thi, `x` là thông tin được phép xem, `y` là đáp án. Toán thường viết X hoa cho ma trận, y thường cho vector; code giữ **x, y** theo chủ repo. [[bài:labeled-data]] giải thích shape. `axis=1` chọn cột, `axis=0` chọn hàng; `drop` mặc định trả bảng mới, không sửa `data`.
-
+:::code Tách x và y
 ```python
-x = data.drop(labels="Outcome", axis=1)  # bỏ cột đáp án
-y = data["Outcome"]  # lấy một cột thành Series
-print(x.shape, y.shape)  # kiểm ma trận và vector
-print(type(x).__name__, type(y).__name__)  # DataFrame, Series
+x = data.drop(labels="Outcome", axis=1)   # bỏ cột đáp án
+y = data["Outcome"]                       # chỉ lấy cột đáp án
+print(x.shape, y.shape)                   # kiểm tra kích thước
 ```
+:::
 
-**Bạn phải thấy:** `(768, 8)`, `(768,)`, `DataFrame Series`; `data` vẫn 9 cột. `data.drop("Outcome", axis=1)` hoặc `data.drop(columns="Outcome")` tương đương ở đây. Nếu để Outcome trong x, model có thể nhìn thẳng đáp án: một dạng **data leakage (rò rỉ dữ liệu)**.
+:::see
+`(768, 8) (768,)`. Mở `x` bằng *View as DataFrame*: 8 cột, **không có Outcome**. `data` vẫn còn nguyên 9 cột.
+:::
 
-**Tự làm:** ★ kiểm shape và x không có Outcome. ★★ thử axis=0, đọc nguyên lỗi. ★★★ tạo `x_no_age` bỏ Outcome và Age cùng lúc; có tự động tốt hơn không?
-
-<details>
-<summary>Đáp án bước 2 — axis và bỏ nhiều cột</summary>
-
+:::ex ★★ Cố tình dùng axis=0
+Đọc lỗi và giải thích bằng lời của bạn.
+@answer
 ```python
-assert x.shape == (768, 8) and "Outcome" not in x
-try:
-    data.drop(labels="Outcome", axis=0)
-except KeyError as error:
-    print(error)
+data.drop(labels="Outcome", axis=0)
+```
+Lỗi: `KeyError: "['Outcome'] not found in axis"`. Nghĩa là: không có *hàng* nào có nhãn index "Outcome" (index là 0, 1, 2…).
+:::
+
+:::ex ★★★ Tạo `x_no_age` bỏ cả Outcome và Age
+Khi nào ta bỏ một feature?
+@answer
+```python
 x_no_age = data.drop(labels=["Outcome", "Age"], axis=1)
-print(x_no_age.shape)
+print(x_no_age.shape)   # (768, 7)
 ```
+Chỉ bỏ feature khi có lý do (rò rỉ nhãn, không có sẵn lúc dự đoán thật) hoặc khi thử bằng validation thấy tốt hơn. Tương quan thấp một mình **chưa đủ** để bỏ.
+:::
 
-Pandas 3.1.1 báo `KeyError: "['Outcome'] not found in axis"`: không có hàng index tên Outcome. x_no_age là `(768,7)`. Chỉ bỏ feature nếu có lý do về leakage, tính sẵn có hoặc thử nghiệm validation; tương quan thấp không đủ để kết luận bỏ cột.
+## Bước 4 — Chia train / test
 
-</details>
+:::goal
+Giữ riêng 20% dữ liệu để chấm điểm, và **cố định cách chia** để lần nào chạy cũng ra cùng bộ test.
+:::
 
-> **EN:** Separate predictors from the target without changing row alignment. Axis 1 removes columns, while axis 0 looks for row labels. Removing a feature is a validation decision, not an automatic improvement.
+:::learn
+- Thi thử bằng đề đã học thuộc thì chưa biết giỏi hay không. Ta cất **bộ test** đi, chỉ dùng chấm điểm cuối ([[bài:train-test-split]]).
+- `test_size=0.2` = 20% làm test. Chỉ dùng **một** trong `test_size` / `train_size`; dùng số thực (0.33 = 33%).
+- sklearn **xáo trộn** dữ liệu trước khi chia → chỉ số (index) của `x_train` lộn xộn là bình thường, `x` và `y` vẫn ghép đúng hàng.
+- **`random_state=42`** cố định cách xáo. Số nào cũng được, nhưng đã chọn thì **giữ nguyên**. Vì sao? Hôm qua mô hình A đạt 80%, hôm nay bạn đổi cách tiền xử lý ra 78%. Nếu bộ test khác nhau mỗi lần chạy thì không biết do *cách làm* hay do *đề thi khác*.
+- `random_state` của lúc chia và `random_state` của mô hình (như Random Forest) là **hai thứ độc lập**.
+:::
 
-## Bước 3 — Chia ngẫu nhiên nhưng tái lập được
-
-**Mục tiêu:** giữ một phần dữ liệu để chấm ngoài train.
-
-**Lý thuyết cần biết:** hai học sinh phải thi cùng đề mới dễ so. Nếu hôm qua 80%, hôm nay 78% nhưng test đổi, chưa biết do model hay đề thi. [[bài:train-test-split]]: `test_size=0.2` dành khoảng 20%, còn lại train; shuffle mặc định làm index lộn xộn. `random_state=42` cố định bộ chia khi dữ liệu/thứ tự/cấu hình giữ nguyên, không phải số “tốt nhất”. Seed của forest là việc khác với seed của split.
-
+:::code Chia 80/20
 ```python
-x_train, x_test, y_train, y_test = train_test_split(  # chia x/y cùng nhau
-    x, y, test_size=0.2, random_state=42)  # giữ split của code gốc
-print(x_train.shape, x_test.shape)  # kiểm kích thước
-print(x_train.index[:5].tolist())  # chỉ số gốc sau xáo trộn
+x_train, x_test, y_train, y_test = train_test_split(
+    x, y, test_size=0.2, random_state=42)   # chia x và y cùng lúc
+print(x_train.shape, x_test.shape)          # kích thước hai bộ
+print(x_train.index[:5].tolist())           # index gốc sau khi xáo
 ```
+:::
 
-**Bạn phải thấy:** train `(614,8)`, test `(154,8)`, index đầu train **[60,618,346,294,231]**. Train nhãn 0/1 là **401/213**, test **99/55**. Không reset index để “sửa” việc trộn; x/y vẫn ghép đúng hàng. 20%×768=153.6 nên sklearn dành 154 test.
+:::see
+- `(614, 8) (154, 8)` (20% × 768 = 153.6 → sklearn làm tròn lên 154).
+- Index đầu của train: `[60, 618, 346, 294, 231]`. Chạy lại bao nhiêu lần cũng ra y hệt.
+- Nhãn 0/1 trong train: **401 / 213**; trong test: **99 / 55**.
+:::
 
-![Hai cách chia 80/20 và gần 60/20/20 trên 768 hàng](/plots/diabetes-splits.png)
+:::learn Muốn có thêm bộ validation (60/20/20)?
+Chia **hai lần**: lần một lấy 20% làm test; lần hai lấy từ phần train 80% còn lại một phần `test_size=0.25` làm validation, vì **0.25 × 80% = 20%** của tổng.
 
-[Mở hình gốc](/plots/diabetes-splits.png). Chia hai lần: lấy 20% test trước, rồi `test_size=0.25` của phần 80% vì **0.25×0.8=0.2**. Thực tế làm tròn ra **460/154/154**, gần 60/20/20. Có thể dùng [[bài:k-fold-cross-validation]] trên phần development thay vì tách val cứng, tùy dữ liệu/chi phí.
+![Hai cách chia dữ liệu](/plots/diabetes-splits.png)
 
-Chỉ cần test_size **hoặc** train_size. Nếu đưa cả hai, sklearn dùng cả hai khi hợp lệ: `.6/.2` lấy 460 train và154 test, **154 hàng không được dùng**, không phải luôn lỗi. Tổng vượt1 là không hợp lệ.
+Thực tế người ta hay **bỏ lần chia thứ hai** và dùng K-fold cross validation ([[bài:k-fold-cross-validation]]) — Bước 10 sẽ làm.
+:::
 
-**Tự làm:** ★ chia lại và kiểm shape. ★★ in năm index đầu với seed None ba lượt rồi seed42 ba lượt. ★★★ chia ba bộ; thêm `stratify=y` cho split80/20 và so phân bố nhãn với bản gốc.
-
-<details>
-<summary>Đáp án bước 3 — tái lập, ba bộ và stratify</summary>
-
+:::ex ★★ Quan sát tác dụng của random_state
+In `index[:5]` của train ba lần với `random_state=None`, rồi ba lần với `42`.
+@answer
 ```python
 for seed in [None, None, None, 42, 42, 42]:
     a, b = train_test_split(x, test_size=0.2, random_state=seed)
     print(seed, a.index[:5].tolist())
-a, b, c, d = train_test_split(x, y, test_size=0.2, random_state=42)
-a_train, a_val = train_test_split(a, test_size=0.25, random_state=42)
-print(len(a_train), len(a_val), len(b))
-a, b, c, d = train_test_split(x, y, test_size=0.2, random_state=42, stratify=y)
-print(c.value_counts(), d.value_counts())
 ```
-
-Seed42 lặp đúng index, seed None thường khác; ngẫu nhiên không phải lời hứa mọi lần đều khác. Stratify cho train **400/214**, test **100/54** (nhãn0/1), giữ tỉ lệ gần toàn bộ hơn: class1 train/test **34.6906%/35.7143%** ở bản gốc, **34.8534%/35.0649%** với stratify. Tự kiểm bằng `213/614`, `55/154` và `214/614`, `54/154`; không thay split trong luồng chính. [[bài:stratified-k-fold]] giải thích giữ tỉ lệ; dữ liệu theo thời gian/nhóm còn cần cách chia phù hợp hơn.
-
-</details>
-
-> **EN:** A fixed split seed supports reproducible comparisons, independently of estimator randomness. Stratification preserves class proportions approximately. Specifying both train and test fractions may leave unused rows; nested fractions must account for rounding.
-
-## Bước 4 — Thợ may: fit số đo, transform dữ liệu
-
-**Mục tiêu:** chuẩn hóa bằng thống kê train, không học gì từ test.
-
-**Lý thuyết cần biết:** thợ may **đo** là `fit`, **cắt theo số đo** là `transform`, làm cả hai là `fit_transform`. Lô vải sau dùng lại cùng số đo, không đo riêng để đổi chuẩn. StandardScaler học mean/std từng cột, rồi tính `z=(x−mean)/std`. [[bài:feature-scaling]]: scale quan trọng cho khoảng cách, tối ưu và penalty; Logistic mặc định có regularization L2/C=1 nên đơn vị ảnh hưởng mức phạt. Linear không penalty giải chính xác không bắt buộc scale; KNN/SVM thường nhạy thang.
-
-```python
-scaler = StandardScaler()  # tạo đối tượng chưa học số đo
-x_train = scaler.fit_transform(x_train)  # học và đổi train
-x_test = scaler.transform(x_test)  # chỉ đổi test bằng số đo train
-print(np.round(x_train.mean(axis=0), 6))  # mean từng cột
-print(np.round(x_train.std(axis=0, ddof=0), 6))  # std chia N
-print(np.round(x_test.mean(axis=0), 6))  # không ép test mean=0
-```
-
-**Bạn phải thấy:** train mean tám số 0 (có thể `-0.`), std tám số1; sai số float mean tối đa khoảng **5.7×10⁻¹⁶**. Test mean theo thứ tự8 feature: **[.154226,.006151,−.083534,.044444,−.070362,.005926,.040133,.144793]**. Test không mean0 là đúng: dùng chuẩn train, không “sửa” bằng fit lại trên test.
-
-:::worked Hai phép tính tự soạn để hiểu fit
-Cột train `[1,2,3,4,5]` có mean3, variance `(4+1+0+1+4)/5=2`, std√2. Sau đổi có `[-1.414214,-.707107,0,.707107,1.414214]`, mean0/std1. Nếu lén đưa test=9 vào fit, mean thành24/6=4 thay vì3: test đã tác động phép học. Đây là leakage dù không dùng nhãn test; nối [[bài:ml-pipeline]].
+`None` cho ba dãy khác nhau; `42` lặp lại đúng `[60, 618, 346, 294, 231]`.
 :::
 
-![Insulin và DPF trước/sau StandardScaler trên train](/plots/diabetes-scaling.png)
+:::ex ★★★ Chia 60/20/20 và thử `stratify=y`
+Kiểm bằng `len()`. Với `stratify=y`, tỉ lệ nhãn ở train/test thay đổi thế nào?
+@answer
+```python
+a, x_test2, b, y_test2 = train_test_split(x, y, test_size=0.2, random_state=42)
+x_tr, x_val, y_tr, y_val = train_test_split(a, b, test_size=0.25, random_state=42)
+print(len(x_tr), len(x_val), len(x_test2))        # 460 154 154
 
-[Mở hình gốc](/plots/diabetes-scaling.png). Hai cột khác thang trước scale; sau scale cùng chuẩn mean/std nhưng outlier vẫn có thể xa0. Không chuẩn hóa để buộc hai phân bố có cùng hình dạng.
+_, _, ytr_s, yte_s = train_test_split(x, y, test_size=0.2, random_state=42, stratify=y)
+print(ytr_s.value_counts().to_dict(), yte_s.value_counts().to_dict())
+```
+Có stratify: train **400/214**, test **100/54** — tỉ lệ nhãn ở hai bộ gần bằng tỉ lệ toàn bộ (~35% nhãn 1). Không stratify: test có 55/154 = 35.7% nhãn 1. Chênh nhỏ ở dữ liệu 65/35, nhưng với dữ liệu rất lệch thì stratify rất quan trọng ([[bài:stratified-k-fold]]).
+:::
 
-MinMax dùng min/max nên một cực trị có thể nén phần lớn mẫu. **Cả MinMax lẫn Standard đều nhạy outlier**; Standard không là giải pháp robust vì mean/std cũng bị kéo. Không xếp hạng “Standard luôn ít nhạy hơn” cho mọi dữ liệu; RobustScaler là lựa chọn khác để tìm hiểu.
+:::pitfall Đưa cả train_size và test_size
+Chỉ cần một. Nếu đưa cả hai và tổng nhỏ hơn 1, sklearn vẫn chạy nhưng **bỏ phần dữ liệu còn lại** (ví dụ `train_size=0.6, test_size=0.2` → 460 train, 154 test, 154 hàng không dùng).
+:::
 
-Sau hai dòng gán, x_train/x_test thành **ndarray NumPy**, mất tên cột/index; y_train/y_test vẫn Series. Nếu muốn giữ bảng, sklearn1.9.1 đã kiểm `StandardScaler().set_output(transform="pandas")` trước fit; khi luyện code chính vẫn dùng ndarray. Python phân biệt `x_test` và `X_test`; viết hoa nhầm biến chưa tồn tại gây NameError.
+## Bước 5 — Chuẩn hoá dữ liệu: bài học của anh thợ may
 
-**Tự làm:** ★ kiểm mean/std. ★★ thử MinMaxScaler trên **split thô mới**, xem min/max train/test. ★★★ cố tình fit scaler toàn bộ x rồi mới chia; so accuracy với cách đúng và chỉ ra leakage.
+:::goal
+Đưa các feature về cùng thang đo, và nhớ quy tắc vàng: **chỉ `fit` trên train**.
+:::
 
-<details>
-<summary>Đáp án bước 4 — MinMax và cách sai để nhận diện leakage</summary>
+:::learn
+- Các cột khác nhau xa về thang: Insulin lên tới hàng trăm, DiabetesPedigreeFunction chỉ khoảng 0–2. Mô hình dựa vào khoảng cách hoặc phạt trọng số sẽ bị cột số lớn "lấn át". Chuẩn hoá để **xuất phát công bằng** ([[bài:feature-scaling]]).
+- **StandardScaler**: mỗi cột trừ trung bình rồi chia độ lệch chuẩn: `z = (x − mean) / std` → trung bình 0, độ lệch chuẩn 1.
+- Mỗi bộ tiền xử lý có 3 phương thức:
+  - `fit()` — **đo** (tính mean, std). Chưa đổi dữ liệu.
+  - `transform()` — **cắt may** theo số đo đã có.
+  - `fit_transform()` — làm cả hai.
+- **Anh thợ may:** có mảnh vải, anh *đo* trước (fit) rồi mới *cắt* (transform). Lần sau cầm mảnh vải khác tới, anh dùng lại số đo cũ và chỉ cắt. Với ta: **chỉ `fit` trên bộ train**; bộ validation và bộ test **tuyệt đối chỉ `transform`**.
+- Vì sao? Nếu `fit` cả test thì mean/std đã "nhìn thấy" test — đó là **data leakage**, dù không dùng nhãn ([[bài:ml-pipeline]]).
+:::
 
+:::code Chuẩn hoá đúng cách
+```python
+scaler = StandardScaler()                    # chưa học gì cả
+x_train = scaler.fit_transform(x_train)      # đo + cắt trên TRAIN
+x_test = scaler.transform(x_test)            # chỉ cắt TEST bằng số đo của train
+print(np.round(x_train.mean(axis=0), 3))     # mean từng cột
+print(np.round(x_train.std(axis=0), 3))      # std từng cột
+print(np.round(x_test.mean(axis=0), 3))      # mean của test
+```
+:::
+
+:::see
+- Train: 8 số mean ≈ **0** và 8 số std = **1**.
+- Test: mean **không** bằng 0, ví dụ `[0.154, 0.006, -0.084, 0.044, -0.07, 0.006, 0.04, 0.145]`. Điều này **đúng**: test được cắt theo số đo của train, ta không "sửa" nó.
+
+![Insulin và DPF trước và sau khi scale](/plots/diabetes-scaling.png)
+:::
+
+:::worked Một cột nhỏ làm tay (số tự soạn)
+Cột train `[1, 2, 3, 4, 5]`: mean = 3, phương sai = (4+1+0+1+4)/5 = 2, std = √2 ≈ 1.414.
+Sau scale: `[-1.414, -0.707, 0, 0.707, 1.414]` — mean 0, std 1.
+Nếu lén đưa thêm test = 9 vào lúc `fit`, mean thành 24/6 = **4** thay vì 3: số đo đã bị test thay đổi.
+:::
+
+:::learn Hai ghi chú nhỏ
+- **MinMaxScaler** nén về [0, 1] bằng min/max nên rất nhạy outlier; **StandardScaler** dùng mean/std nên ít nhạy hơn *tương đối*, nhưng **cả hai đều bị outlier ảnh hưởng**. Muốn bền hơn thì xem `RobustScaler`.
+- Sau `fit_transform`, `x_train`/`x_test` biến thành **mảng NumPy** (mất tên cột, mất index). `y_train`/`y_test` vẫn là Series. Python phân biệt `x_test` và `X_test` — gõ hoa nhầm sẽ báo `NameError`.
+:::
+
+:::ex ★★ Thử MinMaxScaler
+Trên split thô mới, xem min/max của train và test.
+@answer
 ```python
 from sklearn.preprocessing import MinMaxScaler
 a, b, c, d = train_test_split(x, y, test_size=0.2, random_state=42)
 mm = MinMaxScaler().fit(a)
-print(mm.transform(a).min(0), mm.transform(a).max(0))
-print(mm.transform(b).min(0), mm.transform(b).max(0))
-wrong = StandardScaler().fit(x)  # SAI: học cả các hàng test
+print(mm.transform(a).min(0), mm.transform(a).max(0))   # 0 và 1
+print(mm.transform(b).min(0), mm.transform(b).max(0))   # test có thể vượt 1
+```
+Train đúng 0–1. Test có cột SkinThickness lên tới **1.571** (> 1): test có giá trị lớn hơn mọi giá trị trong train. Bình thường, không phải lỗi.
+:::
+
+:::ex ★★★ Viết cách sai (fit trên toàn bộ x) để nhận diện leakage
+So accuracy với cách đúng và nhận xét.
+@answer
+```python
+a, b, c, d = train_test_split(x, y, test_size=0.2, random_state=42)
+wrong = StandardScaler().fit(x)                   # SAI: đã nhìn cả hàng test
 leaky = LogisticRegression().fit(wrong.transform(a), c)
-print(accuracy_score(d, leaky.predict(wrong.transform(b))))
+print(accuracy_score(d, leaky.predict(wrong.transform(b))))   # 0.7532
 ```
+Accuracy ra **0.7532**, trùng cách đúng ở split này — nhưng **không có nghĩa là đúng**. Leakage là vấn đề về nguyên tắc: bước học tham số từ dữ liệu (scaler, imputer, encoder…) chỉ được `fit` trên train. Khi dữ liệu nhỏ hoặc có outlier, chênh lệch có thể lớn.
+:::
 
-Train MinMax min0/max1; test SkinThickness max **1.571429**, có thể vượt[0,1]. Cách sai có accuracy **0.753247**, bằng cách đúng ở split này: không có chênh điểm không xóa leakage. Thống kê đã nhìn thấy test; mọi bước học tham số từ dữ liệu, gồm imputer, đều phải fit chỉ train/fold. Khởi động lại luồng chính nếu đã gán nhầm biến.
+:::en
+**Why do we fit the scaler only on the training set?** — Because the scaler learns parameters (mean, std). Fitting on all data lets information from the test set leak into preprocessing, so the test score becomes over-optimistic. We fit on train, then only `transform` validation and test data.
+:::
 
-</details>
+## Bước 6 — Huấn luyện mô hình và dự đoán
 
-> **EN:** Fit preprocessing on training data and reuse its parameters for held-out data. StandardScaler uses population variance and remains sensitive to outliers. Equal test accuracy does not make leaky preprocessing valid; transformed test data need not have zero mean.
+:::goal
+Huấn luyện Logistic Regression, dự đoán trên bộ test và đọc ra **accuracy**.
+:::
 
-## Bước 5 — Fit model rồi dự đoán
+:::learn
+- `scaler.fit()` học *số đo*. `model.fit(x_train, y_train)` học *quan hệ feature → nhãn*. **Cùng tên phương thức, khác công việc.**
+- `model.predict(x_test)` trả về mảng nhãn 0/1 — **mô hình chưa từng thấy** `y_test`.
+- Metric phân loại luôn nhận **thứ tự: `y_thật` trước, `y_dự_đoán` sau**: `accuracy_score(y_test, y_predict)`.
+- Vì bộ test chưa dùng để chọn gì nên đây là phép chấm trung thực, nhưng mới là **một lần chia** — Phần B sẽ cho thấy một lần là chưa đủ tin ([[bài:logistic-regression]]).
+:::
 
-**Mục tiêu:** tạo classifier đầu tiên và kiểm prediction tương ứng nhãn thật.
-
-**Lý thuyết cần biết:** fit của scaler học **số đo**, fit của model học **quan hệ feature→label**; cùng tên phương thức, khác công việc. [[bài:model-training-pipeline]] và [[bài:logistic-regression]] giải thích sâu. `predict` trả nhãn0/1, không phải xác suất.
-
+:::code Mô hình đầu tiên
 ```python
-model = LogisticRegression()  # tạo model mới
-model.fit(x_train, y_train)  # học hệ số trên train đã scale
-y_predict = model.predict(x_test)  # đoán nhãn của test đã scale
-for predicted, actual in zip(y_predict[:10], y_test.iloc[:10]):  # chỉ 10 cặp
-    print("Predicted:", predicted, "Actual:", actual)  # so cùng vị trí
-print("Accuracy:", accuracy_score(y_test, y_predict))  # y thật trước
+model = LogisticRegression()                 # mô hình tuyến tính cho phân loại
+model.fit(x_train, y_train)                  # học trên train đã scale
+y_predict = model.predict(x_test)            # dự đoán test đã scale
+
+for i, j in list(zip(y_predict, y_test))[:10]:        # chỉ in 10 cặp đầu
+    print("Predicted: {}. Actual value: {}".format(i, j))
+print("Accuracy:", accuracy_score(y_test, y_predict))
 ```
+:::
 
-**Bạn phải thấy:** y_predict shape `(154,)`, accuracy **0.7532467532**, đúng116/154. Mười cặp đầu: bảy cặp0/0 rồi ba cặp1/0. Đừng suy cả model tốt/xấu từ vài dòng đầu; [[bài:classification-metrics]] và bài tiếp theo sẽ đọc kiểu sai.
+:::see
+`Accuracy: 0.7532467532467533` — đúng **116/154** mẫu test. Phần B sẽ đọc kỹ 38 mẫu sai.
+:::
 
-**Tự làm:** ★ in mười cặp, kiểm không lệch hàng. ★★ in năm xác suất class1 và áp ngưỡng0.5. ★★★ tự tính accuracy bằng so từng nhãn rồi lấy mean, so hàm thư viện.
-
-<details>
-<summary>Đáp án bước 5 — xác suất và accuracy</summary>
-
+:::ex ★★ Xem xác suất thay vì nhãn
+In 5 xác suất đầu của lớp 1 và nói liên hệ với ngưỡng 0.5.
+@answer
 ```python
-p = model.predict_proba(x_test)[:, 1]
-print(p[:5])
-print((p >= 0.5).astype(int)[:5])
-print((y_predict == y_test.to_numpy()).mean())
-assert np.isclose((y_predict == y_test.to_numpy()).mean(),
-                  accuracy_score(y_test, y_predict))
+print(model.predict_proba(x_test)[:5, 1].round(3))
 ```
+`predict` chọn nhãn 1 khi xác suất ≥ 0.5. Đổi ngưỡng sẽ đổi dự đoán — Bước 7 sẽ khai thác điều này.
+:::
 
-Năm xác suất đầu **[.277364,.185960,.114658,.171396,.468438]**, nên năm nhãn đầu đều0. Hai phép tính accuracy cùng **0.753247**. Xác suất model chưa tự là xác suất đã hiệu chỉnh hay kết luận lâm sàng.
-
-</details>
-
-> **EN:** Estimator fit learns predictive parameters, unlike scaler fit which learns preprocessing statistics. Predict returns labels; predict_proba returns class probabilities. Check row alignment and compare manual accuracy with the library result.
-
-### Bộ code hoàn chỉnh để gõ lại
-
-Gấp bài, thử gõ từ trí nhớ, rồi mở bản sạch này để đối chiếu. Chạy từ gốc repo trong Console mới; đây là ghép đúng các đoạn bước0–5, không gồm bài tập thử sai.
-
-<details>
-<summary>Mở bộ code hoàn chỉnh — bài 1</summary>
-
+:::ex ★★★ Tự tính accuracy bằng tay
+Rồi so với `accuracy_score`.
+@answer
 ```python
-import os
-import pandas as pd
+print((y_predict == y_test).mean())      # 0.7532...
+```
+Accuracy = số đoán đúng / tổng. So sánh `==` cho ra True/False từng mẫu, `.mean()` coi True = 1 nên chính là tỉ lệ đúng.
+:::
+
+## Tổng kết Phần A
+
+:::recap
+1. **Đọc dữ liệu trước**: 768 hàng, nhãn 500/268, năm cột có số 0 đáng ngờ.
+2. **x = feature, y = nhãn**; `axis=1` bỏ cột; không để nhãn lọt vào x.
+3. **Chia train/test** rồi **cố định `random_state`** để so sánh công bằng giữa các lần thử.
+4. **Scaler: `fit` chỉ trên train**, test chỉ `transform` (thợ may đo một lần).
+5. Model `fit` trên train, `predict` trên test; metric nhận `(y_thật, y_dự_đoán)`.
+:::
+
+:::check
+- Tôi giải thích được vì sao `axis=0` báo lỗi còn `axis=1` thì không.
+- Tôi giải thích được vì sao phải cố định `random_state`.
+- Tôi nói được 20% → 60/20/20 cần `test_size=0.25` ở lần chia thứ hai.
+- Tôi giải thích được "đo" và "cắt may" tương ứng `fit` và `transform`.
+- Tôi biết vì sao không được `fit` scaler trên bộ test.
+- Tôi chạy lại được cả bài mà không nhìn đáp án.
+:::
+
+:::code Bộ code hoàn chỉnh để gõ lại không nhìn
+```python
 import numpy as np
+import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
-print("Working directory:", os.getcwd())
 
 data = pd.read_csv("dataset/diabetes.csv")
-print(data.shape)
-print(data.head())
-data.info()
-print(data.describe())
-print(data["Outcome"].value_counts())
-
 x = data.drop(labels="Outcome", axis=1)
 y = data["Outcome"]
-print(x.shape, y.shape)
-print(type(x).__name__, type(y).__name__)
 
 x_train, x_test, y_train, y_test = train_test_split(
     x, y, test_size=0.2, random_state=42)
-print(x_train.shape, x_test.shape)
-print(x_train.index[:5].tolist())
 
 scaler = StandardScaler()
 x_train = scaler.fit_transform(x_train)
 x_test = scaler.transform(x_test)
-print(np.round(x_train.mean(axis=0), 6))
-print(np.round(x_train.std(axis=0, ddof=0), 6))
-print(np.round(x_test.mean(axis=0), 6))
 
 model = LogisticRegression()
 model.fit(x_train, y_train)
 y_predict = model.predict(x_test)
-for predicted, actual in zip(y_predict[:10], y_test.iloc[:10]):
-    print("Predicted:", predicted, "Actual:", actual)
-print("Accuracy:", accuracy_score(y_test, y_predict))
+print("Accuracy:", accuracy_score(y_test, y_predict))   # 0.7532...
 ```
-
-</details>
-
-:::recap
-- Đọc shape, dtype, phân bố nhãn và sentinel trước khi học.
-- x bỏ Outcome, y giữ Outcome, không lệch hàng.
-- Seed42 cố định split, không bảo đảm model tốt.
-- Fit scaler chỉ train, transform test bằng số đo train.
-- Fit Logistic rồi predict; accuracy chưa mô tả hết lỗi.
 :::
 
-### Checklist tự kiểm
-
-- [ ] Tôi xác định được CWD và tự mở từng biến trong PyCharm.
-- [ ] Tôi tạo được x768×8 và y768.
-- [ ] Tôi giải thích được axis=1 và index bị trộn.
-- [ ] Tôi chia được614/154 và tái lập index.
-- [ ] Tôi biết vì sao test chỉ transform, không fit.
-- [ ] Tôi dự đoán và tự tính accuracy116/154.
-
-### Tự kiểm tra không nhìn code
-
 :::quiz
-@tier A | Hiểu bài
-Q: x có shape gì? Vì sao không giữ Outcome?
-A: **(768,8), để input không chứa đáp án.** Outcome là nhãn riêng trong y shape(768,). Nếu giữ nó, model có thể học từ kết quả cần dự đoán thay vì thông tin có sẵn.
-Q: Chia20% test từ768 cho bao nhiêu hàng? Vì sao index không liên tục?
-A: **154 test,614 train.** Kích thước test được làm tròn lên và dữ liệu shuffle; index gốc như60/618/346 vẫn hợp lệ. Không được sắp riêng y làm lệch cặp.
-Q: Test sau scale không mean0, có cần fit lại không?
-A: **Không.** Chuẩn phải học từ train và dùng nhất quán; fit test sẽ đổi chuẩn bằng thông tin đánh giá. Ví dụ mean Glucose test khoảng.006151 là bình thường.
+@tier A | Kiểm tra đã hiểu
+Q: Với 768 mẫu và `test_size=0.2`, train và test có bao nhiêu mẫu? Muốn 60/20/20 thì lần chia thứ hai dùng `test_size` bằng bao nhiêu?
+A: **614 train, 154 test; lần hai dùng 0.25.** 20% × 768 = 153.6 làm tròn thành 154. Phần train 80% chia tiếp 25% thành validation: 0.25 × 80% = 20% tổng, còn lại 60%.
+Q: Scaler `fit` trên train cho mean của test là 0.154 ở cột đầu. Có phải lỗi không?
+A: **Không, đó là điều đúng.** Test được biến đổi bằng mean/std của train nên không có mean 0. Nếu ép về 0 bằng cách fit lại trên test là data leakage.
+Q: Chạy lại cùng đoạn chia dữ liệu hai lần, lần một không có `random_state`. Chuyện gì xảy ra?
+A: **Hai bộ test khác nhau**, nên accuracy hai lần không so sánh công bằng được. Thêm `random_state=42` thì cả hai lần ra đúng cùng một bộ.
 @tier B | Phỏng vấn lý thuyết
 Q: **B1.** Why do we fit the scaler only on the training set?
-A: **Để thống kê test không tham gia học.** Fit lấy mean/std, transform dùng lại; ví dụ thêm test9 vào train1…5 đổi mean3 thành4. Tiền xử lý phải nằm trong fold khi làm CV.
-EN: Fit the scaler on training data so held-out statistics do not influence learning; reuse the fitted parameters for validation and test transformations.
-Q: **B2.** What does random_state do?
-A: **Cố định nguồn ngẫu nhiên để tái lập một thao tác.** Cùng dữ liệu/thứ tự và cấu hình chia, seed42 lặp đúng index; seed của split độc lập seed forest. Nó không tối ưu accuracy hay bảo đảm mọi phiên bản giống nhau.
-EN: A fixed random_state makes a randomized operation reproducible under the same inputs and configuration; split randomness and estimator randomness are separate.
-Q: **B3.** What is data leakage?
-A: **Thông tin ngoài phần được phép học lọt vào quá trình xây model.** Có thể là nhãn nằm trong x hoặc scaler fit cả test. Accuracy không đổi như ví dụ này vẫn không làm quy trình đó đúng.
-EN: Leakage occurs when information unavailable to the intended training procedure influences model development, including preprocessing fitted on held-out data.
-@tier C | Tình huống doanh nghiệp
-Q: **C1.** Sếp hỏi tại sao hôm nay model khác hôm qua dù chỉ sửa một dòng tiền xử lý?
-A: **Kiểm khả năng tái lập trước khi kết luận dòng đó làm đổi chất lượng.** So phiên bản dữ liệu, index split, seed model và môi trường; chạy hai quy trình trên cùng development/CV. Ví dụ đổi seed chia cũng đổi các ca khó trong test nên so80% với78% chưa công bằng.
-WANT: Tách biến gây khác biệt, kiểm split/model/data rồi mới diễn giải cải thiện.
-Q: **C2.** Đồng nghiệp scale cả bộ trước khi chia và nói điểm bằng cách đúng nên được chấp nhận?
-A: **Không chấp nhận quy trình ấy dù điểm bằng nhau.** Mean/std đã có dữ liệu test; fit lại trong train/fold và giữ test cuối ngoài vòng chọn. Ví dụ split42 cho cùng accuracy.753247 chỉ cho thấy leakage không luôn tăng điểm nhìn thấy.
-WANT: Hiểu leakage là vấn đề thông tin và quy trình, không phải chỉ tìm chênh lệch accuracy.
+A: **Để thông tin từ test không rò vào bước tiền xử lý.** Scaler học mean/std; fit trên dữ liệu có test sẽ làm điểm test lạc quan hơn thực tế. Ví dụ thêm một giá trị test vào lúc fit làm mean của cột đổi từ 3 thành 4.
+EN: Fitting preprocessing on the full dataset leaks test information into training and makes the evaluation optimistic. Fit on train only, then transform validation and test data.
+Q: **B2.** What does `random_state` do in `train_test_split`?
+A: **Cố định cách xáo trộn để split lặp lại được.** Cùng dữ liệu và cùng seed cho cùng train/test, nhờ đó so sánh hai cách tiền xử lý là công bằng. Nó không liên quan tới seed của mô hình.
+EN: It seeds the shuffling so the split is reproducible, which makes experiments comparable across runs.
+Q: **B3.** What is data leakage? Give an example.
+A: **Thông tin ngoài tập train (hoặc đáp án) lọt vào quá trình học.** Ví dụ: để cột `Outcome` trong `x`, hoặc `fit` scaler trên cả bộ dữ liệu trước khi chia.
+EN: Data leakage is when information unavailable at prediction time influences training, for example including the target in the features or fitting a scaler on test data.
+@tier C | Tình huống
+Q: Sếp hỏi: "Hôm qua mô hình đạt 80%, hôm nay 78% sau khi đổi cách xử lý. Cách mới tệ hơn à?" Bạn kiểm tra gì đầu tiên?
+A: **Kiểm tra bộ test có cố định không.** Nếu không cố định `random_state`, hai con số đo trên hai bộ test khác nhau và chưa thể kết luận. Sau khi cố định, một lần chia vẫn dao động; dùng cross-validation để chắc hơn.
+WANT: Biết cố định split, so sánh cùng điều kiện, nhắc tới độ dao động giữa các lần chia.
+Q: Đồng nghiệp scale toàn bộ dữ liệu rồi mới chia train/test và báo accuracy rất cao. Bạn giải thích rủi ro thế nào?
+A: **Đó là leakage trong tiền xử lý.** Mean/std đã bao gồm hàng test nên điểm có thể lạc quan. Làm lại: chia trước, `fit` scaler trên train, `transform` test — hoặc đưa scaler vào Pipeline để không thể quên.
+WANT: Nêu đúng thứ tự chia → fit trên train → transform test, nhắc Pipeline.
 :::
 
 :::next
-[[bài:diabetes-evaluate-improve]] đọc116 dự đoán đúng thành confusion matrix, so mô hình, xử lý số0 thiếu và gói Pipeline để chọn bằng CV. Nếu chưa gõ lại được bước1–5, luyện lại trước khi sang bài2.
+Phần B: đọc kỹ kết quả (confusion matrix, precision, recall), so sánh nhiều mô hình, xử lý số 0 thiếu, rồi làm như thật với Pipeline và cross-validation.
 :::

@@ -17,6 +17,7 @@ export interface TopicData {
   moduleId: string;
   topicId: string;
   description: string | null;
+  layout: string | null;
   slides: { from: number; to: number } | null;
   needs: string[];
   tags: string[];
@@ -115,6 +116,7 @@ export function getTopicContent(moduleId: string, filename: string, topicId: str
     moduleId,
     topicId,
     description: typeof data.description === "string" ? data.description : null,
+    layout: typeof data.layout === "string" ? data.layout : null,
     slides,
     needs: toStringArray(data.needs),
     tags: toStringArray(data.tags),
