@@ -312,6 +312,10 @@ Liên hệ [[bài:k-nearest-neighbours]]: feature trùng/thừa có thể đếm
 
 > **EN:** Redundant features can count the same direction repeatedly in KNN distances; this changes neighborhoods rather than destabilizing regression coefficients.
 
+Ngoài slide: [[bài:decision-tree]] và [[bài:random-forest]] không gặp cùng vấn đề xác định hệ số như OLS, nhưng các cột tương quan có thể thay thế/chia sẻ importance. Biểu đồ impurity importance không chứng minh nhân quả, cũng không đủ để xóa một cột chỉ vì điểm thấp.
+
+> **EN:** Correlated predictors can share or substitute for importance in trees and forests. Impurity importance is neither causal evidence nor, by itself, a feature-removal rule.
+
 Cách xử lý (bước 04 *Remove multicollinearity*):
 
 | Cách | Làm gì |

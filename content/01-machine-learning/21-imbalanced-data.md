@@ -369,7 +369,7 @@ nhau: 400 × 0.768 ≈ 214 × 1.435 ≈ 307. Về bản chất gần giống
 RandomOverSampler (trên Diabetes, hai cách cho **cùng** confusion matrix trên
 tập test — mục 3.9), nhưng không tạo thêm dữ liệu, nhanh hơn, không cần thư
 viện ngoài. Nhiều model hỗ trợ: LogisticRegression, SVC, DecisionTree,
-RandomForest… [[bài:svm]] giải thích vai trò C và vì sao `class_weight` có thể làm thay đổi mức phạt vi phạm margin của từng lớp.
+[[bài:random-forest|RandomForest]]… [[bài:decision-tree]] và forest vẫn cần kiểm precision/recall trên validation; nhiều cây không tự chữa lệch class. [[bài:svm]] giải thích vai trò C và vì sao `class_weight` có thể làm thay đổi mức phạt vi phạm margin của từng lớp.
 
 **(b) Đổi ngưỡng quyết định (threshold).** [[bài:logistic-regression]] giải thích bằng bảng số vì sao hạ ngưỡng làm recall tăng hoặc giữ nguyên. Logistic Regression cho xác suất;
 mặc định đoán 1 khi xác suất ≥ 0.5. Hạ ngưỡng → đoán 1 nhiều hơn → Recall

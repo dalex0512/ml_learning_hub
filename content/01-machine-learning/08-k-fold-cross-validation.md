@@ -63,6 +63,10 @@ Một ví dụ chọn siêu tham số cụ thể: [[bài:polynomial-regression]]
 
 > **EN:** KNN selects its neighbor count by pipeline-based cross-validation; the neighbor count is distinct from the number of folds, and training accuracy alone does not select it.
 
+Ngoài slide: [[bài:decision-tree]] dùng CV chọn max_depth; [[bài:random-forest]] dùng cùng nguyên tắc chọn n_estimators và cân nhắc chi phí. OOB là đánh giá nội bộ hữu ích nhưng không tự xác nhận toàn bộ pipeline hay thay test cuối.
+
+> **EN:** Trees select depth and forests select tree count on development data. OOB evaluation is useful internally, but does not automatically validate preprocessing or replace final testing.
+
 > **EN:** Polynomial Regression provides a concrete example of degree selection by CV; SVM applies the same principle to C and gamma, refitting preprocessing within every fold rather than choosing by training error.
 
 ## Xoay validation rồi refit model cuối

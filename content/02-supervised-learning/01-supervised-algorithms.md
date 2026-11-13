@@ -31,7 +31,7 @@ Không phải lấy nguyên một classifier rồi truyền label liên tục v�
 > **EN:** Stars mark families with both classification and regression variants. Choose the appropriate estimator and objective; Logistic Regression is a classifier despite its name.
 
 :::note Phạm vi nguồn
-Slide 64 chỉ liệt kê tên và dấu sao. Các câu mô tả ý tưởng, ưu/nhược và bảng chọn dưới đây là **bổ sung ngoài slide** để đọc bản đồ; chưa phải bài hướng dẫn các thuật toán chưa học. Linear Regression, Polynomial Regression, hồi quy logistic, SVM và KNN đã có bài riêng.
+Slide 64 chỉ liệt kê tên và dấu sao. Các câu mô tả ý tưởng, ưu/nhược và bảng chọn dưới đây là **bổ sung ngoài slide** để đọc bản đồ; chưa phải bài hướng dẫn các thuật toán chưa học. Linear Regression, Polynomial Regression, hồi quy logistic, SVM, KNN, cây quyết định và rừng ngẫu nhiên đã có bài riêng. Naive Bayes được liệt kê ở slide 64 nhưng chưa có slide riêng trong phạm vi 64–80.
 :::
 
 ## Mỗi họ thuật toán giải quyết điều gì? (bổ sung ngoài slide)
@@ -44,12 +44,12 @@ Slide 64 chỉ liệt kê tên và dấu sao. Các câu mô tả ý tưởng, ư
 | Logistic Regression | Classification | Biến điểm tuyến tính thành xác suất class trong mô hình logistic | Baseline dễ kiểm tra / ranh giới hạn chế nếu feature không đủ | [[bài:logistic-regression]] |
 | Support Vector Machine* | Cả hai, tùy phiên bản | SVC tìm biên phân tách; SVR khớp với một vùng dung sai | Kernel có thể mô tả phi tuyến / cần chú ý scale, tham số và chi phí với tập lớn | [[bài:svm]] |
 | K-nearest neighbours* | Cả hai | Dựa vào nhãn/giá trị của các láng giềng gần nhất | Trực quan, ít bước fit / nhạy scale, số chiều, tốn chi phí khi dự đoán | [[bài:k-nearest-neighbours]] |
-| Naive Bayes | Classification trong bảng này | Kết hợp bằng chứng theo xác suất với giả định độc lập có điều kiện | Nhẹ, thường là baseline cho text / giả định có thể lệch dữ liệu | Sắp có |
-| Decision Tree* | Cả hai | Chia dữ liệu theo các điều kiện rồi dự đoán ở lá | Bắt tương tác, ít cần scale / cây sâu dễ overfit và bất ổn | Sắp có |
-| Random Forest* | Cả hai | Gộp nhiều cây có ngẫu nhiên hóa mẫu/feature | Giảm biến động so với một cây / nặng hơn và khó giải thích bằng một hệ số | Sắp có |
+| Naive Bayes | Classification trong bảng này | Kết hợp bằng chứng theo xác suất với giả định độc lập có điều kiện | Nhẹ, thường là baseline cho text / giả định có thể lệch dữ liệu | Chưa có slide riêng trong 64–80 |
+| Decision Tree* | Cả hai | Chia dữ liệu theo các điều kiện rồi dự đoán ở lá | Bắt tương tác, ít cần scale / cây sâu dễ overfit và bất ổn | [[bài:decision-tree]] |
+| Random Forest* | Cả hai | Gộp nhiều cây có ngẫu nhiên hóa mẫu/feature | Giảm biến động so với một cây / nặng hơn và khó giải thích bằng một hệ số | [[bài:random-forest]] |
 :::
 
-Đây là **xu hướng để chọn ứng viên**, không phải kết quả benchmark. Cùng một họ có nhiều cấu hình; dữ liệu, cách split, metric và tài nguyên mới quyết định lựa chọn cuối. Các tên “Sắp có” là văn bản, chưa tạo đường dẫn tới bài chưa viết.
+Đây là **xu hướng để chọn ứng viên**, không phải kết quả benchmark. Cùng một họ có nhiều cấu hình; dữ liệu, cách split, metric và tài nguyên mới quyết định lựa chọn cuối. Naive Bayes chưa có bài nên chỉ ghi trạng thái, không tạo đường dẫn. Module này đã bao phủ các bài riêng trong slide 64–80; slide 81 bắt đầu Unsupervised Learning.
 
 > **EN:** These are starting intuitions, not benchmark results. Model selection depends on the data, split, metric and resource budget.
 
@@ -80,7 +80,7 @@ Random Forest có thể hồi quy và phân loại nhưng cần chọn estimator
 - SVM, KNN, Decision Tree, Random Forest có dấu sao: có phiên bản cho cả hai.
 - Loại target quyết định bài toán; tên class estimator và metric phải khớp.
 - Dùng baseline, validation và giới hạn tài nguyên để so ứng viên.
-- Linear Regression, Polynomial Regression, hồi quy logistic, SVM và KNN đã có bài riêng; các họ khác sẽ bổ sung sau.
+- Linear, Polynomial, hồi quy logistic, SVM, KNN, Decision Tree và Random Forest đã có bài riêng; Naive Bayes mới được liệt kê ở slide 64, chưa có slide riêng trong 64–80.
 :::
 
 ## Câu hỏi tự kiểm tra
@@ -123,5 +123,5 @@ WANT: Biết cân bằng độ bất định, chất lượng và chi phí vận
 ## Nối sang bài sau
 
 :::next
-Bắt đầu với [[bài:linear-regression]]: học hệ số của một quan hệ tuyến tính, tự tính một ví dụ nhỏ rồi đối chiếu sklearn; sau đó [[bài:polynomial-regression]] thêm feature để khớp đường cong. [[bài:logistic-regression]] chuyển sang phân loại bằng xác suất và ngưỡng; [[bài:svm]] học biên theo margin và dùng kernel khi cần; [[bài:k-nearest-neighbours]] dự đoán từ các mẫu train gần nhất. Những họ còn lại trên bản đồ chưa có bài riêng.
+Bắt đầu với [[bài:linear-regression]]: học hệ số của một quan hệ tuyến tính, tự tính một ví dụ nhỏ rồi đối chiếu sklearn; sau đó [[bài:polynomial-regression]] thêm feature để khớp đường cong. [[bài:logistic-regression]] chuyển sang phân loại bằng xác suất và ngưỡng; [[bài:svm]] học biên theo margin và dùng kernel khi cần; [[bài:k-nearest-neighbours]] dự đoán từ các mẫu train gần nhất. [[bài:decision-tree]] học chuỗi luật chia dữ liệu; [[bài:random-forest]] gộp nhiều cây đa dạng và khép lại phạm vi slide 64–80. Naive Bayes chưa có slide riêng trong phạm vi này nên chưa có bài.
 :::

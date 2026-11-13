@@ -538,5 +538,5 @@ WANT: Kết nối ngữ nghĩa feature, encoding, scaling và chống leakage; k
 ## Nối sang bài sau
 
 :::next
-Quay về [[bài:supervised-algorithms]] để so KNN với [[bài:logistic-regression]] và [[bài:svm]]. Slide 76 chuyển sang **Decision Tree (cây quyết định)**: cây có bước học các luật “nếu–thì”, thay vì dự đoán bằng khoảng cách tới tập train như KNN. Chưa viết bài Decision Tree trong đợt này.
+Quay về [[bài:supervised-algorithms]] để so KNN với [[bài:logistic-regression]] và [[bài:svm]]. [[bài:decision-tree]] (slide 76–77) chuyển sang cây quyết định: cây có bước học các luật “nếu–thì”, thay vì dự đoán bằng khoảng cách tới tập train như KNN. Sau đó [[bài:random-forest]] kết hợp nhiều cây để giảm biến động.
 :::

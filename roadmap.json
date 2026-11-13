@@ -43,7 +43,9 @@
         { "id": "polynomial-regression", "order": 3, "title": "Polynomial Regression — uốn đường cong bằng feature đa thức", "file": "03-polynomial-regression.md", "group": "Mô hình hồi quy" },
         { "id": "logistic-regression", "order": 4, "title": "Hồi quy logistic (Logistic Regression)", "file": "04-logistic-regression.md", "group": "Phân loại" },
         { "id": "svm", "order": 5, "title": "Máy vector hỗ trợ (Support Vector Machine — SVM)", "file": "05-support-vector-machine.md", "group": "Phân loại" },
-        { "id": "k-nearest-neighbours", "order": 6, "title": "K láng giềng gần nhất (K-Nearest Neighbours — KNN)", "file": "06-k-nearest-neighbours.md", "group": "Phân loại" }
+        { "id": "k-nearest-neighbours", "order": 6, "title": "K láng giềng gần nhất (K-Nearest Neighbours — KNN)", "file": "06-k-nearest-neighbours.md", "group": "Phân loại" },
+        { "id": "decision-tree", "order": 7, "title": "Cây quyết định (Decision Tree)", "file": "07-decision-tree.md", "group": "Phân loại" },
+        { "id": "random-forest", "order": 8, "title": "Rừng ngẫu nhiên (Random Forest)", "file": "08-random-forest.md", "group": "Phân loại" }
       ]
     },
     {
