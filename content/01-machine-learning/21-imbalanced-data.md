@@ -367,7 +367,7 @@ tập test — mục 3.9), nhưng không tạo thêm dữ liệu, nhanh hơn, kh
 viện ngoài. Nhiều model hỗ trợ: LogisticRegression, SVC, DecisionTree,
 RandomForest…
 
-**(b) Đổi ngưỡng quyết định (threshold).** Logistic Regression cho xác suất;
+**(b) Đổi ngưỡng quyết định (threshold).** [[bài:logistic-regression]] giải thích bằng bảng số vì sao hạ ngưỡng làm recall tăng hoặc giữ nguyên. Logistic Regression cho xác suất;
 mặc định đoán 1 khi xác suất ≥ 0.5. Hạ ngưỡng → đoán 1 nhiều hơn → Recall
 tăng. Trên tập test Diabetes (model không resample):
 

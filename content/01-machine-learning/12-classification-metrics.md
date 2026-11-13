@@ -157,14 +157,13 @@ Quy tắc: **khi các class mất cân bằng, đừng chỉ nhìn Accuracy** �
 
 Phần lớn model không trả thẳng "dog" hay "cat" mà trả về một **điểm / xác suất** (vd 0.73 là dog), rồi so với một **ngưỡng**, thường là 0.5:
 
-- **Hạ ngưỡng** (dễ dãi hơn khi nói +) → bắt được nhiều + hơn → Recall **tăng**, nhưng báo nhầm nhiều hơn → Precision **thường giảm**.
-- **Tăng ngưỡng** (khắt khe hơn) → chỉ nói + khi rất chắc → Precision **thường tăng**, Recall **giảm**.
+- **Hạ ngưỡng** (dễ dãi hơn khi nói +) → Recall **tăng hoặc giữ**, FP tăng hoặc giữ → Precision **thường giảm**.
+- **Tăng ngưỡng** (khắt khe hơn) → Precision **thường tăng**, Recall **giảm hoặc giữ**.
 
-Không thể kéo cả hai lên cùng lúc chỉ bằng cách chỉnh ngưỡng; muốn cả hai cùng cao thì cần **model tốt hơn**.
+Precision không bảo đảm đơn điệu: nếu các điểm vừa thêm đều là dương thật, cả precision và recall có thể tăng. Đổi ngưỡng không cải thiện xếp hạng của model; xem bảng ba ngưỡng trong [[bài:logistic-regression]] để đếm cụ thể TP/FP/FN/TN.
 [[bài:roc-auc]] sẽ vẽ toàn bộ sự đánh đổi này thành một đường cong.
 
-> **EN:** Lowering the threshold raises recall but usually lowers precision; raising it does the opposite. Tuning the
-> threshold alone cannot lift both — that needs a better model.
+> **EN:** Lowering the threshold cannot reduce recall for fixed scores, while precision need not be monotonic. Both may improve at some operating points, but threshold tuning does not improve the score ranking.
 
 ## Specificity, F-beta và bài toán nhiều class
 
@@ -308,7 +307,7 @@ Chú ý `pos_label`: nếu label là chuỗi, phải chỉ rõ class + là gì, 
 - **Precision** = TP / (TP+FP): "nói + thì đúng bao nhiêu" → quan tâm khi **FP đắt**.
 - **Recall** = TP / (TP+FN): "có + thì bắt được bao nhiêu" → quan tâm khi **FN đắt**.
 - **F1** = trung bình điều hòa của P và R → chỉ cao khi cả hai cùng cao. F-beta để nghiêng về một bên.
-- Hạ ngưỡng: Recall ↑, Precision thường ↓. Muốn cả hai ↑ phải có model tốt hơn.
+- Hạ ngưỡng: Recall tăng hoặc giữ, Precision thường giảm nhưng không bảo đảm; xếp hạng score không đổi.
 - Nhiều class: macro (công bằng giữa các class) / weighted (theo phân bố) / micro (= Accuracy với bài 1 nhãn).
 - Chọn metric = trả lời "FP hay FN tốn kém hơn?".
 :::
@@ -340,7 +339,7 @@ Q: **B3.** F1 và F-beta khác nhau thế nào? Khi nào dùng F2?
 A: F1 coi P và R ngang nhau. F-beta thêm tham số β: β > 1 thiên về Recall, β < 1 thiên về Precision. Dùng F2 khi bỏ sót (FN) đắt hơn báo nhầm, ví dụ sàng lọc bệnh. Cần nói rõ đây là lựa chọn dựa trên chi phí chứ không phải mặc định.
 EN: F-beta weights recall β times as much as precision; use F2 when false negatives cost more, e.g. disease screening.
 Q: **B4.** Precision và Recall đánh đổi nhau như thế nào? Ngưỡng đóng vai trò gì?
-A: Model xuất ra điểm số, ngưỡng quyết định ranh giới nói +. Hạ ngưỡng → nhiều + được bắt (Recall ↑) nhưng thêm báo nhầm (Precision thường ↓); tăng ngưỡng thì ngược lại. Đánh đổi này là của **một model cố định**; muốn cải thiện cả hai phải đổi model/feature/dữ liệu. Ngưỡng là quyết định kinh doanh, không phải tham số của thuật toán.
+A: Model xuất ra điểm số, ngưỡng quyết định ranh giới nói +. Hạ ngưỡng → Recall tăng hoặc giữ, thường thêm báo nhầm nên Precision thường giảm; tăng ngưỡng thì Recall giảm hoặc giữ. Đánh đổi này là của **một model cố định**; Precision không bảo đảm đơn điệu nên đôi khi cả hai cùng tăng ở một số điểm vận hành. Muốn cải thiện xếp hạng cần đổi model/feature/dữ liệu; ngưỡng là lựa chọn cho quyết định, không phải hệ số học của model Logistic.
 EN: A model outputs scores and the threshold sets the operating point; moving it trades precision for recall on a fixed model.
 Q: **B5.** Micro, macro, weighted-F1 khác nhau thế nào? Vì sao micro-F1 bằng Accuracy trong bài đơn nhãn?
 A: Macro: trung bình đều các class. Weighted: trung bình theo support. Micro: cộng dồn TP/FP/FN toàn bộ rồi tính. Trong bài đơn nhãn nhiều class, mỗi lần đoán sai vừa là 1 FP của class bị đoán nhầm vừa là 1 FN của class thật → tổng FP = tổng FN = số lần sai, nên micro-Precision = micro-Recall = Accuracy.

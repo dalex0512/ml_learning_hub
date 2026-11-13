@@ -176,7 +176,7 @@ bài toán thực tế có thể được **thiết kế** theo dạng nào tùy
 muốn trả lời.
 
 **Bẫy 4 — tên gọi Logistic Regression.** Thuật toán này có chữ
-"Regression" nhưng được dùng cho **Classification** (sẽ gặp ở module 02).
+"Regression" nhưng được dùng cho **Classification**; xem [[bài:logistic-regression]] ở module 02.
 Tên gọi có lý do lịch sử, đừng phân loại theo tên.
 
 > **EN:** *(Supplementary, not in the slides)* Common traps: (1) a numeric

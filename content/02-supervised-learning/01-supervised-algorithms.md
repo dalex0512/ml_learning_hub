@@ -31,7 +31,7 @@ Không phải lấy nguyên một classifier rồi truyền label liên tục v�
 > **EN:** Stars mark families with both classification and regression variants. Choose the appropriate estimator and objective; Logistic Regression is a classifier despite its name.
 
 :::note Phạm vi nguồn
-Slide 64 chỉ liệt kê tên và dấu sao. Các câu mô tả ý tưởng, ưu/nhược và bảng chọn dưới đây là **bổ sung ngoài slide** để đọc bản đồ; chưa phải bài hướng dẫn các thuật toán chưa học. Linear Regression và Polynomial Regression đã có bài riêng.
+Slide 64 chỉ liệt kê tên và dấu sao. Các câu mô tả ý tưởng, ưu/nhược và bảng chọn dưới đây là **bổ sung ngoài slide** để đọc bản đồ; chưa phải bài hướng dẫn các thuật toán chưa học. Linear Regression, Polynomial Regression và hồi quy logistic đã có bài riêng.
 :::
 
 ## Mỗi họ thuật toán giải quyết điều gì? (bổ sung ngoài slide)
@@ -41,7 +41,7 @@ Slide 64 chỉ liệt kê tên và dấu sao. Các câu mô tả ý tưởng, ư
 |---|---|---|---|---|
 | Linear Regression | Regression | Khớp tổng có trọng số của các feature với target | Nhanh, dễ giải thích hệ số / khó khớp đường cong khi chỉ dùng feature gốc, nhạy outlier | [[bài:linear-regression]] |
 | Polynomial Regression | Regression | Thêm lũy thừa/tích của feature để mô tả đường cong | Biểu diễn được quan hệ cong / bậc cao dễ overfit và ngoại suy kém | [[bài:polynomial-regression]] |
-| Logistic Regression | Classification | Biến điểm tuyến tính thành xác suất class trong mô hình logistic | Baseline dễ kiểm tra / ranh giới hạn chế nếu feature không đủ | Sắp có |
+| Logistic Regression | Classification | Biến điểm tuyến tính thành xác suất class trong mô hình logistic | Baseline dễ kiểm tra / ranh giới hạn chế nếu feature không đủ | [[bài:logistic-regression]] |
 | Support Vector Machine* | Cả hai, tùy phiên bản | SVC tìm biên phân tách; SVR khớp với một vùng dung sai | Kernel có thể mô tả phi tuyến / cần chú ý scale, tham số và chi phí với tập lớn | Sắp có |
 | K-nearest neighbours* | Cả hai | Dựa vào nhãn/giá trị của các láng giềng gần nhất | Trực quan, ít bước fit / nhạy scale, số chiều, tốn chi phí khi dự đoán | Sắp có |
 | Naive Bayes | Classification trong bảng này | Kết hợp bằng chứng theo xác suất với giả định độc lập có điều kiện | Nhẹ, thường là baseline cho text / giả định có thể lệch dữ liệu | Sắp có |
@@ -80,7 +80,7 @@ Random Forest có thể hồi quy và phân loại nhưng cần chọn estimator
 - SVM, KNN, Decision Tree, Random Forest có dấu sao: có phiên bản cho cả hai.
 - Loại target quyết định bài toán; tên class estimator và metric phải khớp.
 - Dùng baseline, validation và giới hạn tài nguyên để so ứng viên.
-- Linear Regression và Polynomial Regression đã có bài riêng; các họ khác sẽ bổ sung sau.
+- Linear Regression, Polynomial Regression và hồi quy logistic đã có bài riêng; các họ khác sẽ bổ sung sau.
 :::
 
 ## Câu hỏi tự kiểm tra
@@ -90,7 +90,7 @@ Random Forest có thể hồi quy và phân loại nhưng cần chọn estimator
 Q: Slide 64 có bốn họ mang dấu sao nào? Dấu sao có nghĩa gì?
 A: SVM, KNN, Decision Tree, Random Forest. Các họ này có phiên bản cho regression và classification; không có nghĩa dùng cùng một classifier cho target liên tục.
 Q: Vì sao Logistic Regression ở cột Classification dù tên có chữ regression?
-A: Bài toán nó giải quyết trong bảng là dự đoán class, thường qua xác suất rồi quy tắc quyết định. Phải nhìn đầu ra và mục tiêu, không suy từ tên.
+A: Bài toán nó giải quyết trong bảng là dự đoán class, thường qua xác suất rồi quy tắc quyết định. Phải nhìn đầu ra và mục tiêu, không suy từ tên; [[bài:logistic-regression]] giải thích phần hồi quy log-odds và sigmoid.
 Q: Dự đoán giá căn hộ và dự đoán căn hộ có bán trong tháng là cùng bài toán không?
 A: Không. Giá là target số cho regression; có/không bán là class cho binary classification. Có thể cùng feature nhưng khác label, estimator và metric.
 Q: Có được dùng mã class 0/1/2 làm lý do chọn Linear Regression không?
@@ -123,5 +123,5 @@ WANT: Biết cân bằng độ bất định, chất lượng và chi phí vận
 ## Nối sang bài sau
 
 :::next
-Bắt đầu với [[bài:linear-regression]]: học hệ số của một quan hệ tuyến tính, tự tính một ví dụ nhỏ rồi đối chiếu sklearn; sau đó [[bài:polynomial-regression]] thêm feature để khớp đường cong. Những họ khác trên bản đồ chưa có bài riêng.
+Bắt đầu với [[bài:linear-regression]]: học hệ số của một quan hệ tuyến tính, tự tính một ví dụ nhỏ rồi đối chiếu sklearn; sau đó [[bài:polynomial-regression]] thêm feature để khớp đường cong. [[bài:logistic-regression]] chuyển sang phân loại bằng xác suất và ngưỡng. Những họ còn lại trên bản đồ chưa có bài riêng.
 :::

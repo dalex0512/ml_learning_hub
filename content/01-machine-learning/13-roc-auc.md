@@ -58,6 +58,10 @@ Confusion Matrix (bài 11)
 Slide đặt Confusion Matrix bên trái, bảng định nghĩa TPR/FPR ở dưới, và
 hình ROC curve bên phải.
 
+[[bài:logistic-regression]] có ví dụ giữ nguyên xác suất và đổi ba ngưỡng, mỗi ngưỡng thành một điểm ROC.
+
+> **EN:** The Logistic Regression lesson gives a worked example of three thresholds on fixed probabilities, each defining an ROC operating point.
+
 Điều kiện để vẽ được ROC: model phải cho ra **điểm số / xác suất** (score)
 chứ không chỉ một nhãn cứng. Hầu hết model phân loại đều làm được (ví dụ
 `predict_proba` trong scikit-learn).

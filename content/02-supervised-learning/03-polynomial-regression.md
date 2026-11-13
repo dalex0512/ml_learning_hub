@@ -26,7 +26,7 @@ tags: [polynomial-regression, polynomial-features, overfitting, underfitting, de
 :::
 
 :::note Nguồn và phạm vi bổ sung
-Slide 67 chỉ có hình và công thức minh họa; không có bảng tọa độ gốc, code hay bảng ưu/nhược. Các ví dụ số, OLS, chọn bậc, CV và bẫy thực hành bên dưới đều là **bổ sung ngoài slide**, được tính lại bằng Python. Không lấy tọa độ ước lượng từ hình làm dữ liệu thật. Slide 68–69 đã sang Logistic Regression, chưa viết bài trong đợt này.
+Slide 67 chỉ có hình và công thức minh họa; không có bảng tọa độ gốc, code hay bảng ưu/nhược. Các ví dụ số, OLS, chọn bậc, CV và bẫy thực hành bên dưới đều là **bổ sung ngoài slide**, được tính lại bằng Python. Không lấy tọa độ ước lượng từ hình làm dữ liệu thật. Slide 68–69 đã sang [[bài:logistic-regression]].
 :::
 
 :::worked Đường thẳng sai bằng số, không chỉ nhìn hình (bổ sung ngoài slide)
@@ -486,5 +486,5 @@ WANT: Có thứ tự chẩn đoán, phân biệt overfit, ngoại suy và drift,
 ## Nối sang bài sau
 
 :::next
-[[bài:supervised-algorithms]] đã có cả [[bài:linear-regression]] và bài Polynomial này cho target số. Slide kế tiếp, 68–69, chuyển sang **Logistic Regression**: cần mô hình cho phân loại thay vì uốn thêm đường dự đoán đại lượng. Bài Logistic chưa được viết, nên chưa có link riêng.
+[[bài:supervised-algorithms]] đã có cả [[bài:linear-regression]] và bài Polynomial này cho target số. Slide kế tiếp, 68–69, chuyển sang [[bài:logistic-regression]]: cần mô hình cho phân loại bằng xác suất và ngưỡng thay vì uốn thêm đường dự đoán đại lượng.
 :::
