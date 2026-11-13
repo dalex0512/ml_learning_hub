@@ -39,7 +39,8 @@
       "subtitle": "Các mô hình cơ bản",
       "topics": [
         { "id": "supervised-algorithms", "order": 1, "title": "Bản đồ thuật toán Supervised Learning", "file": "01-supervised-algorithms.md", "group": "Bản đồ thuật toán" },
-        { "id": "linear-regression", "order": 2, "title": "Linear Regression — học một quan hệ tuyến tính", "file": "02-linear-regression.md", "group": "Mô hình hồi quy" }
+        { "id": "linear-regression", "order": 2, "title": "Linear Regression — học một quan hệ tuyến tính", "file": "02-linear-regression.md", "group": "Mô hình hồi quy" },
+        { "id": "polynomial-regression", "order": 3, "title": "Polynomial Regression — uốn đường cong bằng feature đa thức", "file": "03-polynomial-regression.md", "group": "Mô hình hồi quy" }
       ]
     },
     {
