@@ -308,6 +308,10 @@ Regression — P05):
 nằm ở hệ số và sự ổn định. Model dạng cây (P07) thường ít bị ảnh hưởng hơn về dự đoán, nhưng feature importance (P13) sẽ bị chia giữa các cột
 giống nhau.
 
+Liên hệ [[bài:k-nearest-neighbours]]: feature trùng/thừa có thể đếm lặp một hướng trong khoảng cách dù KNN không học hệ số hồi quy. Vì vậy tác động lên KNN là thay đổi hàng xóm, khác với hệ số β bất ổn.
+
+> **EN:** Redundant features can count the same direction repeatedly in KNN distances; this changes neighborhoods rather than destabilizing regression coefficients.
+
 Cách xử lý (bước 04 *Remove multicollinearity*):
 
 | Cách | Làm gì |

@@ -27,6 +27,10 @@ class đông (*majority class*) áp đảo class ít (*minority class*), nên mo
 "an toàn" bằng cách nghiêng về class đông, còn class ít — thường lại là class
 ta quan tâm nhất (người bệnh, giao dịch gian lận) — bị bỏ sót.
 
+[[bài:k-nearest-neighbours]] cho một cơ chế khác của lệch lớp: class đông có thể lấn át vote của láng giềng, nhất là khi K lớn. Vote theo khoảng cách có thể giúp trong một số dữ liệu nhưng không tự giải quyết mất cân bằng.
+
+> **EN:** In KNN, majority-class neighbors can dominate the vote, especially with large neighborhoods; distance weighting is not a guaranteed imbalance remedy.
+
 **Step 3.5 Balance data** ([[slide:52-54]]) sửa vấn đề bằng cách **thay đổi số
 mẫu mỗi class trong tập train** cho cân bằng hơn. Hai hướng:
 

@@ -135,7 +135,7 @@ Fit được một đường không đòi y hay X phải có phân phối chuẩ
 | Không đa cộng tuyến hoàn hảo | Thiếu hạng làm hệ số không duy nhất; gần cộng tuyến làm chúng bất ổn | Xem cấu trúc feature, bỏ biến trùng/regularize có kiểm chứng |
 :::
 
-**Scale khi nào?** OLS không regularization, có intercept và giải chính xác không tự đổi dự đoán chỉ vì chuyển m² sang đơn vị khác; hệ số đổi theo đơn vị. Scale có thể giúp điều kiện số và giúp gradient descent hội tụ; với penalty phụ thuộc độ lớn hệ số, scale còn ảnh hưởng cách phạt. Nếu dùng scaler/imputer, fit chỉ train hoặc trong fold; nối [[bài:feature-scaling]]. Đừng đồng nhất OLS với KNN vốn dùng trực tiếp khoảng cách feature.
+**Scale khi nào?** OLS không regularization, có intercept và giải chính xác không tự đổi dự đoán chỉ vì chuyển m² sang đơn vị khác; hệ số đổi theo đơn vị. Scale có thể giúp điều kiện số và giúp gradient descent hội tụ; với penalty phụ thuộc độ lớn hệ số, scale còn ảnh hưởng cách phạt. Nếu dùng scaler/imputer, fit chỉ train hoặc trong fold; nối [[bài:feature-scaling]]. Đừng đồng nhất OLS với [[bài:k-nearest-neighbours|KNN]] vốn dùng trực tiếp khoảng cách feature.
 
 > **EN:** Normality is not required to compute OLS. Homoscedasticity and error dependence matter especially for conventional inference. Feature scaling can aid numerical conditioning and iterative optimization; fit any preprocessing on training data only.
 

@@ -59,6 +59,10 @@ sau khi đã hoàn tất chọn model.
 
 Một ví dụ chọn siêu tham số cụ thể: [[bài:polynomial-regression]] dùng CV để chọn bậc đa thức, thay vì chọn bậc có train error nhỏ nhất; Pipeline được fit lại trong từng fold. [[bài:svm]] áp dụng cùng nguyên tắc với GridSearchCV để chọn C và gamma, giữ scaler bên trong từng fold.
 
+[[bài:k-nearest-neighbours]] chọn số láng giềng K bằng CV với Pipeline; K của KNN khác số fold trong K-fold. Không chọn K chỉ vì K=1 có train accuracy cao.
+
+> **EN:** KNN selects its neighbor count by pipeline-based cross-validation; the neighbor count is distinct from the number of folds, and training accuracy alone does not select it.
+
 > **EN:** Polynomial Regression provides a concrete example of degree selection by CV; SVM applies the same principle to C and gamma, refitting preprocessing within every fold rather than choosing by training error.
 
 ## Xoay validation rồi refit model cuối

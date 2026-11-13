@@ -628,5 +628,5 @@ WANT: Giữ trực giác điểm sát biên nhiều thông tin, đồng thời p
 ## Nối sang bài sau
 
 :::next
-[[bài:supervised-algorithms]] đã có Logistic và SVM trong nhóm phân loại. Slide 75 bắt đầu **K-Nearest-Neighbour (KNN — K láng giềng gần nhất)**: thay vì học một đường phân tách như SVM, KNN dự đoán từ những mẫu train gần input mới. Chưa viết bài KNN trong đợt này.
+[[bài:supervised-algorithms]] đã có Logistic và SVM trong nhóm phân loại. Tiếp theo là [[bài:k-nearest-neighbours]] ở slide 75: thay vì học một đường phân tách như SVM, KNN dự đoán từ những mẫu train gần input mới.
 :::

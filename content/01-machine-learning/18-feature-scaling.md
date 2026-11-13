@@ -158,7 +158,7 @@ Quy tắc chọn nhanh: không biết chọn gì → **StandardScaler**; có out
 :::compare Cần hay không cần scaling
 | Cần scaling | Vì sao | Không cần | Vì sao |
 |---|---|---|---|
-| KNN, K-Means | Dựa trực tiếp vào khoảng cách | Decision Tree, Random Forest | Mỗi lần chỉ so một feature với một ngưỡng ("Glucose > 127?") — đổi thang không đổi thứ tự nên không đổi kết quả |
+| [[bài:k-nearest-neighbours|KNN]], K-Means | Dựa trực tiếp vào khoảng cách | Decision Tree, Random Forest | Mỗi lần chỉ so một feature với một ngưỡng ("Glucose > 127?") — đổi thang không đổi thứ tự nên không đổi kết quả |
 | [[bài:svm]] | Đơn vị feature ảnh hưởng margin, penalty và kernel | Naive Bayes | Xét từng feature riêng |
 | Logistic / Linear Regression có regularization | Phạt độ lớn hệ số — feature thang nhỏ cần hệ số lớn bị phạt oan | | |
 | PCA | Tìm hướng phương sai lớn — cột thang lớn có phương sai lớn "giả" | | |
