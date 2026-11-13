@@ -194,6 +194,10 @@ for name, pred in [("degree 1", line.predict(x[:, None])),
 
 Với hai input x1 và x2, bậc hai mặc định tạo `[x1, x2, x1², x1x2, x2²]`: **5 feature** chưa tính intercept. **Tích chéo** x1x2 mô tả tương tác: tác động của x1 có thể phụ thuộc x2. Bậc của tích là tổng số mũ, nên x1x2 có bậc 2, x1²x2 có bậc 3.
 
+[[bài:svm]] dùng cùng ý tưởng ánh xạ feature để uốn ranh giới phân loại, rồi giới thiệu kernel trick: tính tích vô hướng trong không gian mới mà không dựng đủ mọi cột.
+
+> **EN:** SVM extends the feature-map idea to classification and uses kernels to evaluate feature-space inner products without explicit expansion.
+
 Với **n input feature** và bậc tối đa d, số cột khác hằng là **C(n+d, d) − 1** nếu tạo đủ mọi lũy thừa/tích đến bậc d. C(a,b) là số cách chọn b phần tử từ a, tính bằng `a! / (b!(a−b)!)`; dấu ! là giai thừa, ví dụ `3! = 3×2×1`. Ở đây n là số feature, khác **N** dùng cho số mẫu.
 
 Với n = 10, d = 3: `C(13,3) = (13×12×11)/(3×2×1) = 286`; bỏ cột hằng được **285**, không phải 286. Điều kiện tương ứng sklearn là `include_bias=False`, `interaction_only=False` mặc định; nếu chỉ tạo tương tác giữa biến khác nhau, công thức đếm sẽ khác.
