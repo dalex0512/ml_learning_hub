@@ -57,6 +57,10 @@ sau khi đã hoàn tất chọn model.
 > does **not** participate in the K-fold process, and it's **used exactly
 > once**, only after the final model has been selected.
 
+Một ví dụ chọn siêu tham số cụ thể: [[bài:polynomial-regression]] dùng CV để chọn bậc đa thức, thay vì chọn bậc có train error nhỏ nhất; Pipeline được fit lại trong từng fold.
+
+> **EN:** Polynomial Regression provides a concrete example of degree selection by CV, with the pipeline refitted within each fold rather than choosing by training error.
+
 ## Xoay validation rồi refit model cuối
 
 **Bước 1 — chọn số K.** Ví dụ chọn K = 4 → chia phần dữ liệu Train+Validation

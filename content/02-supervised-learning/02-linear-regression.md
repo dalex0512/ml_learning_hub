@@ -269,5 +269,5 @@ WANT: Biết điều tra outlier và cân bằng độ bền của model với g
 ## Nối lại bản đồ module
 
 :::next
-Quay về [[bài:supervised-algorithms]] để đặt Linear Regression cạnh các họ khác. Slide kế tiếp chuyển sang Polynomial Regression; bài đó chưa được viết trong đợt này. Có thể ôn [[bài:regression-metrics]] và [[bài:data-visualization]] để kiểm kết quả của đường vừa học.
+Khi dữ liệu cong, đường thẳng có thể chưa đủ: [[bài:polynomial-regression]] thêm lũy thừa của input mà vẫn giữ cách học OLS. Quay về [[bài:supervised-algorithms]] để đặt hai mô hình trong bản đồ; ôn [[bài:regression-metrics]] và [[bài:data-visualization]] để kiểm kết quả.
 :::
