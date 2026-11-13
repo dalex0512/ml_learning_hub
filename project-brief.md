@@ -2,7 +2,7 @@
 project: ML Learning Hub
 type: personal study notes site (KHÔNG phải đồ án tốt nghiệp)
 owner: Duong
-status: module 01 có 23 bài; module 02 có 4 bài gồm tổng quan, Linear, Polynomial và hồi quy logistic
+status: module 01 có 23 bài; module 02 có 5 bài gồm tổng quan, Linear, Polynomial, hồi quy logistic và SVM
 ---
 
 # ML Learning Hub — Project Brief cho AI coding agent (Antigravity)
@@ -224,7 +224,7 @@ dùng `critique` rồi `polish` làm 1 vòng rà soát sau khi có bản code đ
 
 Module 01 hiện có 23 bài, đã hoàn tất chuyển khung; không dựng lại hạ tầng hay ba bài pilot.
 Đọc roadmap và nội dung hiện có trước khi sửa. Mọi thay đổi giữ design Notebook,
-liên kết slide và quy tắc fit trong train. Module 02 đã có bốn bài đầu; module 03–06 chưa có nội dung;
+liên kết slide và quy tắc fit trong train. Module 02 đã có năm bài đầu; module 03–06 chưa có nội dung;
 không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-restructure-report.md.
 
 ## 8. Điều hướng, dữ liệu và kiểm chứng
@@ -296,7 +296,7 @@ không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-res
 
 - Module 02 có `04-logistic-regression.md`, order 4, nhóm “Phân loại”, slide 68–69.
   Tiêu đề tiếng Việt đứng trước tên tiếng Anh trong frontmatter và roadmap.
-  Hiện module 01 có 23 bài, module 02 có 4 bài, toàn site 27 bài.
+  Khi kết thúc đợt 5: module 01 có 23 bài, module 02 có 4 bài, toàn site 27 bài.
 - Bài nối predictor tuyến tính → sigmoid φ → xác suất → ngưỡng; giải thích
   log-odds, log loss, gradient một bước và so Linear/Logistic, gắn nhãn ngoài slide.
 - Bảng mười hồ sơ giữ nguyên score để so ba ngưỡng; recall không giảm khi hạ
@@ -305,5 +305,21 @@ không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-res
   không refit sau chọn ngưỡng trong ví dụ và không tune theo test. Quiz A/B/C = 5/6/4.
 - Overview, Polynomial và các bài nền có liên kết thật. Module index, dependency
   map và bank dùng hạ tầng hiện có; không đổi TypeScript/React hoặc design.
-- Slide 70 bắt đầu Support Vector Machine, chưa viết bài. Báo cáo đợt này:
+- Tại thời điểm đợt 5, slide 70 bắt đầu Support Vector Machine chưa viết bài. Báo cáo đợt này:
   `supervised-logistic-regression-report.md`; báo cáo cũ giữ nguyên như lịch sử.
+
+## 13. Đợt 6 — Máy vector hỗ trợ (SVM)
+
+- Module 02 thêm `05-support-vector-machine.md`, ID `svm`, order 5, nhóm “Phân loại”.
+  Một bài nối margin → soft margin → ánh xạ/kernel để giữ liền mạch; hiện 28 bài (23+5).
+- Slide 70–73 có nội dung SVM; 74 chỉ có khung đen không đọc được, vẫn nằm trong
+  dải viewer 70–74 và được chú thích. Slide 75 bắt đầu KNN, chưa viết bài.
+- Ngoài slide: tính tay 1D/2D, C/hinge loss, kernel đa thức/RBF/gamma, lấy mẫu khó,
+  code Pipeline/GridSearchCV và năm hình matplotlib, không dùng ảnh AI.
+- Demo tuyến tính có nhiễu so C trên cùng split; demo vòng tròn độc lập chọn cả
+  kernel/C/gamma bằng CV development rồi chấm test một lần. Scale trong từng fold.
+- Quiz A/B/C=5/6/4; ID/needs/backlinks/module map/bank dùng hạ tầng hiện có,
+  không đổi React/TypeScript/CSS. Prompt SVM chưa track giữ nguyên.
+- Phân biệt support vector hard/soft margin, margin mỗi bên/toàn dải, score với
+  khoảng cách/xác suất; dữ liệu nhiều chiều và mẫu khó không tự động tốt hơn.
+- Báo cáo đợt này: `supervised-svm-report.md`. Không push/merge trong đợt viết bài.
