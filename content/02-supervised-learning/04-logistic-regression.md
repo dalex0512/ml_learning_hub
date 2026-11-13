@@ -25,7 +25,7 @@ tags: [logistic-regression, sigmoid, classification, threshold, log-loss, odds, 
 :::
 
 :::note Nguồn và phạm vi
-[[slide:68]] có đường chữ S (S-curve), ngưỡng 0.5, hai điểm ghi y=0.3/y=0.8 và công thức φ(z). [[slide:69]] có scatter hai lớp, đường phân tách đỏ và bảng GOOD/BAD. Không có bảng tọa độ gốc, loss hay code. **Mọi bộ số dưới đây đều tự soạn, không phải số liệu slide**; các phép tính tay, odds, huấn luyện, chọn ngưỡng và code là **bổ sung ngoài slide**. Không suy tọa độ thật từ hình.
+[[slide:68]] có đường chữ S (S-curve), ngưỡng 0.5, hai điểm ghi y=0.3/y=0.8 và công thức φ(z). [[slide:69]] có scatter hai lớp, đường phân tách đỏ và bảng GOOD/BAD. Không có bảng tọa độ gốc, loss hay code. **Các bộ số dưới đây là ví dụ tự soạn hoặc lấy từ ảnh ghi chú chuột do chủ repo cung cấp, không phải số liệu slide 68–69**; từng ví dụ ghi rõ nguồn. Các phép tính tay, odds, huấn luyện, chọn ngưỡng và code là **bổ sung ngoài slide**. Không suy tọa độ thật từ hình.
 :::
 
 :::worked Vì sao không dùng thẳng đầu ra Linear? (ngoài slide)
@@ -42,6 +42,92 @@ Cả hai nằm ngoài [0,1], ngay trong miền train. Chúng vẫn là dự đo�
 :::
 
 > **EN:** An OLS fit to binary labels can predict below zero or above one even within the training range. Such values are not probabilities; clipping does not replace fitting a probabilistic classification model.
+
+## Con chuột 10 kg kéo lệch đường Linear thế nào? (ngoài slide)
+
+Ghi chú bổ sung của chủ repo dùng ví dụ: biết **cân nặng** của chuột, cần phân loại **không béo phì / béo phì**. Trực giác là nếu dùng một đường Linear Regression rồi cắt ở ngưỡng 0.5, một con chuột cực nặng có thể kéo lệch cả đường và làm thay đổi phân loại của con khác. Đây là cách nhìn cụ thể cho hạn chế của OLS khi đem dự đoán số áp vào nhãn 0/1.
+
+:::worked Dữ liệu từ ảnh 1 của chủ repo; không phải dữ liệu slide
+Quy đổi hết sang **kg** trước khi fit. Gọi x là cân nặng, y=0 là “Không” và y=1 là “Có” ở cột béo phì. Đây là nhãn của ví dụ minh họa trong ảnh, không phải ngưỡng sinh học thực tế; “không béo phì” cũng không đồng nghĩa đã xác nhận khỏe mạnh về mọi mặt.
+
+| Cân nặng trên ảnh | x (kg) | Béo phì | y |
+|---|---|---|---|
+| 500 g | 0.50 | Không | 0 |
+| 250 g | 0.25 | Không | 0 |
+| 1 kg | 1.00 | Có | 1 |
+| 2 kg | 2.00 | Có | 1 |
+| 3 kg | 3.00 | Có | 1 |
+| 150 g | 0.15 | Không | 0 |
+
+**Bước 1 — fit sáu con ban đầu.** Viết đường OLS là `s(x)=b+mx`, trong đó m là slope, b là intercept, còn s là **điểm đầu ra Linear**, không phải xác suất hợp lệ. Dùng s thay y để phân biệt dự đoán với nhãn thật. Với N mẫu, công thức slope tương đương bài [[bài:linear-regression]] là:
+
+```text
+m = [N Σxy − (Σx)(Σy)] / [N Σx² − (Σx)²]
+b = (Σy − m Σx) / N
+```
+
+Từ sáu hàng: N=6, `Σx=6.9`, `Σy=3`, `Σx²=14.335`, `Σxy=6`.
+
+- Tử số slope: `6×6 − 6.9×3 = 36−20.7 = 15.3`.
+- Mẫu số: `6×14.335 − 6.9² = 86.01−47.61 = 38.4`.
+- `m=15.3/38.4=0.3984375`; `b=(3−0.3984375×6.9)/6=0.041796875`.
+
+Vậy `s(x)=0.041796875+0.3984375x`. Quy ước s≥0.5 thì gọi béo phì. Điểm cắt là `x=(0.5−0.041796875)/0.3984375=1.15 kg`. **0.5 là ngưỡng trên điểm đầu ra, không phải cân nặng 0.5 kg.**
+
+**Bước 2 — thêm một con 10 kg, nhãn béo phì y=1, rồi fit lại.** Đây là tình huống giả định chủ repo nêu: điểm cực đoan nằm rất xa miền cân nặng ban đầu, không khẳng định chuột thực tế có cân nặng như vậy.
+
+N mới=7; `Σx=6.9+10=16.9`, `Σy=3+1=4`, `Σx²=14.335+100=114.335`, `Σxy=6+10×1=16`.
+
+- Tử số slope mới: `7×16−16.9×4=112−67.6=44.4`.
+- Mẫu số mới: `7×114.335−16.9²=800.345−285.61=514.735`.
+- `m=44.4/514.735≈0.086257977`; `b=(4−m×16.9)/7≈0.363177169`.
+
+Đường mới là `s(x)≈0.363177169+0.086257977x`. Nó phẳng hơn; điểm cắt s=0.5 chuyển lên **x≈1.586205 kg**. Các phép tính dùng hệ số chưa làm tròn.
+
+**Bước 3 — nhìn một dự đoán thực sự đổi lớp.** Xét một con mới **1.3 kg**, do ta chọn thêm để kiểm tra, không phải hàng dữ liệu trong ảnh:
+
+| Model OLS | Tính s tại x=1.3 | So với 0.5 | Lớp dự đoán |
+|---|---|---|---|
+| Trước khi thêm 10 kg | 0.041796875+0.3984375×1.3≈0.559766 | ≥0.5 | Béo phì |
+| Sau khi thêm 10 kg | 0.363177169+0.086257977×1.3≈0.475313 | <0.5 | Không béo phì |
+
+Con 1.3 kg không đổi cân nặng; chỉ thêm một mẫu xa đã làm **cùng input đổi lớp**. Ta chưa có nhãn thật của con mới nên chưa kết luận dự đoán nào đúng. OLS cố giảm tổng bình phương sai số của **mọi** mẫu; với đường cũ, x=10 cho s≈4.026172 trong khi y=1. Fit lại kéo đường xuống ở phía cân nặng lớn, đồng thời đổi slope/intercept và điểm cắt của các con còn lại. Điểm x xa có khả năng kéo đường mạnh như vậy thường được gọi là điểm có **đòn bẩy cao** (high leverage).
+:::
+
+> **EN:** Using the six weights supplied in the owner's screenshot, the OLS threshold crossing moves from 1.15 kg to about 1.586205 kg after adding a hypothetical 10 kg positive sample. A new 1.3 kg input flips class, illustrating the influence of an extreme predictor on a least-squares classifier.
+
+:::note Hình minh họa và phép fit từ bảng không nhất thiết trùng nhau
+Ảnh 2–3 minh họa trực giác đường thẳng bị kéo khi thêm điểm xa; không có tọa độ chính xác cho mọi chấm để tái dựng đường vẽ. Khi fit **đúng sáu hàng trong ảnh 1**, con 1 kg đã có s≈0.440234<0.5 từ đầu; sau thêm 10 kg, s≈0.449435 vẫn dưới 0.5. Vì vậy không nói con 1 kg “đang đúng thành sai” dựa trên bảng này. Ví dụ 1.3 kg phía trên thể hiện việc đổi lớp bằng số đã kiểm, còn sáu mẫu gốc không đổi lớp ở lần thêm điểm này.
+:::
+
+:::pitfall Không kết luận “Logistic sinh ra chỉ vì Linear nhạy outlier”
+Đây là **động cơ trực giác để chọn mô hình phù hợp cho phân loại**, không phải khẳng định về lịch sử ra đời. Logistic mô hình hóa xác suất lớp bằng sigmoid và học bằng log loss, thay vì bắt một đường OLS khớp các nhãn 0/1 như đại lượng liên tục. Nó **không miễn nhiễm outlier**: feature cực đoan, nhãn sai hoặc điểm xa nằm ngược lớp vẫn có thể ảnh hưởng mạnh; vẫn cần kiểm dữ liệu và regularization. Đổi loss nhưng giữ predictor tuyến tính tạo ra Logistic, chứ không phải chỉ “bẻ cong đường để bỏ qua chuột 10 kg”.
+:::
+
+> **EN:** This is a motivation for probabilistic classification, not a historical claim that Logistic Regression was invented solely to fix outliers. Logistic Regression is not automatically robust to extreme predictors or mislabeled observations.
+
+### Code kiểm lại ví dụ chuột
+
+Đoạn độc lập này chỉ kiểm OLS trước/sau và ngưỡng, chưa huấn luyện Logistic; phần tiếp theo giải thích sigmoid và code Logistic ở cuối bài.
+
+```python
+import numpy as np
+from sklearn.linear_model import LinearRegression
+
+# Sáu hàng từ ảnh chủ repo, đổi hết sang kg; 10 kg là mẫu thêm giả định.
+weights = np.array([0.50, 0.25, 1.00, 2.00, 3.00, 0.15])
+obese = np.array([0, 0, 1, 1, 1, 0])
+before = LinearRegression().fit(weights[:, None], obese)
+after = LinearRegression().fit(
+    np.append(weights, 10.0)[:, None], np.append(obese, 1)
+)
+for name, fitted in [("before", before), ("after", after)]:
+    b, m = fitted.intercept_, fitted.coef_[0]
+    crossing = (0.5 - b) / m
+    score = fitted.predict([[1.3]])[0]  # con mới, không có trong bảng ảnh
+    print(f"{name}: b={b:.9f}, m={m:.9f}, crossing={crossing:.6f} kg")
+    print(f"score(1.3 kg)={score:.6f}, obese={int(score >= 0.5)}")
+```
 
 ## Giữ điểm tuyến tính, đưa qua hàm sigmoid
 

@@ -110,3 +110,23 @@ Script và ảnh kiểm chứng tạm ở `%TEMP%/ml-hub-round5/`:
 `verify.py`, `check.cjs`, `browser.cjs`, `browser-results.json`, ảnh PNG.
 Không đưa script kiểm vào content hoặc commit. Chưa viết SVM (slide 70),
 chưa push/merge; chờ chủ repo duyệt nội dung và ba commit theo nhóm.
+
+## Bổ sung ghi chú chuột từ ảnh chủ repo
+
+- Thêm mục ngay trước sigmoid: sáu cân nặng/nhãn chép từ ảnh, đổi về kg;
+  OLS trước/sau thêm mẫu giả định (10 kg, y=1), tính tay và code độc lập.
+- Trước: b=0.041796875, m=0.398437500, điểm cắt 0.5 tại **1.15 kg**.
+  Sau: b≈0.363177169, m≈0.086257977, điểm cắt tại **1.586205 kg**.
+  Con mới 1.3 kg có score **0.559766→0.475313**, đổi từ béo phì sang không.
+- Không suy tọa độ từ ảnh sơ đồ: đúng sáu hàng ảnh bảng thì con 1 kg đã
+  dưới ngưỡng từ đầu (0.440234→0.449435); sáu mẫu gốc không đổi lớp.
+- Giữ động cơ trực giác outlier kéo OLS, sửa kết luận lịch sử “vì Linear
+  nhạy outlier nên sinh Logistic”: Logistic phù hợp mô hình hóa nhãn 0/1,
+  vẫn có thể nhạy điểm feature cực đoan/nhãn sai. Nhãn “không béo phì” của
+  ví dụ không phải khẳng định sức khỏe hay ngưỡng cân nặng chuột thực tế.
+- Nguồn của ví dụ được phân biệt với dữ liệu tự soạn và slide 68–69.
+  Không thay số slide, roadmap hoặc quiz. Kiểm lại cả hai Python block và
+  mọi số mới bằng assertions trong `verify.py` ở thư mục tạm nêu trên.
+- Kiểm bổ sung: build 38/38 và TypeScript pass; parser giữ nguyên 347 câu;
+  Chrome 1300px/390px pass, mục mới có trong TOC, code copy được và không
+  tràn ngang toàn trang. Script UI bổ sung: `browser-mouse.cjs` cùng thư mục tạm.
