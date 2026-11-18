@@ -14,6 +14,7 @@ export interface ModuleItem {
   order: number;
   title: string;
   subtitle: string;
+  intro?: string;
   topics: TopicItem[];
 }
 

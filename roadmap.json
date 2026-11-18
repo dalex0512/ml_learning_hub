@@ -74,6 +74,7 @@
       "order": 6,
       "title": "Projects",
       "subtitle": "Xây dựng mô hình với các datasets",
+      "intro": "Một bộ dữ liệu, tám bước, đi từ file CSV đến mô hình đã được kiểm chứng. Mỗi bước bắt đầu từ một câu hỏi, cho bạn thấy điều gì hỏng nếu thiếu bước đó, rồi mới giải thích.",
       "topics": [
         { "id": "diabetes-first-model", "order": 1, "title": "Từ file CSV đến mô hình đầu tiên", "file": "01-diabetes-first-model.md", "group": "Thực hành 1 — Diabetes" },
         { "id": "diabetes-evaluate-improve", "order": 2, "title": "Đánh giá, so sánh và cải thiện mô hình", "file": "02-diabetes-evaluate-improve.md", "group": "Thực hành 1 — Diabetes" }

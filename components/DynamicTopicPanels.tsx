@@ -36,6 +36,9 @@ const BOX_STYLE: Record<BoxKind, { label: string; wrap: string; tag: string }> =
   see: { label: "Bạn phải thấy", wrap: "bg-[#F3F7EC] border-[#C9D9B5]", tag: "bg-[#DCE9C8]" },
   en: { label: "EN", wrap: "bg-[#FDFBF3] border-paper-dashed", tag: "bg-sticky" },
   check: { label: "Checklist", wrap: "bg-[#F3F7EC] border-[#C9D9B5]", tag: "bg-[#DCE9C8]" },
+  ask: { label: "Câu hỏi", wrap: "bg-sticky border-paper-border", tag: "bg-accent-sticky-yellow/70" },
+  out: { label: "Kết quả", wrap: "bg-[#FDFBF3] border-paper-dashed", tag: "bg-sticky" },
+  more: { label: "Biết thêm", wrap: "bg-[#FDFBF3] border-paper-dashed", tag: "bg-sticky" },
 };
 
 function handleProseClick(e: React.MouseEvent<HTMLElement>) {

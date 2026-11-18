@@ -30,13 +30,7 @@ export default function ModulePage({ params }: { params: { moduleId: string } })
       description: data?.description ?? "",
       steps: getPracticeSteps(data!.sections),
     }));
-    return <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
-      <Link href="/#roadmap" className="text-sm text-text-muted hover:text-accent-red">← Roadmap 6 Module</Link>
-      <p className="font-hand text-accent-red text-xl mt-6">Module {String(module.order).padStart(2, "0")} · Thực hành từng bước</p>
-      <h1 className="text-3xl sm:text-4xl font-bold mt-2">{module.title}</h1>
-      <p className="text-text-muted mt-3 max-w-2xl leading-relaxed">Làm theo thứ tự từ trên xuống. Mỗi bước có: mục tiêu, phần hiểu nhanh, code để gõ, kết quả bạn phải thấy và bài tập tự làm. Tiến độ được lưu trên trình duyệt này.</p>
-      <PracticeRoadmap moduleId={module.id} parts={parts} />
-    </div>;
+    return <PracticeRoadmap moduleId={module.id} title={module.title} intro={module.intro ?? module.subtitle} parts={parts} />;
   }
   return <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
     <Link href="/#roadmap" className="text-sm text-text-muted hover:text-accent-red">← Roadmap 6 Module</Link>

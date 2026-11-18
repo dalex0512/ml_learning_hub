@@ -3,3 +3,4 @@ node_modules
 *.tsbuildinfo
 bo-prompt-theo-slide.md
 slide-theo-phan_P01-P20
+__pycache__/

@@ -376,3 +376,11 @@ không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-res
   Bài2 CV chỉ trên614 development, fit imputer/scaler trong fold; test demo đã xem
   nhiều lần không được gọi là kiểm định cuối độc lập. Xem `practice-diabetes-report.md`.
 - Unsupervised slide81+ vẫn chưa viết; không tự thêm chủ đề Projects tiếp theo.
+
+## 17. Đợt 10 — Làm lại phần thực hành (giao diện đọc + quy chuẩn)
+- Bản Diabetes của đợt 9 bị chủ repo chê (rối mắt, dài, kiến thức không logic). Đã viết lại hoàn toàn thành 8 bước
+  (Phần A: Bước 1–4; Phần B: Bước 5–8) theo mô hình câu hỏi, thí nghiệm "làm hỏng thử", giải thích, tự làm.
+- **Mọi bài thực hành sau này PHẢI theo `PRACTICE-GUIDE.md`** (nguyên tắc dạy, khuôn bài và bước, thành phần được dùng,
+  quy trình xác minh bằng `scripts/practice_verify.py`, hình bằng `scripts/make-practice-plots.py`). Thay thế
+  `codex-prompt-practice-diabetes.md`.
+- Giao diện: chế độ đọc (`layout: practice`): `app/reader.css`, `ReaderShell`, `PracticeLesson`, `PracticeRoadmap`.

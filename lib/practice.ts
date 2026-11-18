@@ -28,7 +28,7 @@ function plain(md: string): string {
 export function getPracticeSteps(sections: SectionContent[]): PracticeStep[] {
   return sections.map((s) => {
     const { n, label } = parseStepTitle(s.title);
-    const goal = s.blocks.find((b) => b.type === "box" && b.kind === "goal");
+    const goal = s.blocks.find((b) => b.type === "box" && b.kind === "ask");
     return { id: s.id, n, label, goal: goal && goal.type === "box" ? plain(goal.md) : "" };
   });
 }

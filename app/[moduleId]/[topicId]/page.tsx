@@ -110,13 +110,6 @@ export default function TopicPage({ params }: PageProps) {
   if (topicData.layout === "practice") {
     return (
       <div className="min-h-screen">
-        <TopicBreadcrumb
-          moduleId={currentModule.id}
-          moduleTitle={currentModule.title}
-          topicTitle={topicItem.title}
-          currentOrder={topicOrderInModule + 1}
-          totalTopics={totalTopicsInModule}
-        />
         <PracticeLesson
           topicData={topicData}
           moduleId={currentModule.id}

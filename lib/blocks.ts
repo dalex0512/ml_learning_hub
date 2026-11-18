@@ -22,7 +22,10 @@ export type BoxKind =
   | "code"
   | "see"
   | "en"
-  | "check";
+  | "check"
+  | "ask"
+  | "out"
+  | "more";
 
 export interface QuizItem {
   q: string;
@@ -47,7 +50,7 @@ export type Block =
 
 const BOX_KINDS: BoxKind[] = [
   "intro", "worked", "compare", "pitfall", "recap", "next", "note",
-  "goal", "learn", "code", "see", "en", "check",
+  "goal", "learn", "code", "see", "en", "check", "ask", "out", "more",
 ];
 
 const FENCE_RE = /^\s*(```|~~~)/;
@@ -155,11 +158,11 @@ export function parseBlocks(src: string): Block[] {
       blocks.push({ type: "quiz", tiers: parseQuiz(bodyText) });
     } else if (name === "ex") {
       // :::ex ★ Tiêu đề  —  đề, rồi dòng "@answer", rồi đáp án
-      const m = arg.match(/^(★+|[A-Za-z0-9]+)\s*\|?\s*(.*)$/);
+      const m = arg.match(/^(★+)?\s*\|?\s*(.*)$/);
       const at = bodyText.search(/^@answer\s*$/m);
       const prompt = (at >= 0 ? bodyText.slice(0, at) : bodyText).trim();
       const answer = at >= 0 ? bodyText.slice(at).replace(/^@answer\s*/, "").trim() : "";
-      blocks.push({ type: "exercise", level: m?.[1] ?? "★", title: m?.[2] ?? "", prompt, answer });
+      blocks.push({ type: "exercise", level: m?.[1] ?? "", title: m?.[2] ?? "", prompt, answer });
     } else if (name === "formula") {
       blocks.push({ type: "formula", md: bodyText });
     } else if ((BOX_KINDS as string[]).includes(name)) {

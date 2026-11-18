@@ -1,0 +1,87 @@
+/* ===== Chế độ đọc cho bài thực hành (giao diện tĩnh, sáng/tối) ===== */
+html.reader-mode { background-color: var(--r-bg); scroll-behavior: auto; }
+html.reader-mode body { background-color: var(--r-bg); background-image: none; color: var(--r-fg); }
+html.reader-mode body > header, html.reader-mode body > footer { display: none; }
+html.reader-mode { color-scheme: light; --r-bg: #FAFAF8; --r-fg: #23262B; --r-muted: #646B73; --r-line: #E4E4DF; --r-code: #F1F1ED; --r-accent: #B5432D; --r-soft: #F4F4F0; --r-ok: #3F7A3A; }
+html.reader-mode[data-reader-theme="dark"] { color-scheme: dark; --r-bg: #18191C; --r-fg: #D8DADF; --r-muted: #959BA3; --r-line: #2C2E33; --r-code: #212327; --r-accent: #E8907D; --r-soft: #1E1F23; --r-ok: #7DBB77; }
+
+.reader { font-family: var(--font-be-vietnam-pro), "Be Vietnam Pro", sans-serif; font-size: 17px; line-height: 1.85; color: var(--r-fg); min-height: 100vh; }
+.reader a { color: inherit; }
+.reader-bar { position: sticky; top: 0; z-index: 30; background: var(--r-bg); border-bottom: 1px solid var(--r-line); }
+.reader-bar-inner { max-width: 74rem; margin: 0 auto; padding: 0.7rem 1.25rem; display: flex; align-items: center; gap: 1rem; font-size: 14px; color: var(--r-muted); }
+.reader-bar button, .reader-bar a { color: var(--r-muted); text-decoration: none; background: none; border: none; cursor: pointer; font: inherit; }
+.reader-bar button:hover, .reader-bar a:hover { color: var(--r-fg); }
+.reader-progress { height: 2px; background: var(--r-accent); width: 0; transition: width 0.1s; }
+
+.reader-layout { max-width: 74rem; margin: 0 auto; padding: 2.5rem 1.25rem 6rem; display: block; }
+.reader-main { max-width: 44rem; min-width: 0; }
+@media (min-width: 1100px) { .reader-layout { display: grid; grid-template-columns: 220px minmax(0, 44rem); gap: 4rem; justify-content: center; } }
+.reader-toc { display: none; }
+@media (min-width: 1100px) { .reader-toc { display: block; position: sticky; top: 4.5rem; align-self: start; font-size: 14px; line-height: 1.5; } }
+.reader-toc a { display: flex; gap: 0.6rem; padding: 0.4rem 0.75rem; border-left: 2px solid var(--r-line); color: var(--r-muted); text-decoration: none; }
+.reader-toc a:hover { color: var(--r-fg); }
+.reader-toc a[aria-current="true"] { border-left-color: var(--r-accent); color: var(--r-fg); font-weight: 600; }
+.reader-toc .no { min-width: 1.2rem; font-variant-numeric: tabular-nums; }
+.reader-toc .done { color: var(--r-ok); }
+
+.reader-title { font-size: clamp(28px, 4vw, 38px); line-height: 1.25; font-weight: 700; letter-spacing: -0.01em; margin: 0.3rem 0 0.8rem; }
+.reader-eyebrow { color: var(--r-accent); font-size: 14px; font-weight: 600; }
+.reader-lead { color: var(--r-muted); max-width: 38rem; margin: 0 0 2.5rem; }
+
+.reader-step { padding: 3rem 0 2.5rem; border-top: 1px solid var(--r-line); scroll-margin-top: 4rem; }
+.reader-step-no { color: var(--r-accent); font-size: 14px; font-weight: 600; letter-spacing: 0.02em; }
+.reader-step h2 { font-size: clamp(24px, 3vw, 30px); line-height: 1.3; font-weight: 700; margin: 0.15rem 0 1.4rem; letter-spacing: -0.01em; }
+.reader-ask { border-left: 3px solid var(--r-accent); padding: 0.2rem 0 0.2rem 1.1rem; margin: 0 0 1.8rem; font-size: 19px; line-height: 1.6; }
+.reader-ask .practice-prose p { margin: 0; }
+
+.practice-prose p { margin: 0 0 1.15em; }
+.practice-prose ul, .practice-prose ol { margin: 0 0 1.15em; padding-left: 1.4em; }
+.practice-prose ul { list-style: disc; }
+.practice-prose ol { list-style: decimal; }
+.practice-prose li { margin: 0.35em 0; }
+.practice-prose strong { font-weight: 600; }
+.practice-prose h3 { font-size: 1.1em; font-weight: 700; margin: 1.8em 0 0.6em; }
+.practice-prose code { font-family: var(--font-jetbrains-mono), "JetBrains Mono", monospace; font-size: 0.86em; background: var(--r-code); padding: 0.12em 0.38em; border-radius: 4px; overflow-wrap: anywhere; }
+.practice-prose .code-block { position: relative; margin: 1.3em 0 0; }
+.practice-prose pre { margin: 0; background: var(--r-code); border: 1px solid var(--r-line); border-radius: 8px; padding: 1rem 1.1rem; overflow-x: auto; font-size: 14.5px; line-height: 1.7; }
+.practice-prose pre code { background: none; padding: 0; font-size: inherit; overflow-wrap: normal; white-space: pre; }
+.practice-prose .code-copy-btn { position: absolute; top: 0.45rem; right: 0.55rem; font-size: 12px; line-height: 1.6; color: var(--r-muted); background: var(--r-bg); border: 1px solid var(--r-line); border-radius: 5px; padding: 0 0.5rem; cursor: pointer; }
+.practice-prose .code-copy-btn:hover { color: var(--r-fg); }
+.practice-prose > pre { margin: 1.3em 0; }
+.reader-out { margin: 0.4rem 0 1.8rem; border-left: 3px solid var(--r-line); padding-left: 1rem; }
+.reader-out .practice-prose pre { background: transparent; border: none; padding: 0.2rem 0; color: var(--r-muted); }
+.reader-out .practice-prose .code-block { margin: 0; }
+.reader-out .code-copy-btn { display: none; }
+.reader-out .practice-prose > :last-child { margin-bottom: 0; }
+.practice-prose .table-scroll { overflow-x: auto; margin: 1.2em 0; }
+.practice-prose table { border-collapse: collapse; font-size: 15px; min-width: 60%; }
+.practice-prose th { text-align: left; font-weight: 600; color: var(--r-muted); padding: 0.5rem 1rem 0.5rem 0; border-bottom: 1px solid var(--r-line); white-space: nowrap; }
+.practice-prose td { padding: 0.5rem 1rem 0.5rem 0; border-bottom: 1px solid var(--r-line); }
+.practice-prose img { display: block; max-width: 100%; height: auto; margin: 1.5em auto; border: none; background: none; }
+.practice-prose img[src$="-dark.png"] { display: none; }
+html.reader-mode[data-reader-theme="dark"] .practice-prose img[src$="-dark.png"] { display: block; }
+html.reader-mode[data-reader-theme="dark"] .practice-prose img[src$="-light.png"] { display: none; }
+.practice-prose a { text-decoration: underline; text-decoration-color: var(--r-accent); text-underline-offset: 3px; }
+.practice-prose blockquote { border-left: 3px solid var(--r-line); margin: 1.2em 0; padding: 0 0 0 1rem; color: var(--r-muted); }
+
+.reader-recap { margin: 2.2rem 0 1rem; padding: 1.1rem 1.3rem; background: var(--r-soft); border-radius: 10px; }
+.reader-label { font-size: 13px; font-weight: 700; color: var(--r-muted); margin: 0 0 0.5rem; }
+.reader-recap .practice-prose > :last-child { margin-bottom: 0; }
+.reader-try { margin: 2rem 0 0; padding: 1.2rem 1.3rem; border: 1px solid var(--r-line); border-radius: 10px; }
+.reader-try .ans { margin-top: 0.9rem; padding-top: 0.9rem; border-top: 1px dashed var(--r-line); }
+.reader-btn { font-size: 14px; color: var(--r-accent) !important; cursor: pointer; background: none; border: none; padding: 0; text-decoration: underline; text-underline-offset: 3px; font-family: inherit; }
+.reader-more { margin: 1.6rem 0; }
+.reader-more summary { cursor: pointer; font-size: 15px; font-weight: 600; color: var(--r-muted); }
+.reader-more > div { margin-top: 0.8rem; }
+.reader-foot { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-top: 2.2rem; font-size: 14px; color: var(--r-muted); }
+.reader-foot a, .reader-foot button { color: var(--r-muted); }
+.reader-check { display: flex; gap: 0.7rem; align-items: flex-start; text-align: left; padding: 0.35rem 0; background: none; border: none; color: var(--r-fg); cursor: pointer; font-family: inherit; font-size: 16px; line-height: 1.6; }
+.reader-check .box { margin-top: 0.3rem; width: 18px; height: 18px; border: 2px solid var(--r-muted); border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.reader-check .box.on { background: var(--r-ok); border-color: var(--r-ok); color: var(--r-bg); }
+.reader-q { border-top: 1px solid var(--r-line); padding: 0.9rem 0; }
+.reader-q summary { cursor: pointer; font-weight: 600; }
+.reader-q > div { margin-top: 0.7rem; }
+.reader-card { display: block; padding: 1rem 1.2rem; border: 1px solid var(--r-line); border-radius: 10px; text-decoration: none; color: inherit; }
+.reader-card:hover { border-color: var(--r-accent); }
+.reader-flow { display: flex; flex-wrap: wrap; gap: 0.4rem 0.6rem; align-items: center; font-size: 14px; color: var(--r-muted); margin: 0 0 2.5rem; }
+.reader-flow span.chip { padding: 0.15rem 0.65rem; border: 1px solid var(--r-line); border-radius: 999px; color: var(--r-fg); }

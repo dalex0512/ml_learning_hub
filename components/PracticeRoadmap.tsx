@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, Flag } from "lucide-react";
 import { practiceStorageKey, type PracticeStep } from "@/lib/practice";
+import ReaderShell from "./ReaderShell";
 
 export interface PracticePart {
   topicId: string;
@@ -13,81 +13,76 @@ export interface PracticePart {
   steps: PracticeStep[];
 }
 
-export default function PracticeRoadmap({ moduleId, parts }: { moduleId: string; parts: PracticePart[] }) {
+export default function PracticeRoadmap({
+  moduleId, title, intro, parts,
+}: { moduleId: string; title: string; intro: string; parts: PracticePart[] }) {
   const [done, setDone] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     const next: Record<string, string[]> = {};
     for (const p of parts) {
-      try {
-        const raw = localStorage.getItem(practiceStorageKey(p.topicId));
-        next[p.topicId] = raw ? JSON.parse(raw) : [];
-      } catch {
-        next[p.topicId] = [];
-      }
+      try { const raw = localStorage.getItem(practiceStorageKey(p.topicId)); next[p.topicId] = raw ? JSON.parse(raw) : []; }
+      catch { next[p.topicId] = []; }
     }
     setDone(next);
   }, [parts]);
 
-  const all = parts.flatMap((p) => p.steps.map((s) => ({ part: p, step: s })));
-  const doneCount = all.filter(({ part, step }) => done[part.topicId]?.includes(step.id)).length;
-  const firstTodo = all.find(({ part, step }) => !done[part.topicId]?.includes(step.id)) ?? all[0];
+  const numbered = parts.flatMap((p) => p.steps.filter((s) => s.n).map((s) => ({ p, s })));
+  const all = parts.flatMap((p) => p.steps.map((s) => ({ p, s })));
+  const doneCount = all.filter(({ p, s }) => done[p.topicId]?.includes(s.id)).length;
+  const first = all.find(({ p, s }) => !done[p.topicId]?.includes(s.id)) ?? all[0];
 
   return (
-    <div className="mt-8">
-      <div className="paper-card p-5 sm:p-6 flex flex-wrap items-center gap-4 justify-between">
-        <div className="min-w-[220px] flex-1">
-          <div className="text-sm font-semibold text-text-main">Tiến độ của bạn: {doneCount}/{all.length} bước</div>
-          <div className="h-2 rounded-full bg-[#EADFC0] mt-2 overflow-hidden">
-            <div className="h-full bg-accent-red transition-all" style={{ width: `${(doneCount / all.length) * 100}%` }} />
-          </div>
-        </div>
-        {firstTodo && (
-          <Link
-            href={`/${moduleId}/${firstTodo.part.topicId}#${firstTodo.step.id}`}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-accent-dark text-panel text-sm font-semibold hover:bg-black"
-          >
-            {doneCount ? "Tiếp tục học" : "Bắt đầu"} <ArrowRight className="w-4 h-4" />
-          </Link>
-        )}
-      </div>
+    <ReaderShell backHref="/#roadmap" backLabel="Roadmap" title={title}>
+      <div className="reader-layout" style={{ display: "block" }}>
+        <main className="reader-main" style={{ margin: "0 auto" }}>
+          <div className="reader-eyebrow">Module 06 · Thực hành</div>
+          <h1 className="reader-title">{title}</h1>
+          <p className="reader-lead">{intro}</p>
 
-      <div className="mt-8 space-y-10">
-        {parts.map((part) => (
-          <section key={part.topicId}>
-            <div className="mb-4">
-              <span className="font-hand text-accent-red text-xl font-bold">{part.label}</span>
-              <h2 className="text-xl sm:text-2xl font-bold text-text-main">{part.title}</h2>
-              <p className="text-sm text-text-muted mt-1 max-w-2xl">{part.description}</p>
-            </div>
-            <ol className="relative">
-              {part.steps.map((s, i) => {
-                const d = done[part.topicId]?.includes(s.id);
-                const last = i === part.steps.length - 1;
-                return (
-                  <li key={s.id} className="relative pl-14 pb-4">
-                    {!last && <span className="absolute left-[19px] top-10 bottom-0 w-0.5 bg-paper-dashed-dark/60" aria-hidden />}
-                    <span
-                      className={`absolute left-0 top-1 w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-bold ${
-                        d ? "bg-[#4E7A2B] border-[#4E7A2B] text-white" : "bg-white border-paper-dashed-dark text-text-main"
-                      }`}
-                    >
-                      {d ? <Check className="w-5 h-5" /> : s.n ?? <Flag className="w-4 h-4" />}
-                    </span>
-                    <Link
-                      href={`/${moduleId}/${part.topicId}#${s.id}`}
-                      className="block rounded-xl border border-paper-dashed bg-panel px-4 py-3 hover:border-accent-red hover:bg-sticky/50 transition-colors"
-                    >
-                      <div className="font-semibold text-text-main">{s.label}</div>
-                      {s.goal && <div className="text-sm text-text-muted mt-0.5 leading-relaxed">{s.goal}</div>}
+          <div className="reader-label">Đường đi, từ trái sang phải</div>
+          <div className="reader-flow">
+            {numbered.map(({ s }, i) => (
+              <React.Fragment key={s.id}>
+                {i > 0 && <span>→</span>}
+                <span className="chip">{s.label}</span>
+              </React.Fragment>
+            ))}
+          </div>
+
+          {first && (
+            <p style={{ marginBottom: "2.5rem" }}>
+              <Link href={`/${moduleId}/${first.p.topicId}#${first.s.id}`} className="reader-card" style={{ display: "inline-block" }}>
+                {doneCount ? "Tiếp tục học" : "Bắt đầu"} → {first.s.label}
+              </Link>
+              <span style={{ marginLeft: "1rem", color: "var(--r-muted)", fontSize: 14 }}>{doneCount}/{all.length} phần đã hiểu</span>
+            </p>
+          )}
+
+          {parts.map((part) => (
+            <section key={part.topicId} style={{ marginBottom: "3rem" }}>
+              <div className="reader-eyebrow">{part.label}</div>
+              <h2 style={{ fontSize: 24, fontWeight: 700, margin: ".2rem 0 .4rem" }}>{part.title}</h2>
+              <p style={{ color: "var(--r-muted)", margin: "0 0 1.2rem" }}>{part.description}</p>
+              <div>
+                {part.steps.map((s) => {
+                  const d = done[part.topicId]?.includes(s.id);
+                  return (
+                    <Link key={s.id} href={`/${moduleId}/${part.topicId}#${s.id}`}
+                      style={{ display: "flex", gap: "1rem", padding: ".9rem 0", borderTop: "1px solid var(--r-line)", textDecoration: "none", color: "inherit" }}>
+                      <span style={{ minWidth: "2rem", fontWeight: 700, color: d ? "var(--r-ok)" : "var(--r-accent)" }}>{d ? "✓" : s.n ?? "·"}</span>
+                      <span>
+                        <span style={{ fontWeight: 600, display: "block" }}>{s.label}</span>
+                        {s.goal && <span style={{ color: "var(--r-muted)", fontSize: 15, lineHeight: 1.6, display: "block", marginTop: ".15rem" }}>{s.goal}</span>}
+                      </span>
                     </Link>
-                  </li>
-                );
-              })}
-            </ol>
-          </section>
-        ))}
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+        </main>
       </div>
-    </div>
+    </ReaderShell>
   );
 }
