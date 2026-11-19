@@ -1,7 +1,7 @@
 ---
 title: Step 4 — Data Visualization với matplotlib và pandas
 order: 22
-description: "Chọn biểu đồ theo câu hỏi: histogram, density, box plot, correlation matrix, scatter matrix và các phần của hình matplotlib."
+description: "Chọn biểu đồ theo câu hỏi (slide 55 đến 63): histogram, density, box plot, correlation matrix, scatter matrix vẽ từ Diabetes, và các phần Figure, Axes, Axis của matplotlib."
 slides: 55-63
 needs: [descriptive-statistics, correlation-multicollinearity]
 tags: [visualization, matplotlib, pandas, histogram, density, boxplot, heatmap, scatter, kde]
@@ -10,20 +10,20 @@ tags: [visualization, matplotlib, pandas, histogram, density, boxplot, heatmap, 
 ## Hỏi gì thì chọn hình đó
 
 :::intro Mục tiêu bài này
-- Chọn biểu đồ theo **câu hỏi** muốn trả lời, không theo thói quen.
-- Đọc đúng histogram, density, box plot, correlation matrix và scatter matrix.
-- Gọi đúng tên các phần của một hình trong matplotlib (Figure, Axes, Axis).
+- Chọn biểu đồ theo **câu hỏi** muốn trả lời, không theo thói quen, qua các hình của Step 4 (slide 55 đến 63).
+- Đọc đúng **histogram, density, box plot, correlation matrix, scatter matrix** trên chính bộ Diabetes.
+- Gọi đúng tên các phần của một hình trong matplotlib: **Figure, Axes, Axis**, tiêu đề, nhãn, lưới, chú giải.
 :::
 
-Bảng số cho ta con số, nhưng không cho thấy **hình dạng**. Biểu đồ trả lời những câu hỏi mà `describe()` không trả lời được. Quy tắc: **bắt đầu từ câu hỏi**, rồi chọn hình.
+Bảng số cho ta con số, nhưng không cho thấy **hình dạng**. Biểu đồ trả lời những câu hỏi mà `describe()` không trả lời được. Step 4 của pipeline ([[bài:ml-pipeline]]) dùng hai thư viện: **matplotlib** và **seaborn** (slide 55). Quy tắc: **bắt đầu từ câu hỏi**, rồi chọn hình.
 
-| Câu hỏi | Hình |
-|---|---|
-| Giá trị của **một biến** phân bố thế nào? | Histogram, density |
-| Phần giữa nằm đâu, có điểm ngoài lạ không? **So sánh các nhóm** | Box plot |
-| Hai biến liên hệ với nhau thế nào? | Scatter |
-| Cột nào liên hệ tuyến tính với cột nào? | Correlation matrix |
-| Nhìn **mọi cặp** biến một lượt | Scatter matrix |
+:::slides 55-63 | Slide 55–63: Step 4 Data visualization, histogram, density, box plot, correlation matrix, scatter matrix và các phần của matplotlib
+:::
+
+Hãy bấm từng câu hỏi bên dưới để xem hình tương ứng (vẽ từ bộ Diabetes), cách đọc và dòng code:
+
+:::widget viz-chooser
+:::
 
 :::predict
 Bạn muốn biết **Glucose của người bệnh có khác người không bệnh** không. Chọn hình nào, và bạn mong thấy gì?
@@ -31,17 +31,30 @@ Bạn muốn biết **Glucose của người bệnh có khác người không b�
 **Histogram chồng (hoặc box plot) của Glucose theo `Outcome`.** Mong thấy nhóm bệnh lệch sang phải (trung vị 140 so với 107) nhưng hai nhóm **chồng lấn nhiều**: không một cột nào đủ để tách hẳn hai nhóm. Đây chính là hình ở Project Bước 1.
 :::
 
-## Histogram và density
+## Histogram và density (slide 56 và 57)
 
-**Histogram** chia trục giá trị thành các khoảng (bin) và đếm mỗi khoảng. Số bin ảnh hưởng hình dạng: quá ít thì che chi tiết, quá nhiều thì nhiễu. **Density plot** làm trơn histogram thành một đường cong: đẹp, nhưng đó là **ước lượng**, không phải mật độ thật, và độ trơn cũng là lựa chọn.
+**Histogram** chia trục giá trị thành các khoảng (bin) và đếm số mẫu mỗi khoảng; `data.hist()` vẽ cả tám cột một lượt. **Số bin** ảnh hưởng hình dạng: quá ít thì che chi tiết, quá nhiều thì nhiễu. **Density plot** (slide 57, `kind="density"`) làm trơn histogram thành một đường cong: đẹp, nhưng đó là **ước lượng**, không phải mật độ thật, và độ trơn cũng là một lựa chọn.
 
-## Box plot
+Trên Diabetes, histogram cho thấy ngay hai điều: **Insulin** dồn rất mạnh về 0 (nhiều số 0 thiếu) với đuôi dài bên phải, và **Glucose** có một cột nhỏ lạc ở 0. Đó chính là hai manh mối đã thấy bằng `describe()`, nhưng nhìn bằng hình thì rõ hơn nhiều.
 
-Một hộp trải từ **Q1 đến Q3** (nửa giữa của dữ liệu), vạch trong hộp là **trung vị**. Hai "ria" kéo tới giá trị xa nhất còn nằm trong **1.5 × IQR** tính từ hộp; điểm nằm ngoài ria được vẽ riêng là **outlier tiềm năng**. Với Insulin có 24 điểm vượt hàng rào ([[bài:missing-values-outliers]]), box plot cho thấy ngay phần đuôi dài bên phải.
+## Box plot (slide 58)
 
-## Correlation matrix và scatter matrix
+Một hộp trải từ **Q1 đến Q3** (nửa giữa của dữ liệu), vạch trong hộp là **trung vị**. Hai "ria" kéo tới giá trị xa nhất còn nằm trong **1.5 × IQR** tính từ hộp; điểm ngoài ria được vẽ riêng là **outlier tiềm năng** ([[bài:missing-values-outliers]]).
 
-**Correlation matrix** là bảng r của mọi cặp cột, tô màu. Hãy đọc **con số** trong ô, đừng chỉ nhìn màu (màu dễ đánh lừa độ mạnh), và nhớ r chỉ đo quan hệ **tuyến tính** ([[bài:correlation-multicollinearity]]). **Scatter matrix** vẽ scatter cho từng cặp: chậm hơn nhưng cho thấy quan hệ phi tuyến hay nhóm tách rời mà r không thấy.
+Các con số thật trên Diabetes (tính trên cả 768 hàng):
+
+| Cột | Q1 | Q3 | Hàng rào (1.5 × IQR) | Điểm ngoài |
+|---|---|---|---|---|
+| Glucose | 99 | 140.25 | 37.1 đến 202.1 | 5 điểm **dưới** (đều là số 0) |
+| BMI | 27.3 | 36.6 | 13.4 đến 50.6 | 11 điểm dưới (số 0) và 8 điểm trên |
+| Age | 24 | 41 | −1.5 đến 66.5 | 9 điểm trên |
+| Insulin | 0 | 127.25 | −190.9 đến 318.1 | 34 điểm trên |
+
+Box plot vì thế là công cụ rất tốt để **lộ ra số 0 thiếu trá hình** ở Glucose và BMI: chúng hiện ra thành các chấm lẻ loi dưới ria. Với Insulin, Q1 = 0 (hơn một phần tư số ô là 0) nên cả hộp bị kéo xuống 0 và box plot kém hữu ích cho tới khi ta xử lý số 0.
+
+## Correlation matrix và scatter matrix (slide 59 đến 62)
+
+**Correlation matrix** (`data.corr()`, rồi tô màu bằng `sns.heatmap(..., annot=True)`) là bảng hệ số r của mọi cặp cột. Hãy đọc **con số** trong ô, đừng chỉ nhìn màu (màu dễ đánh lừa độ mạnh), và nhớ r chỉ đo quan hệ **tuyến tính** ([[bài:correlation-multicollinearity]]). **Scatter matrix** (`scatter_matrix(data)`, slide 62) vẽ histogram trên đường chéo và scatter cho từng cặp: chậm và rối khi nhiều cột, nhưng cho thấy quan hệ cong hay nhóm tách rời mà r không thấy.
 
 :::ck
 Correlation matrix cho thấy r giữa hai cột là 0.02. Có thể kết luận hai cột không liên quan không? Hình nào giúp kiểm tra?
@@ -49,25 +62,43 @@ Correlation matrix cho thấy r giữa hai cột là 0.02. Có thể kết luậ
 **Chưa kết luận được.** r gần 0 chỉ nói không có quan hệ **tuyến tính**; có thể có quan hệ cong (chữ U). Vẽ **scatter** của hai cột để kiểm tra.
 :::
 
-## Figure, Axes và Axis trong matplotlib
+## Figure, Axes và Axis trong matplotlib (slide 63)
 
-Gọi đúng tên giúp sửa đúng chỗ: **Figure** là cả tờ giấy; **Axes** là một khung vẽ trên tờ giấy đó (có thể có nhiều); **Axis** là một trục (x hoặc y) của Axes. Cách viết nên dùng:
+Slide 63 đánh số các phần của một hình để gọi đúng tên và sửa đúng chỗ:
+
+- **Figure:** cả tờ giấy (khung ngoài cùng).
+- **Axes:** một khung vẽ trên tờ giấy đó (có thể có nhiều); có **title**, **x label**, **y label**.
+- **Axis:** một trục (x hoặc y) của Axes, với các vạch chia (tick).
+- Ngoài ra: **lưới (grid)** và **chú giải (legend)**, hai thứ làm hình dễ đọc hơn (slide cuối so sánh hình có và không có chúng).
 
 ```python
 fig, ax = plt.subplots()       # một Figure, một Axes
 ax.hist(data["Glucose"], bins=20)
+ax.set_title("Glucose")
 ax.set_xlabel("Glucose")
+ax.grid(True)
 ```
 
-:::slides 55-63 | Slide 55–63: trực quan hóa dữ liệu
+:::ck
+Bạn gọi `plt.title("...")` ngay sau khi vẽ hai biểu đồ con. Tiêu đề thuộc biểu đồ nào, và vì sao nên dùng `ax.set_title`?
+@answer
+`plt.title` đặt tiêu đề cho Axes **hiện hành** (thường là cái vừa tạo), dễ gắn nhầm khi có nhiều Axes. `ax.set_title` chỉ rõ **Axes nào**, nên khi có nhiều biểu đồ con luôn dùng cách này (và `fig, axs = plt.subplots(...)`).
 :::
 
+## Những hiểu sai thường gặp
+
+- **"Chọn hình đẹp nhất."** Chọn hình **trả lời câu hỏi**; hình đẹp mà không trả lời được thì vô ích.
+- **"Density plot cho mật độ thật."** Nó là ước lượng làm trơn, phụ thuộc cách làm trơn.
+- **"Điểm ngoài ria của box plot là lỗi."** Chỉ là outlier **tiềm năng**; số 0 ở Glucose là lỗi, còn BMI rất cao có thể là thật.
+- **"Màu của heatmap là đủ."** Đọc số trong ô; r chỉ đo tuyến tính.
+- **"Hình thay được kiểm chứng."** Hình gợi ý, không kết luận; kết luận cần số và ý nghĩa thực tế.
+
 :::card Data Visualization
-- **Bắt đầu từ câu hỏi**: một biến (histogram, density), so nhóm và outlier (box plot), hai biến (scatter), mọi cặp (correlation, scatter matrix).
+- **Bắt đầu từ câu hỏi:** một biến (histogram, density), so nhóm và outlier (box plot), hai biến (scatter), mọi cặp (correlation, scatter matrix).
 - **Histogram** phụ thuộc số bin; **density** là ước lượng trơn.
-- **Box plot:** hộp Q1–Q3, vạch trung vị, ria 1.5 × IQR, điểm ngoài là outlier tiềm năng.
-- **Correlation matrix:** đọc số, không chỉ màu; chỉ đo tuyến tính.
-- **Figure, Axes, Axis:** tờ giấy, khung vẽ, trục.
+- **Box plot:** hộp Q1–Q3, vạch trung vị, ria 1.5 × IQR; trên Diabetes lộ số 0 ở Glucose (5 điểm) và BMI (11 điểm).
+- **Correlation matrix:** đọc số, không chỉ màu; chỉ đo tuyến tính (Glucose với Outcome 0.47; Pregnancies với Age 0.54).
+- **Figure, Axes, Axis:** tờ giấy, khung vẽ, trục; dùng `fig, ax = plt.subplots()` và `ax.set_...`.
 :::
 
 ## Câu hỏi tự kiểm tra

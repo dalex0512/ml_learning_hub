@@ -71,3 +71,8 @@
 .w-sort-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; padding: 0.4rem 0; border-top: 1px dashed var(--r-line); }
 .w-sort-img { display: flex; align-items: center; gap: 0.6rem; font-size: 14.5px; }
 .w-sort-img small { font-size: 14px; color: var(--r-muted); }
+
+/* Ảnh có hai bản sáng/tối trong công cụ */
+.w-box img[src$="-dark.png"] { display: none !important; }
+html.reader-mode[data-reader-theme="dark"] .w-box img[src$="-dark.png"] { display: block !important; }
+html.reader-mode[data-reader-theme="dark"] .w-box img[src$="-light.png"] { display: none !important; }
