@@ -397,3 +397,10 @@ không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-res
   Mọi bài lý thuyết viết lại sau này theo file này (và theo `PRACTICE-GUIDE.md` cho phần chung).
 - Trang chủ mới (`components/HomeRoadmap.tsx`): chế độ đọc, "Tiếp tục học", lộ trình sáu module có tiến độ, lối vào nhanh.
   Đã xoá Hero, RoadmapZigzag, PaperCraftScene (three.js), NotebookHeroCard.
+
+## 20. Đợt làm sâu 31 bài lý thuyết (hoàn tất 2026-11-19)
+
+- Cả 23 bài Module 01 và 8 bài Module 02 đã được viết lại phần lõi theo `LESSON-QUALITY-PLAN.md`: bám đúng ảnh slide, mỗi số liệu có script kiểm trong `scripts/theory_checks/` (Module 02 dùng tiền tố `s01`–`s08`), có công cụ tương tác hoặc ví dụ tính tay, mục "hiểu sai thường gặp", thẻ tóm tắt. Câu hỏi tự kiểm tra và phần `[sâu]` được giữ.
+- Công cụ tương tác đăng ký ở `components/widgets/index.tsx` (thêm `regex-tester`, `algo-filter` ở cuối đợt). Công cụ để tái soạn một bài: `scripts/lesson_recompose.py <file> <core.md> "<mô tả>"`.
+- Đã qua: các script kiểm số, không còn `[[bài:…]]` chết, `tsc`, `npm run build`. Chưa kiểm: màn hình điện thoại thật; thao tác tay trên một số công cụ mới.
+- Chưa push lên remote: nhiều commit sau `efd9730` còn nằm trên `main` cục bộ.

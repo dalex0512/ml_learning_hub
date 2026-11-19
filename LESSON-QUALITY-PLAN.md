@@ -42,9 +42,9 @@ Lưu ý kỹ thuật khi viết lõi: tiêu đề `:::predict` và `:::ck` để
 | Việc | Trạng thái |
 |---|---|
 | Trang phỏng vấn `/phong-van` đổi sang giao diện đọc (sáng/tối, nhớ câu đã mở) | `[x]` xong |
-| Bộ công cụ bổ sung cho bài chưa có công cụ: `column-peel`, `paradigm-chooser`, `xy-table`, `param-knob`, `fold-compare`, `scenario-cards`, `flow-map`, `describe-table`, `impute-compare`, `encode-table`, `viz-chooser`, `regex-tester`, `algo-filter` | `[ ]` làm cùng bài tương ứng |
-| Cuối đợt: chạy lại toàn bộ file kiểm số; kiểm liên kết `[[bài:...]]` không chết; build toàn site | `[ ]` |
-| Cập nhật `project-brief.md` | `[ ]` |
+| Bộ công cụ bổ sung cho bài chưa có công cụ: `column-peel`, `paradigm-chooser`, `xy-table`, `param-knob`, `fold-compare`, `scenario-cards`, `flow-map`, `describe-table`, `impute-compare`, `encode-table`, `viz-chooser`, `regex-tester`, `algo-filter` | `[x]` xong (đã đăng ký trong `components/widgets/index.tsx`) |
+| Cuối đợt: chạy lại toàn bộ file kiểm số; kiểm liên kết `[[bài:...]]` không chết; build toàn site | `[x]` xong: mọi `scripts/theory_checks/*.py` chạy sạch, không còn liên kết chết, tsc và `npm run build` đều qua |
+| Cập nhật `project-brief.md` | `[x]` xong |
 
 ## 4. Bảng theo dõi từng bài
 
@@ -54,42 +54,46 @@ Cột "Cần nâng" là điều tôi thấy còn thiếu ở bản viết nhanh.
 
 | # | Bài | Cần nâng | Công cụ | Xong |
 |---|---|---|---|---|
-| 01 | what-is-ml | ví dụ spam có số liệu; bản đồ vòng tròn bấm được; bài "gọi đúng tên" | `flow-map` | `[ ]` |
-| 02 | feature-and-data-types | bảng Diabetes bóc cột; phân biệt ordinal/nominal bằng ví dụ; dtype đánh lừa với code | `column-peel` | `[ ]` |
-| 03 | learning-paradigms | cây chọn phương thức; 6 tình huống; bảng ví dụ thật cho từng loại | `paradigm-chooser` | `[ ]` |
-| 04 | labeled-data | bảng bấm hàng ra x⁽ⁱ⁾, y⁽ⁱ⁾; demo xáo lệch X và y bằng số | `xy-table` | `[ ]` |
-| 05 | model-training-pipeline | núm vặn a: kéo thấy loss, nút "một bước cập nhật"; vì sao bước nhảy η quan trọng | `param-knob` | `[ ]` |
-| 06 | loss-function | thêm ví dụ giá nhà đầy đủ; L1/L2/Huber ngắn; loss với metric | có `loss-outlier` | `[ ]` |
-| 07 | train-test-split | rò rỉ qua lựa chọn lặp (mô phỏng 20 lần chỉnh); chia theo nhóm; stratify | có `split-bar` | `[ ]` |
-| 08 | k-fold-cross-validation | P: rà lại; thêm leave-one-out ngắn | có `fold-visualizer` | `[ ]` |
-| 09 | stratified-k-fold | công cụ so KFold và Stratified; số liệu xác suất | `fold-compare` | `[ ]` |
-| 10 | classification-vs-regression | tám thẻ tình huống bấm được; loss/metric tương ứng | `scenario-cards` | `[ ]` |
-| 11 | confusion-matrix | P: rà lại | có `confusion-sorter` | `[ ]` |
-| 12 | classification-metrics | P: rà lại | có `threshold-matrix` | `[ ]` |
-| 13 | roc-auc | ví dụ Diabetes thật (ROC 154 mẫu); PR curve; chọn ngưỡng Youden | có `roc-sweep` | `[ ]` |
-| 14 | regression-metrics | MAPE/R² chi tiết; so MAE vs RMSE trên Diabetes-style; code kiểm | có `loss-outlier` | `[ ]` |
-| 15 | ml-pipeline | sơ đồ bấm được 7 bước; mỗi bước thẻ 4 dòng; liên kết Project từng bước | `flow-map` | `[ ]` |
-| 16 | descriptive-statistics | bảng describe bấm được; tính tay describe 15 hàng; phân bố class | `describe-table` | `[ ]` |
-| 17 | missing-values-outliers | chọn cách điền trên Insulin; IQR vs z-score tương tác; MissForest ngắn | `impute-compare` | `[ ]` |
-| 18 | feature-scaling | P: rà lại | có `scaler-before-after` | `[ ]` |
-| 19 | categorical-encoding | bảng chọn encoder; cosine; hash bằng tay | `encode-table` | `[ ]` |
-| 20 | correlation-multicollinearity | tính r tay; VIF ví dụ số; hệ số bất ổn bằng mô phỏng | có `corr-drag` | `[ ]` |
-| 21 | imbalanced-data | SMOTE tay; so cách trên Diabetes (số thật); quy tắc vàng demo | có `resample` | `[ ]` |
-| 22 | data-visualization | chọn câu hỏi ra hình (hình thật từ Diabetes); đọc box plot từng vạch | `viz-chooser` | `[ ]` |
-| 23 | regular-expressions | ô thử regex; bảng ký hiệu; ví dụ làm sạch dữ liệu | `regex-tester` | `[ ]` |
+| 01 | what-is-ml | ví dụ spam có số liệu; bản đồ vòng tròn bấm được; bài "gọi đúng tên" | `flow-map` | `[x]` |
+| 02 | feature-and-data-types | bảng Diabetes bóc cột; phân biệt ordinal/nominal bằng ví dụ; dtype đánh lừa với code | `column-peel` | `[x]` |
+| 03 | learning-paradigms | cây chọn phương thức; 6 tình huống; bảng ví dụ thật cho từng loại | `paradigm-chooser` | `[x]` |
+| 04 | labeled-data | bảng bấm hàng ra x⁽ⁱ⁾, y⁽ⁱ⁾; demo xáo lệch X và y bằng số | `xy-table` | `[x]` |
+| 05 | model-training-pipeline | núm vặn a: kéo thấy loss, nút "một bước cập nhật"; vì sao bước nhảy η quan trọng | `param-knob` | `[x]` |
+| 06 | loss-function | thêm ví dụ giá nhà đầy đủ; L1/L2/Huber ngắn; loss với metric | có `loss-outlier` | `[x]` |
+| 07 | train-test-split | rò rỉ qua lựa chọn lặp (mô phỏng 20 lần chỉnh); chia theo nhóm; stratify | có `split-bar` | `[x]` |
+| 08 | k-fold-cross-validation | P: rà lại; thêm leave-one-out ngắn | có `fold-visualizer` | `[x]` |
+| 09 | stratified-k-fold | công cụ so KFold và Stratified; số liệu xác suất | `fold-compare` | `[x]` |
+| 10 | classification-vs-regression | tám thẻ tình huống bấm được; loss/metric tương ứng | `scenario-cards` | `[x]` |
+| 11 | confusion-matrix | P: rà lại | có `confusion-sorter` | `[x]` |
+| 12 | classification-metrics | P: rà lại | có `threshold-matrix` | `[x]` |
+| 13 | roc-auc | ví dụ Diabetes thật (ROC 154 mẫu); PR curve; chọn ngưỡng Youden | có `roc-sweep` | `[x]` |
+| 14 | regression-metrics | MAPE/R² chi tiết; so MAE vs RMSE trên Diabetes-style; code kiểm | có `loss-outlier` | `[x]` |
+| 15 | ml-pipeline | sơ đồ bấm được 7 bước; mỗi bước thẻ 4 dòng; liên kết Project từng bước | `flow-map` | `[x]` |
+| 16 | descriptive-statistics | bảng describe bấm được; tính tay describe 15 hàng; phân bố class | `describe-table` | `[x]` |
+| 17 | missing-values-outliers | chọn cách điền trên Insulin; IQR vs z-score tương tác; MissForest ngắn | `impute-compare` | `[x]` |
+| 18 | feature-scaling | P: rà lại | có `scaler-before-after` | `[x]` |
+| 19 | categorical-encoding | bảng chọn encoder; cosine; hash bằng tay | `encode-table` | `[x]` |
+| 20 | correlation-multicollinearity | tính r tay; VIF ví dụ số; hệ số bất ổn bằng mô phỏng | có `corr-drag` | `[x]` |
+| 21 | imbalanced-data | SMOTE tay; so cách trên Diabetes (số thật); quy tắc vàng demo | có `resample` | `[x]` |
+| 22 | data-visualization | chọn câu hỏi ra hình (hình thật từ Diabetes); đọc box plot từng vạch | `viz-chooser` | `[x]` |
+| 23 | regular-expressions | ô thử regex; bảng ký hiệu; ví dụ làm sạch dữ liệu | `regex-tester` | `[x]` |
 
 ### Module 02
 
 | # | Bài | Cần nâng | Công cụ | Xong |
 |---|---|---|---|---|
-| 01 | supervised-algorithms | bộ lọc thuật toán; so baseline thật trên Diabetes | `algo-filter` | `[ ]` |
-| 02 | linear-regression | giả định bằng ví dụ; residual plot; ví dụ nhiều biến | có `linear-fit` | `[ ]` |
-| 03 | polynomial-regression | hệ số bất ổn; Pipeline code; chọn bậc bằng CV bằng số thật | có `poly-degree` | `[ ]` |
-| 04 | logistic-regression | odds/log-odds làm tay; hệ số Diabetes; hiệu chỉnh ngưỡng | có `logistic-play` | `[ ]` |
-| 05 | svm | tính tay margin; ảnh hưởng C, gamma bằng số; so Logistic trên Diabetes | có `svm-margin` | `[ ]` |
-| 06 | k-nearest-neighbours | KNN hồi quy tay; chọn K bằng CV; curse of dimensionality bằng số | có `knn-play` | `[ ]` |
-| 07 | decision-tree | cây hồi quy tay; entropy; max_depth với train/test | có `gini-calc` | `[ ]` |
-| 08 | random-forest | OOB tay; số cây; feature importance Diabetes | có `bootstrap-vote` | `[ ]` |
+| 01 | supervised-algorithms | bộ lọc thuật toán; so baseline thật trên Diabetes | `algo-filter` | `[x]` |
+| 02 | linear-regression | giả định bằng ví dụ; residual plot; ví dụ nhiều biến | có `linear-fit` | `[x]` |
+| 03 | polynomial-regression | hệ số bất ổn; Pipeline code; chọn bậc bằng CV bằng số thật | có `poly-degree` | `[x]` |
+| 04 | logistic-regression | odds/log-odds làm tay; hệ số Diabetes; hiệu chỉnh ngưỡng | có `logistic-play` | `[x]` |
+| 05 | svm | tính tay margin; ảnh hưởng C, gamma bằng số; so Logistic trên Diabetes | có `svm-margin` | `[x]` |
+| 06 | k-nearest-neighbours | KNN hồi quy tay; chọn K bằng CV; curse of dimensionality bằng số | có `knn-play` | `[x]` |
+| 07 | decision-tree | cây hồi quy tay; entropy; max_depth với train/test | có `gini-calc` | `[x]` |
+| 08 | random-forest | OOB tay; số cây; feature importance Diabetes | có `bootstrap-vote` | `[x]` |
 
 ## 5. Nhật ký
 - (điền khi làm: ngày, bài, ghi chú)
+
+- 2026-11-19: hoàn tất đợt làm sâu cho cả 31 bài lý thuyết (Module 01 bài 01–23, Module 02 bài 01–08). Mỗi bài: lõi viết lại bám đúng slide, số liệu kiểm bằng `scripts/theory_checks/`, có công cụ tương tác hoặc ví dụ tính tay, mục hiểu sai thường gặp và thẻ tóm tắt; câu hỏi tự kiểm tra và phần `[sâu]` giữ nguyên.
+- Chưa kiểm: hiển thị trên màn hình điện thoại thật (trình duyệt headless không giả lập được ~390px) và thao tác bằng tay trên một số công cụ mới (chỉ qua tsc và build).
+- Số đo trên Diabetes ở Module 02 đều là một cách chia/CV cụ thể (`random_state=42`); chênh lệch nhỏ hơn độ lệch giữa fold được ghi rõ là chưa kết luận.
