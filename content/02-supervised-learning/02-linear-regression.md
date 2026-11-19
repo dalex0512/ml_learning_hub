@@ -1,7 +1,7 @@
 ---
 title: Linear Regression — học một quan hệ tuyến tính
 order: 2
-description: "Chọn đường thẳng làm tổng bình phương sai số nhỏ nhất: kéo thử, tính tay độ dốc và tung độ gốc, và giả định."
+description: "Hồi quy tuyến tính (slide 65-66): đọc công thức, chọn đường bằng bình phương tối thiểu, tính tay, đo trên Diabetes và các giới hạn."
 slides: 65-66
 needs: [supervised-algorithms, loss-function, regression-metrics]
 tags: [linear-regression, ols, coefficient, residual, mse, rmse, r2]
@@ -10,14 +10,19 @@ tags: [linear-regression, ols, coefficient, residual, mse, rmse, r2]
 ## Đường thẳng nào đại diện cho đám điểm?
 
 :::intro Mục tiêu bài này
-- Hiểu mô hình `ŷ = m·x + b` và **sai số (residual)**.
-- Hiểu cách chọn đường: làm **tổng bình phương sai số nhỏ nhất** (bình phương tối thiểu, OLS).
-- Tính tay được độ dốc và tung độ gốc, và biết các giả định của hồi quy tuyến tính.
+- Đọc công thức `ŷ = β0 + β1·x1 + … + ε` ở slide 65: predictor, hệ số, nhiễu, simple và multiple.
+- Hiểu cách chọn đường: làm **tổng bình phương sai số nhỏ nhất** (OLS), và tính tay được độ dốc, tung độ gốc.
+- Đọc hệ số, đo mô hình bằng MAE/RMSE/R² trên dữ liệu chưa thấy, và biết giới hạn (outlier, ngoại suy, giả định).
 :::
 
-Cho sáu điểm (x, y). Nhiều đường thẳng cùng "trông hợp lý"; ta cần một **tiêu chuẩn** để chọn đường tốt nhất. Mỗi điểm cách đường một đoạn dọc gọi là **sai số** (residual) `y − ŷ`. Hồi quy tuyến tính chọn đường làm **tổng bình phương các sai số** nhỏ nhất: đó chính là L2 ở [[bài:loss-function]].
+## Bài toán: kéo một đường qua đám điểm
 
-Hãy tự tìm đường bằng cách kéo hai núm: độ dốc `m` và tung độ gốc `b`. Quan sát tổng bình phương sai số (SSE); sau đó bấm "Đặt về đường tối ưu".
+:::slides 65-66 | Slide 65–66: Linear Regression, ví dụ experience và Salary, công thức, quan hệ tăng/giảm, ưu và nhược điểm
+:::
+
+Slide 65 vẽ **experience** (số năm kinh nghiệm) trên trục x và **Salary** (lương) trên trục y: các điểm không nằm đúng trên một đường, nhưng có xu hướng tăng. Hồi quy tuyến tính kéo **một đường thẳng** qua đám điểm để dự đoán giá trị số. Slide nhấn ba ý: đây là **một trong những thuật toán cơ bản và đơn giản nhất** của Supervised Learning; **simple** là một input feature, **multiple** là từ hai input feature trở lên; hợp với dữ liệu **tuyến tính**.
+
+Mỗi điểm cách đường một đoạn dọc gọi là **sai số (residual)** `y − ŷ`. Nhiều đường cùng "trông hợp lý", nên cần tiêu chuẩn chọn. Hồi quy tuyến tính chọn đường làm **tổng bình phương sai số** nhỏ nhất (OLS), chính là L2 ở [[bài:loss-function]]. Hãy kéo hai núm độ dốc `m` và tung độ gốc `b` để tự thấy:
 
 :::widget linear-fit
 :::
@@ -27,6 +32,19 @@ Với sáu điểm (1, 1.5), (2, 2.4), (3, 2.8), (4, 4.5), (5, 4.9), (6, 6.3), �
 @answer
 **Gần 1 (0.949).** Khi x tăng thêm 1 thì y tăng khoảng 0.95. Tung độ gốc b = 0.413 và SSE nhỏ nhất = **0.427**, so với 3.95 của đường m = 0.5, b = 2 mà ta bắt đầu.
 :::
+
+## Đọc công thức trên slide
+
+```text
+ŷ = β0 + β1·x1 + β2·x2 + … + βp·xp + ε
+```
+
+- **ŷ** (response, biến phụ thuộc): giá trị cần dự đoán. **x1…xp** (predictor, biến độc lập, feature): đầu vào.
+- **β0** (intercept): giá trị mô hình cho khi mọi feature bằng 0; nếu x = 0 nằm ngoài miền dữ liệu thì nó chỉ là tham số định vị đường. **β1…βp** (coefficient, hệ số): mức dự đoán thay đổi khi feature đó tăng 1 đơn vị, **giữ các feature còn lại cố định**; đơn vị là đơn vị y trên một đơn vị x.
+- **ε** (random error, "noise"): phần dao động ngẫu nhiên mô hình không giải thích; nó là sai số **chưa quan sát**. Còn **residual** `y − ŷ` là số ta **tính được** sau khi fit.
+- **Dấu mũ** trên β̂ nghĩa là hệ số **ước lượng** từ dữ liệu: `coef_` trong code là β̂.
+
+Slide 66 nhắc hai điều đọc nhanh: đường dốc **lên** là quan hệ **tăng** (hệ số dương), dốc **xuống** là quan hệ **giảm** (hệ số âm).
 
 ## Tính tay độ dốc và tung độ gốc
 
@@ -40,13 +58,35 @@ Trung bình: x̄ = 3.5, ȳ = 3.733.
 Đường tối ưu: **ŷ = 0.949x + 0.413**. Tổng bình phương sai số = 0.427, và không đường thẳng nào làm nó nhỏ hơn.
 :::
 
+Công thức này chỉ dùng được khi các x **không đều bằng nhau** (mẫu số khác 0). Với nhiều feature, người ta dùng nghiệm ma trận hoặc bộ giải least-squares; thực hành dùng `LinearRegression` của sklearn, không tự nghịch đảo ma trận.
+
+:::ck
+Năm điểm x = [1,2,3,4,5], y = [2,4,5,4,5]. Độ dốc và tung độ gốc là bao nhiêu? Dự đoán tại x = 6 có đáng tin không?
+@answer
+x̄ = 3, ȳ = 4, tử số = 6, mẫu số = 10, nên **m = 0.6, b = 2.2**. Dự đoán tại x = 6 là 5.8, nhưng dữ liệu chỉ có x từ 1 đến 5: đó là **ngoại suy**, kém tin cậy.
+:::
+
+## Thử trên dữ liệu thật: đo trên bộ test
+
+Trên Diabetes, bỏ các hàng có BloodPressure = 0 hoặc BMI = 0 (số 0 thiếu, còn 729 hàng), thử dự đoán **huyết áp** từ tuổi và BMI. Chia 75/25 (`random_state=42`), fit trên train, đo trên test:
+
+| Feature | Hệ số | R² | MAE | RMSE |
+|---|---|---|---|---|
+| Baseline: luôn đoán trung bình train | | | 9.60 | 12.29 |
+| Age | 0.320 | 0.161 | 8.69 | 11.25 |
+| BMI | 0.570 | 0.026 | 9.20 | 12.12 |
+| Age + BMI | 0.314 và 0.560 | **0.181** | **8.38** | **11.11** |
+
+Đọc: tuổi tăng 1 năm thì huyết áp dự đoán tăng khoảng 0.32 mmHg (giữ BMI cố định). Thêm feature giúp một chút, nhưng R² chỉ **0.181**: mô hình giải thích được chưa tới 1/5 biến thiên, hơn baseline ít (MAE 8.38 so với 9.60). Đây là bài học trung thực: hệ số "đọc được" không có nghĩa mô hình dự đoán tốt. Số đo phải so với baseline ([[bài:regression-metrics]]).
+
 ## Giả định, ưu nhược và bẫy
 
-- **Quan hệ gần tuyến tính** giữa feature và target. Nếu cong, dùng [[bài:polynomial-regression]].
-- **Sai số có độ trải gần đều** và không phụ thuộc nhau; **feature không trùng nhau** (đa cộng tuyến làm hệ số bất ổn, [[bài:correlation-multicollinearity]]).
-- **Ưu:** đơn giản, nhanh, **hệ số đọc được** ("x tăng 1 thì y tăng m").
-- **Nhược:** nhạy với outlier (do bình phương), không bắt được quan hệ cong, và **không nên ngoại suy** xa ngoài miền dữ liệu.
-- **Đo trên dữ liệu chưa thấy**: dùng MAE, RMSE, R² ([[bài:regression-metrics]]) trên bộ test.
+Slide 66 liệt kê:
+
+- **Ưu (good):** đơn giản, dễ cài và huấn luyện nhanh; overfitting có thể giảm bằng regularization; chạy tốt khi dữ liệu **gần tuyến tính**.
+- **Nhược (bad):** giả định dữ liệu độc lập (hiếm gặp ngoài đời); dễ bị nhiễu và overfitting; **nhạy với outlier**.
+
+Thêm: quan hệ phải gần tuyến tính (nếu cong, dùng [[bài:polynomial-regression]]); các feature không trùng nhau (đa cộng tuyến làm hệ số bất ổn, [[bài:correlation-multicollinearity]]); và **không nên ngoại suy** xa ngoài miền dữ liệu.
 
 :::ck
 Đường hồi quy học từ x trong khoảng 1 đến 6. Bạn có nên tin dự đoán cho x = 60 không?
@@ -54,14 +94,22 @@ Trung bình: x̄ = 3.5, ȳ = 3.733.
 **Không nên.** Đó là **ngoại suy** ra xa vùng dữ liệu đã thấy; quan hệ có thể đổi hình dạng ngoài vùng đó (ví dụ bão hòa). Mô hình chỉ có bằng chứng trong khoảng nó đã học.
 :::
 
-:::slides 65-66 | Slide 65–66: Linear Regression
-:::
+## Những hiểu sai thường gặp
+
+- **"Đường phải đi qua mọi điểm."** Không; nó chỉ làm tổng bình phương sai số nhỏ nhất.
+- **"Hệ số lớn nghĩa là feature quan trọng."** Hệ số phụ thuộc đơn vị; so sánh cần cùng thang đo.
+- **"Hệ số là quan hệ nhân quả."** Nó chỉ mô tả quan hệ model học từ dữ liệu.
+- **"Residual và ε là một."** ε là nhiễu chưa quan sát, residual là `y − ŷ` đo được.
+- **"R² cao là mô hình tốt, R² thấp là vô dụng."** Phải so với baseline và đo trên dữ liệu chưa thấy; ở ví dụ huyết áp, R² 0.181 vẫn hơn baseline một chút.
+- **"Cần dữ liệu phân phối chuẩn mới fit được."** OLS tính nghiệm mà không cần; giả định chuẩn liên quan suy luận thống kê.
 
 :::card Linear Regression
-- **Mô hình** ŷ = m·x + b; **sai số** = y − ŷ.
-- **Học:** chọn m, b làm tổng bình phương sai số nhỏ nhất (OLS).
-- **Công thức:** m = Σ(x − x̄)(y − ȳ) / Σ(x − x̄)²; b = ȳ − m·x̄ (ví dụ: m = 0.949, b = 0.413).
-- **Giả định:** gần tuyến tính, sai số đều; **không ngoại suy**; nhạy outlier.
+- **Mô hình** ŷ = β0 + β1x1 + … + ε; simple = 1 feature, multiple ≥ 2.
+- **Học:** chọn hệ số làm tổng bình phương sai số nhỏ nhất (OLS).
+- **Công thức một feature:** m = Σ(x − x̄)(y − ȳ) / Σ(x − x̄)²; b = ȳ − m·x̄ (ví dụ: m = 0.949, b = 0.413).
+- **Đọc hệ số:** thay đổi dự đoán trên mỗi đơn vị feature, giữ các feature khác cố định.
+- **Đo trên test, so baseline:** Age + BMI dự đoán huyết áp có R² 0.181, MAE 8.38 so với 9.60.
+- **Giới hạn:** gần tuyến tính, nhạy outlier, **không ngoại suy**.
 :::
 
 ## Câu hỏi tự kiểm tra
