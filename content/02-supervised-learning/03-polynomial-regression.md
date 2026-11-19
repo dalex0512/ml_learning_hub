@@ -1,13 +1,108 @@
 ---
 title: Polynomial Regression — uốn đường cong bằng feature đa thức
 order: 3
-description: "Tạo x² để giữ cách học OLS mà khớp được đường cong; tính tay một mô hình bậc hai và chọn bậc bằng sai số ngoài train."
+description: "Thêm feature x², x³ để uốn đường thẳng; bậc cao luôn giảm sai số train nhưng test giảm rồi tăng, nên chọn bậc bằng validation."
 slides: 67
 needs: [linear-regression, loss-function, train-test-split, feature-scaling]
 tags: [polynomial-regression, polynomial-features, overfitting, underfitting, degree, bias-variance, cross-validation]
 ---
 
 ## Khi đường thẳng bỏ sót hình dạng của dữ liệu
+
+:::intro Mục tiêu bài này
+- Hiểu cách **thêm feature** x², x³… để đường thẳng uốn thành đường cong mà vẫn dùng cách học cũ.
+- Thấy bằng số rằng bậc cao hơn luôn giảm sai số train nhưng **không** luôn giảm sai số test.
+- Chọn bậc bằng sai số trên dữ liệu chưa thấy (validation hoặc CV), không bằng train.
+:::
+
+Dữ liệu có dạng sóng nhưng ta chỉ có đường thẳng: nó bỏ sót hình dạng. Mẹo của Polynomial Regression: **thêm cột mới x², x³… vào bảng feature**, rồi vẫn dùng hồi quy tuyến tính. Model là tuyến tính theo **các cột** (x, x², x³…) nhưng cong theo x. Bậc `d` là lũy thừa cao nhất; d = 1 là đường thẳng.
+
+:::predict
+Ta có 10 điểm train (dạng sóng có nhiễu) và 9 điểm test chưa thấy. Khi tăng bậc từ 1 lên 9, sai số trên train sẽ thế nào? Sai số trên test có luôn giảm theo không?
+@answer
+Sai số **train luôn giảm** (đến 0 ở bậc 9, đường cong đi qua đúng 10 điểm). Nhưng sai số **test giảm rồi tăng vọt**: ở bậc 5 là thấp nhất, còn bậc 9 sai số test lên tới 0.79. Bậc cao uốn theo cả nhiễu ("học thuộc"), nên điểm train đẹp không có nghĩa là model tốt.
+:::
+
+Hãy tự thử với thanh trượt bậc và nhìn hai con số.
+
+:::widget poly-degree
+:::
+
+Với dữ liệu trong công cụ, sai số RMSE (train / test) là: bậc 1: 0.496 / 0.414; bậc 3: 0.199 / 0.081; bậc 5: 0.128 / **0.069**; bậc 7: 0.112 / 0.124; bậc 9: **0.000** / 0.790. Bậc tốt nhất theo test là **5**, không phải bậc có sai số train nhỏ nhất.
+
+## Chọn bậc cho đúng
+
+- **Chọn bằng dữ liệu chưa thấy:** validation hoặc cross-validation ([[bài:k-fold-cross-validation]]), chọn bậc có sai số validation nhỏ nhất.
+- **Nội suy mọi điểm không chứng minh đã học đúng:** bậc 9 đi qua mọi điểm train nhưng dao động dữ dội giữa các điểm.
+- **Scale và hệ số bất ổn:** x, x², x³… có thang rất khác nhau và tương quan mạnh với nhau, nên nên **scale** (và có thể center) trước khi fit; hệ số bậc cao rất nhạy ([[bài:feature-scaling]]).
+- **Nhiều biến:** số cột tăng rất nhanh theo bậc (hai biến bậc 3 đã sinh nhiều cột chéo), nên chỉ dùng bậc thấp.
+- Gói trong Pipeline: `PolynomialFeatures`, `StandardScaler`, `LinearRegression`.
+
+:::ck
+Model bậc 9 có sai số train bằng 0. Đồng nghiệp bảo "model hoàn hảo". Bạn trả lời thế nào?
+@answer
+Sai số train bằng 0 chỉ chứng tỏ đường cong **đi qua mọi điểm đã thấy**, không chứng tỏ nó đúng với điểm mới. Hãy xem sai số trên dữ liệu chưa thấy: ở ví dụ này nó lên tới 0.79, tệ hơn cả đường thẳng. Đó là overfitting.
+:::
+
+:::slides 67 | Slide 67: Polynomial Regression
+:::
+
+:::card Polynomial Regression
+- **Thêm feature** x², x³… để uốn đường thẳng; vẫn là hồi quy tuyến tính trên các cột mới.
+- **Bậc cao** luôn giảm sai số train; sai số test giảm rồi tăng (bậc 5 tốt nhất, bậc 9 test 0.79).
+- **Chọn bậc bằng validation hoặc CV**, không bằng train.
+- **Scale** các cột lũy thừa; nhiều biến thì chỉ dùng bậc thấp.
+:::
+
+## Câu hỏi tự kiểm tra
+
+:::quiz
+@tier A | Hiểu bài
+Q: Với ŷ = 1+2x+x², tính prediction tại x = 1.5 và mức tăng khi x đi từ 1 tới 2.
+A: **Prediction là 6.25, mức tăng là 5.** Tính 1.5² = 2.25 rồi 1+2×1.5+2.25 = 6.25. Tại 1 được 4, tại 2 được 9, chênh 9−4 = 5; không dùng b1 = 2 làm mức tăng ở mọi vị trí.
+Q: Hai input, degree=2, include_bias=False sinh những cột nào? Mười input degree=3 thì bao nhiêu?
+A: **Có 5 cột và 285 cột tương ứng.** Hai input tạo x1,x2,x1²,x1x2,x2². Mười input mở rộng đầy đủ tới tổng bậc 3 cho C(13,3)−1 = 286−1 = 285, không tính intercept.
+Q: Đọc bảng train/validation trong bài: bậc nào nên chọn nếu chỉ có lần chia này? Vì sao không chọn 9?
+A: **Chọn 2 theo validation trong bảng.** MSE validation 0.049132 thấp nhất; bậc 9 dù train 0.003912 lại validation 17.742702. Sau đó cần kiểm độ ổn định bằng CV và giữ test độc lập; không xem một split là chân lý chung.
+Q: Vì sao ví dụ tay có MSE bậc hai bằng 0 còn đường thẳng là 2.8?
+A: **Vì dữ liệu tự soạn đúng theo một đa thức bậc hai không nhiễu.** Bậc hai khớp y = 1+2x+x²; đường thẳng có residual 2,−1,−2,−1,2 nên SSE 14, MSE 14/5 = 2.8. Không suy ra MSE train 0 là mục tiêu chọn model thực tế.
+Q: Center x = 1,…,10 rồi lấy bình phương cho corr bằng 0 có nghĩa z và z² độc lập không?
+A: **Không.** Tương quan Pearson bằng 0 chỉ nói về quan hệ tuyến tính của hai cột này trên bộ số đối xứng; z² vẫn hoàn toàn tính được từ z. Chỉ scale [x,x²] cũng không làm corr 0.974559 biến mất.
+@tier B | Phỏng vấn lý thuyết
+Q: **B1.** Vì sao Polynomial Regression vẫn là linear model?
+A: **Vì tuyến tính theo tham số, dù cong theo input.** Với feature φ(x) = [x,x²] (φ là tên phép biến đổi), prediction là intercept cộng các hệ số nhân feature; OLS vẫn tối ưu loss bình phương. Ví dụ b0+b1x+b2x² không có tích hay lũy thừa của b.
+EN: Polynomial regression is linear in its fitted coefficients over a nonlinear feature map, so ordinary least squares still applies.
+Q: **B2.** Bạn chọn bậc d như thế nào?
+A: **Chọn bằng dữ liệu development, không bằng train error hoặc test.** So các bậc trên validation/CV với Pipeline fit trong mỗi fold, xem dao động và ưu tiên đơn giản nếu tương đương; refit cấu hình đã chốt rồi đo test. Ví dụ bảng này chọn 2 thay vì 9 dù 9 khớp train tốt hơn.
+EN: Select degree through validation or cross-validation with preprocessing inside each fold, then refit and evaluate once on held-out test data.
+Q: **B3.** Underfit/overfit thể hiện trên đường cong thế nào?
+A: **Underfit bỏ sót hình dạng; overfit bám chi tiết riêng của train.** Đường thẳng có residual hình U gợi thiếu độ linh hoạt; đường bậc cao ngoằn ngoèo hoặc vọt biên gợi bất ổn. Xem cả validation vì chỉ nhìn một hình chưa chứng minh được overfit, ví dụ dữ liệu thật có thể vốn nhiều dao động.
+EN: Underfitting misses systematic structure; overfitting follows sample-specific variation. Curve shape is diagnostic, but held-out errors are needed to assess generalization.
+Q: **B4.** Polynomial khác Linear Regression trên feature gốc ở đâu?
+A: **Khác không gian feature, không bắt buộc khác solver hoặc loss.** Polynomial thêm lũy thừa/tương tác để diễn tả cong, đổi lại số cột và rủi ro bất ổn tăng. Ví dụ hai input bậc hai tạo 5 cột, vẫn có thể fit bằng OLS như một model tuyến tính nhiều feature.
+EN: Polynomial expansion changes the representation and model capacity while retaining the same least-squares fitting machinery.
+Q: **B5.** StandardScaler có chữa đa cộng tuyến của feature đa thức không?
+A: **Không bảo đảm, vì scale giữ Pearson correlation giữa các cột.** Nó giúp giảm khác biệt thang đo, còn center trước mở rộng có thể giảm một số tương quan do vị trí gốc. Ví dụ x = 1,…,10 có corr(x,x²) ≈ 0.974559 trước/sau scale; center rồi tạo z² cho corr 0 ở bộ số đối xứng, nhưng không xóa quan hệ hàm.
+EN: Scaling improves relative magnitudes but preserves pairwise Pearson correlations. Centering before expansion can reduce some correlations without removing deterministic dependence or guaranteeing stability.
+@tier C | Tình huống doanh nghiệp
+Q: **C1.** Dự báo doanh số theo nhiệt độ có hình chuông, team muốn tăng bậc tới khi train MSE bằng 0. Bạn đề xuất gì?
+A: **Chọn độ linh hoạt bằng kiểm chứng ngoài train, không theo mục tiêu khớp hết điểm.** Vẽ dữ liệu/residual, thử bậc thấp như 2 bên cạnh baseline, chia theo thời gian vì dự báo tương lai; kiểm thêm mùa vụ/khuyến mại thay vì buộc nhiệt độ giải thích mọi thứ. Chọn bằng validation/CV phù hợp, xem miền nhiệt độ, giữ test cuối; đa thức có thể dự đoán doanh số âm ở đuôi nên cần giới hạn miền hoặc mô hình hợp lý hơn nếu xảy ra.
+WANT: Nối hình dạng với thiết kế đánh giá và hiểu giới hạn nghiệp vụ, không tăng bậc để che biến còn thiếu.
+Q: **C2.** Model giá nhà theo diện tích có đường cong bão hòa đẹp trên train. Có dùng để định giá biệt thự lớn gấp nhiều lần miền train không?
+A: **Chưa có bằng chứng để ngoại suy như vậy.** Kiểm miền diện tích và phân khúc/khu vực, đo sai số theo nhóm, tìm dữ liệu đại diện cho nhà lớn; so mô hình đơn giản và cách biểu diễn phù hợp trên validation. Đa thức chỉ cong trong khoảng quan sát, không bảo đảm bão hòa ngoài miền; đánh dấu input ngoài phạm vi và có quy trình định giá thay thế trong lúc thiếu dữ liệu.
+WANT: Hiểu khác biệt giữa mô tả đường cong trong mẫu và cam kết hành vi ngoài miền.
+Q: **C3.** Model đa thức có R² train 0.99 nhưng tuần sau sai lớn. Bạn kiểm tra theo thứ tự nào?
+A: **Kiểm cách đánh giá và miền dữ liệu trước khi đổi thuật toán.** Rà leakage, split thời gian và Pipeline; so validation theo thời gian với train để phát hiện bậc quá cao. Kiểm tuần mới có input vượt miền cũ, thay đổi mùa vụ/giá/nguồn dữ liệu hay outlier; ví dụ đuôi bậc 9 có thể vọt khi input ra ngoài vùng đã fit. Chọn lại bậc bằng development phù hợp, bổ sung dữ liệu đại diện và so baseline; không tune lặp trên test của tuần vừa báo cáo.
+WANT: Có thứ tự chẩn đoán, phân biệt overfit, ngoại suy và drift, rồi sửa quy trình bằng dữ liệu kiểm chứng.
+:::
+
+## Nối sang bài sau
+
+:::next
+[[bài:supervised-algorithms]] đã có cả [[bài:linear-regression]] và bài Polynomial này cho target số. Slide kế tiếp, 68–69, chuyển sang [[bài:logistic-regression]]: cần mô hình cho phân loại bằng xác suất và ngưỡng thay vì uốn thêm đường dự đoán đại lượng.
+:::
+
+## [sâu] Phần mở đầu gốc
 
 :::intro Đọc xong bài này bạn làm được
 - Biến một feature x thành x, x²,… và giải thích “cong theo x, tuyến tính theo hệ số”.
@@ -45,7 +140,7 @@ Theo công thức ở [[bài:linear-regression]]: trung bình x bằng 0, trung 
 SSE, tức tổng bình phương residual, là `4+1+4+1+4 = 14`. MSE, trung bình bình phương sai số, là `14/5 = 2.8`; RMSE, căn của MSE, là `√2.8 ≈ 1.6733`. Residual dương ở hai đầu, âm ở giữa: đường thẳng bỏ sót cấu trúc cong. Đây là lỗi trên **train**, chưa phải đánh giá tổng quát hóa.
 :::
 
-## Thêm feature, giữ cách học (bổ sung ngoài slide)
+## [sâu] Thêm feature, giữ cách học (bổ sung ngoài slide)
 
 **x² = x×x**, **x³ = x×x×x**. Ta tạo những cột này từ x, rồi vẫn fit Linear Regression trên bảng mới. Feature mới không phải dữ liệu thu thập thêm, cũng không phải thêm mẫu: mỗi hàng vẫn là một quan sát cũ.
 
@@ -61,7 +156,7 @@ Trong biểu thức `b0 + b1x + b2x²`, ta **nhân mỗi hệ số với một f
 
 > **EN:** Polynomial expansion creates columns, not observations. The model is nonlinear in the original input but linear in its coefficients, so ordinary least squares still applies to the expanded design.
 
-## Bậc d và ý nghĩa hệ số
+## [sâu] Bậc d và ý nghĩa hệ số
 
 **Bậc d** là số mũ lớn nhất ta cho phép, ví dụ d = 2 cho x². Nó là **siêu tham số** (hyperparameter): người làm mô hình chọn trước khi fit; các hệ số b mới là tham số được học khi fit. Ký hiệu b của slide tương ứng β ở bài trước. Dưới đây b chỉ hệ số đã ước lượng; ŷ đọc là “y dự đoán”.
 
@@ -87,7 +182,7 @@ Ví dụ `ŷ = 1 + 2x + x²`: tại x = 1, độ dốc là `2+2×1 = 4`; tại x
 
 > **EN:** Degree is a hyperparameter; coefficients are fitted parameters. For a quadratic, the slope is b1 + 2b2x and varies with x. Powers of the same input cannot be varied independently, so isolated coefficient interpretations are misleading.
 
-## Tính tay bậc hai: từ bảng tới nghiệm (bổ sung ngoài slide)
+## [sâu] Tính tay bậc hai: từ bảng tới nghiệm (bổ sung ngoài slide)
 
 ### Lập ma trận thiết kế
 
@@ -190,7 +285,7 @@ for name, pred in [("degree 1", line.predict(x[:, None])),
     print(name, "MSE:", mse, "RMSE:", np.sqrt(mse))
 ```
 
-## Nhiều biến: số cột tăng nhanh (bổ sung ngoài slide)
+## [sâu] Nhiều biến: số cột tăng nhanh (bổ sung ngoài slide)
 
 Với hai input x1 và x2, bậc hai mặc định tạo `[x1, x2, x1², x1x2, x2²]`: **5 feature** chưa tính intercept. **Tích chéo** x1x2 mô tả tương tác: tác động của x1 có thể phụ thuộc x2. Bậc của tích là tổng số mũ, nên x1x2 có bậc 2, x1²x2 có bậc 3.
 
@@ -214,7 +309,7 @@ pf = PolynomialFeatures(degree=3, include_bias=False)
 assert pf.fit_transform(np.zeros((1, 10))).shape == (1, 285)
 ```
 
-## Chọn bậc bằng lỗi ngoài train (bổ sung ngoài slide)
+## [sâu] Chọn bậc bằng lỗi ngoài train (bổ sung ngoài slide)
 
 **Underfitting** là mô hình quá hạn chế, bỏ sót cấu trúc thật: đường thẳng ở ví dụ đầu không uốn được chữ U. **Overfitting** là mô hình khớp cả chi tiết nhiễu của train nên dự đoán kém trên mẫu mới: đường bậc cao có thể ngoằn ngoèo giữa các điểm. Đây là đánh đổi **bias–variance** ở mức trực giác: bậc thấp dễ lệch có hệ thống; bậc cao dễ biến động khi đổi dữ liệu.
 
@@ -240,7 +335,7 @@ Bậc 2 tốt nhất theo validation ở lần chia này; bậc 9 thắng train 
 
 > **EN:** The small training split also lacks right-side coverage, amplifying the high-degree failure. Cross-validation on development data reduces dependence on a single split; only a final held-out test estimates performance after selection.
 
-## Nội suy mọi điểm không chứng minh đã học đúng
+## [sâu] Nội suy mọi điểm không chứng minh đã học đúng
 
 Với **N giá trị x phân biệt**, luôn có một đa thức bậc **không quá N−1** đi qua N cặp (x,y) trong toán chính xác. Ta có N hệ số cho N điều kiện; ma trận lũy thừa, gọi là **Vandermonde**, đủ hạng khi các x phân biệt. Nếu nhiều điểm cùng x nhưng y khác nhau, một hàm y(x) không thể đi qua tất cả. Code số thực cũng không bảo đảm ra đúng 0 vì giới hạn độ chính xác.
 
@@ -256,7 +351,7 @@ Cách hạn chế overfit ở mức khái niệm: chọn d bằng validation/CV,
 
 > **EN:** Interpolation can memorize noisy observations. Runge oscillations concern behavior within an interval near its boundaries; extrapolation concerns points outside the observed domain. Neither is assessed by training fit alone.
 
-## Center, scale và hệ số bất ổn (bổ sung ngoài slide)
+## [sâu] Center, scale và hệ số bất ổn (bổ sung ngoài slide)
 
 **Center** là trừ đi mean; **scale** là đổi thang đo, như StandardScaler ở [[bài:feature-scaling]]. Các cột x, x²,… có thể gần phụ thuộc tuyến tính, nhất là trên một khoảng lệch xa 0; liên hệ [[bài:correlation-multicollinearity]]. Khi đó solver khó tách đóng góp từng cột: hệ số có thể lớn và đổi mạnh dù đường dự đoán trong miền còn gần nhau.
 
@@ -275,7 +370,7 @@ Outlier vẫn chịu loss bình phương. Điểm x xa có thể được khuế
 
 > **EN:** Centering before expansion and scaling afterward address different numerical issues. Scaling alone preserves Pearson correlations and does not fix rank deficiency or overfitting. High powers can amplify the influence of extreme inputs.
 
-## Code thực hành: Pipeline, validation, CV rồi test (bổ sung ngoài slide)
+## [sâu] Code thực hành: Pipeline, validation, CV rồi test (bổ sung ngoài slide)
 
 Cài `pip install numpy scikit-learn matplotlib`. Code chạy theo thứ tự các block; phần demo dưới đây tự đủ imports. **Pipeline** gói các bước biến đổi và fit thành một model, để mỗi fold chỉ fit scaler/model trên phần train của fold. `PolynomialFeatures` chỉ tạo lũy thừa/tích theo cấu hình, không học mean từ dữ liệu; StandardScaler mới học mean/std. Gói chung vẫn giúp tránh sai thứ tự và giữ biến đổi nhất quán lúc predict.
 
@@ -393,7 +488,7 @@ assert np.isclose(np.corrcoef(scaled, rowvar=False)[0, 1],
                   np.corrcoef(raw, rowvar=False)[0, 1])
 ```
 
-## Linear hay Polynomial: chọn theo cấu trúc và cách đo
+## [sâu] Linear hay Polynomial: chọn theo cấu trúc và cách đo
 
 :::compare So sánh bổ sung, slide 67 không có bảng ưu/nhược
 | Tiêu chí | Linear trên feature gốc | Polynomial + OLS |
@@ -406,7 +501,7 @@ assert np.isclose(np.corrcoef(scaled, rowvar=False)[0, 1],
 | Quyết định cuối | Validation/CV và chi phí | Cùng nguyên tắc, thêm chọn d trong development |
 :::
 
-## Những cách hiểu sai cần chặn
+## [sâu] Những cách hiểu sai cần chặn
 
 :::pitfall Cong theo x không đồng nghĩa đổi hoàn toàn cách học
 Sai: “Polynomial phi tuyến nên không dùng Linear Regression”. Đúng: nó tuyến tính theo b trên bảng feature mới; chẳng hạn `[x,x²]` vẫn đi vào một LinearRegression. Đổi cơ sở biểu diễn khác với đổi loss.
@@ -431,64 +526,3 @@ Với ŷ = 1+2x+x², tăng x từ 1 lên 2 làm prediction tăng 5 chứ không 
 > **EN:** Degree selection, extrapolation, conditioning and interpretation are separate concerns. A visually flexible curve and a well-scaled pipeline do not replace independent validation.
 
 Nguồn đối chiếu phần ngoài slide: [PolynomialFeatures](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.PolynomialFeatures.html), [Pipeline](https://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html), [underfit/overfit](https://scikit-learn.org/stable/auto_examples/model_selection/plot_underfitting_overfitting.html), [NumPy polynomial least squares và điều kiện số](https://numpy.org/doc/stable/reference/generated/numpy.polyfit.html).
-
-## Tóm tắt 1 phút
-
-:::recap
-- Tạo thêm x², x³,… để uốn đường; vẫn là tổng tuyến tính theo hệ số.
-- Bậc d là siêu tham số; OLS học các hệ số b sau khi d được chọn.
-- Ví dụ tay ra b0/b1/b2 = 1/2/1; x = 1.5 → 6.25, MSE train bậc hai 0 so với đường thẳng 2.8.
-- n input, bậc tối đa d tạo C(n+d,d)−1 cột khác hằng khi mở rộng đầy đủ; số mẫu N là một đại lượng khác.
-- Train MSE thấp chưa đủ; dùng validation/CV, giữ test để đánh giá cuối.
-- Bậc cao, ít dữ liệu và thiếu độ phủ miền làm model dễ bất ổn/ngoại suy tệ.
-- Center/scale hỗ trợ số học, không tự xóa cộng tuyến hoặc overfit; fit trong Pipeline đúng ranh giới train.
-- Đọc tác động bằng cả đường cong, không tách hệ số của x khỏi các lũy thừa của nó.
-:::
-
-## Câu hỏi tự kiểm tra
-
-:::quiz
-@tier A | Hiểu bài
-Q: Với ŷ = 1+2x+x², tính prediction tại x = 1.5 và mức tăng khi x đi từ 1 tới 2.
-A: **Prediction là 6.25, mức tăng là 5.** Tính 1.5² = 2.25 rồi 1+2×1.5+2.25 = 6.25. Tại 1 được 4, tại 2 được 9, chênh 9−4 = 5; không dùng b1 = 2 làm mức tăng ở mọi vị trí.
-Q: Hai input, degree=2, include_bias=False sinh những cột nào? Mười input degree=3 thì bao nhiêu?
-A: **Có 5 cột và 285 cột tương ứng.** Hai input tạo x1,x2,x1²,x1x2,x2². Mười input mở rộng đầy đủ tới tổng bậc 3 cho C(13,3)−1 = 286−1 = 285, không tính intercept.
-Q: Đọc bảng train/validation trong bài: bậc nào nên chọn nếu chỉ có lần chia này? Vì sao không chọn 9?
-A: **Chọn 2 theo validation trong bảng.** MSE validation 0.049132 thấp nhất; bậc 9 dù train 0.003912 lại validation 17.742702. Sau đó cần kiểm độ ổn định bằng CV và giữ test độc lập; không xem một split là chân lý chung.
-Q: Vì sao ví dụ tay có MSE bậc hai bằng 0 còn đường thẳng là 2.8?
-A: **Vì dữ liệu tự soạn đúng theo một đa thức bậc hai không nhiễu.** Bậc hai khớp y = 1+2x+x²; đường thẳng có residual 2,−1,−2,−1,2 nên SSE 14, MSE 14/5 = 2.8. Không suy ra MSE train 0 là mục tiêu chọn model thực tế.
-Q: Center x = 1,…,10 rồi lấy bình phương cho corr bằng 0 có nghĩa z và z² độc lập không?
-A: **Không.** Tương quan Pearson bằng 0 chỉ nói về quan hệ tuyến tính của hai cột này trên bộ số đối xứng; z² vẫn hoàn toàn tính được từ z. Chỉ scale [x,x²] cũng không làm corr 0.974559 biến mất.
-@tier B | Phỏng vấn lý thuyết
-Q: **B1.** Vì sao Polynomial Regression vẫn là linear model?
-A: **Vì tuyến tính theo tham số, dù cong theo input.** Với feature φ(x) = [x,x²] (φ là tên phép biến đổi), prediction là intercept cộng các hệ số nhân feature; OLS vẫn tối ưu loss bình phương. Ví dụ b0+b1x+b2x² không có tích hay lũy thừa của b.
-EN: Polynomial regression is linear in its fitted coefficients over a nonlinear feature map, so ordinary least squares still applies.
-Q: **B2.** Bạn chọn bậc d như thế nào?
-A: **Chọn bằng dữ liệu development, không bằng train error hoặc test.** So các bậc trên validation/CV với Pipeline fit trong mỗi fold, xem dao động và ưu tiên đơn giản nếu tương đương; refit cấu hình đã chốt rồi đo test. Ví dụ bảng này chọn 2 thay vì 9 dù 9 khớp train tốt hơn.
-EN: Select degree through validation or cross-validation with preprocessing inside each fold, then refit and evaluate once on held-out test data.
-Q: **B3.** Underfit/overfit thể hiện trên đường cong thế nào?
-A: **Underfit bỏ sót hình dạng; overfit bám chi tiết riêng của train.** Đường thẳng có residual hình U gợi thiếu độ linh hoạt; đường bậc cao ngoằn ngoèo hoặc vọt biên gợi bất ổn. Xem cả validation vì chỉ nhìn một hình chưa chứng minh được overfit, ví dụ dữ liệu thật có thể vốn nhiều dao động.
-EN: Underfitting misses systematic structure; overfitting follows sample-specific variation. Curve shape is diagnostic, but held-out errors are needed to assess generalization.
-Q: **B4.** Polynomial khác Linear Regression trên feature gốc ở đâu?
-A: **Khác không gian feature, không bắt buộc khác solver hoặc loss.** Polynomial thêm lũy thừa/tương tác để diễn tả cong, đổi lại số cột và rủi ro bất ổn tăng. Ví dụ hai input bậc hai tạo 5 cột, vẫn có thể fit bằng OLS như một model tuyến tính nhiều feature.
-EN: Polynomial expansion changes the representation and model capacity while retaining the same least-squares fitting machinery.
-Q: **B5.** StandardScaler có chữa đa cộng tuyến của feature đa thức không?
-A: **Không bảo đảm, vì scale giữ Pearson correlation giữa các cột.** Nó giúp giảm khác biệt thang đo, còn center trước mở rộng có thể giảm một số tương quan do vị trí gốc. Ví dụ x = 1,…,10 có corr(x,x²) ≈ 0.974559 trước/sau scale; center rồi tạo z² cho corr 0 ở bộ số đối xứng, nhưng không xóa quan hệ hàm.
-EN: Scaling improves relative magnitudes but preserves pairwise Pearson correlations. Centering before expansion can reduce some correlations without removing deterministic dependence or guaranteeing stability.
-@tier C | Tình huống doanh nghiệp
-Q: **C1.** Dự báo doanh số theo nhiệt độ có hình chuông, team muốn tăng bậc tới khi train MSE bằng 0. Bạn đề xuất gì?
-A: **Chọn độ linh hoạt bằng kiểm chứng ngoài train, không theo mục tiêu khớp hết điểm.** Vẽ dữ liệu/residual, thử bậc thấp như 2 bên cạnh baseline, chia theo thời gian vì dự báo tương lai; kiểm thêm mùa vụ/khuyến mại thay vì buộc nhiệt độ giải thích mọi thứ. Chọn bằng validation/CV phù hợp, xem miền nhiệt độ, giữ test cuối; đa thức có thể dự đoán doanh số âm ở đuôi nên cần giới hạn miền hoặc mô hình hợp lý hơn nếu xảy ra.
-WANT: Nối hình dạng với thiết kế đánh giá và hiểu giới hạn nghiệp vụ, không tăng bậc để che biến còn thiếu.
-Q: **C2.** Model giá nhà theo diện tích có đường cong bão hòa đẹp trên train. Có dùng để định giá biệt thự lớn gấp nhiều lần miền train không?
-A: **Chưa có bằng chứng để ngoại suy như vậy.** Kiểm miền diện tích và phân khúc/khu vực, đo sai số theo nhóm, tìm dữ liệu đại diện cho nhà lớn; so mô hình đơn giản và cách biểu diễn phù hợp trên validation. Đa thức chỉ cong trong khoảng quan sát, không bảo đảm bão hòa ngoài miền; đánh dấu input ngoài phạm vi và có quy trình định giá thay thế trong lúc thiếu dữ liệu.
-WANT: Hiểu khác biệt giữa mô tả đường cong trong mẫu và cam kết hành vi ngoài miền.
-Q: **C3.** Model đa thức có R² train 0.99 nhưng tuần sau sai lớn. Bạn kiểm tra theo thứ tự nào?
-A: **Kiểm cách đánh giá và miền dữ liệu trước khi đổi thuật toán.** Rà leakage, split thời gian và Pipeline; so validation theo thời gian với train để phát hiện bậc quá cao. Kiểm tuần mới có input vượt miền cũ, thay đổi mùa vụ/giá/nguồn dữ liệu hay outlier; ví dụ đuôi bậc 9 có thể vọt khi input ra ngoài vùng đã fit. Chọn lại bậc bằng development phù hợp, bổ sung dữ liệu đại diện và so baseline; không tune lặp trên test của tuần vừa báo cáo.
-WANT: Có thứ tự chẩn đoán, phân biệt overfit, ngoại suy và drift, rồi sửa quy trình bằng dữ liệu kiểm chứng.
-:::
-
-## Nối sang bài sau
-
-:::next
-[[bài:supervised-algorithms]] đã có cả [[bài:linear-regression]] và bài Polynomial này cho target số. Slide kế tiếp, 68–69, chuyển sang [[bài:logistic-regression]]: cần mô hình cho phân loại bằng xác suất và ngưỡng thay vì uốn thêm đường dự đoán đại lượng.
-:::

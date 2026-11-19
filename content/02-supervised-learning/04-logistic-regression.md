@@ -1,13 +1,129 @@
 ---
 title: Hồi quy logistic (Logistic Regression)
 order: 4
-description: "Biến điểm tuyến tính thành xác suất bằng sigmoid, tính log loss và giải thích bằng số vì sao giảm ngưỡng giúp tăng recall."
+description: "Giữ điểm tuyến tính, đưa qua sigmoid thành xác suất; tính tay xác suất và log loss, và ngưỡng đổi precision, recall."
 slides: 68-69
 needs: [linear-regression, classification-vs-regression, confusion-matrix, classification-metrics, loss-function]
 tags: [logistic-regression, sigmoid, classification, threshold, log-loss, odds, decision-boundary]
 ---
 
 ## Từ dự đoán một con số sang dự đoán một lớp
+
+:::intro Mục tiêu bài này
+- Hiểu vì sao dùng đường thẳng cho nhãn 0/1 là **sai**, và **sigmoid** sửa điều đó thế nào.
+- Tính tay xác suất và **log loss** của một mẫu.
+- Hiểu ngưỡng đổi precision và recall, và đọc được trọng số của model.
+:::
+
+Dự đoán "đậu hay rớt" từ số giờ học. Nếu dùng hồi quy tuyến tính, đầu ra là một con số bất kỳ, có thể là −0.3 hoặc 1.4: không đọc được như xác suất. Ta giữ ý tưởng **điểm tuyến tính** `z = w·x + b` nhưng đưa nó qua hàm **sigmoid** để ép về khoảng (0, 1):
+
+> p = σ(z) = 1 / (1 + e^(−z))
+
+p là **xác suất thuộc lớp 1**. Ta đoán lớp 1 khi p ≥ ngưỡng (mặc định 0.5, tức z ≥ 0).
+
+:::steps
+Giả sử w = 1.2 và b = −6, x là số giờ học. Điểm z = 1.2·x − 6.
+@step
+**x = 5 giờ:** z = 0, p = σ(0) = **0.5**. Đây là điểm chuyển: đúng ngưỡng.
+@step
+**x = 7 giờ:** z = 2.4, p = σ(2.4) = **0.917**. Học nhiều: gần như chắc đậu.
+@step
+**x = 3 giờ:** z = −2.4, p = σ(−2.4) = **0.083**. Học ít: gần như chắc rớt.
+@step
+**Log loss** (loss để học): với sinh viên **đã đậu (y = 1)**, nếu model cho p = 0.917 thì loss = −ln(0.917) = **0.087** (nhỏ, đoán đúng và tự tin); nếu model cho p = 0.083 thì loss = −ln(0.083) = **2.487** (lớn, đoán sai và tự tin). Log loss phạt nặng việc **tự tin mà sai**.
+:::
+
+Hãy tự kéo: `w` làm đường dốc hơn, `b` dịch điểm chuyển, ngưỡng đổi precision và recall.
+
+:::widget logistic-play
+:::
+
+:::predict
+Ta **hạ** ngưỡng từ 0.5 xuống 0.3. Model sẽ báo "đậu" nhiều hơn hay ít hơn, và recall (bắt được bao nhiêu sinh viên thật sự đậu) đổi thế nào?
+@answer
+Báo "đậu" **nhiều hơn**; recall **tăng** (hoặc giữ nguyên) vì bắt thêm sinh viên đậu, còn precision thường **giảm** vì kéo thêm sinh viên rớt vào. Đây là đánh đổi ngưỡng ở [[bài:classification-metrics]]. Hạ ngưỡng khi cần bắt được càng nhiều ca Dương càng tốt.
+:::
+
+## Đọc model và dùng nó
+
+- **Trọng số đọc được:** `w > 0` đẩy về lớp 1, `w < 0` đẩy về lớp 0. Sau khi **scale** các cột, so độ lớn trọng số giữa các cột mới có nghĩa. Ở Project Bước 4: Glucose có trọng số lớn nhất (1.071); bệnh nhân đầu tiên của bộ test có z = −0.958 và p = 0.277, nên bị đoán không bệnh.
+- **Đường phân tách là thẳng** (z = 0): Logistic bắt được ranh giới tuyến tính; ranh giới cong cần thêm feature hoặc model khác.
+- **Ưu:** nhanh, cho xác suất, hệ số đọc được. **Nhược:** ranh giới tuyến tính, cần scale, regularization mặc định.
+- **Khác với Linear Regression:** đầu ra là xác suất, loss là log loss, và đây là **phân loại** dù tên có chữ "regression".
+
+:::ck
+Vì sao không dùng hồi quy tuyến tính thẳng cho nhãn 0/1, chỉ cắt ở 0.5?
+@answer
+Một điểm **ngoại lai** (ví dụ một người học 100 giờ) kéo cả đường nghiêng đi, làm đổi điểm cắt 0.5 cho những người ở vùng giữa. Đầu ra cũng vượt ngoài [0, 1]. Sigmoid giới hạn đầu ra và log loss không để một điểm xa phá cách phân chia.
+:::
+
+:::slides 68-69 | Slide 68–69: Logistic Regression
+:::
+
+:::card Logistic Regression
+- **z = w·x + b**, rồi **p = σ(z) = 1 / (1 + e^(−z))**: xác suất lớp 1.
+- **Đoán lớp 1 khi p ≥ ngưỡng**; hạ ngưỡng tăng recall, giảm precision.
+- **Log loss** phạt nặng tự tin mà sai (0.087 so với 2.487 trong ví dụ).
+- **Trọng số đọc được** sau khi scale; ranh giới là một đường thẳng.
+:::
+
+## Câu hỏi tự kiểm tra
+
+:::quiz
+@tier A | Hiểu bài
+Q: Tính φ(−2), rồi dự đoán ở ngưỡng 0.5 và 0.1.
+A: **p≈0.119203; lớp lần lượt 0 và 1.** Tính e²≈7.389056, cộng 1 được 8.389056, lấy nghịch đảo. So xác suất chưa làm tròn với ngưỡng; đổi ngưỡng không đổi p.
+Q: Với z=−4+x, x=6, hãy đi đủ các bước ra class ở t=0.9.
+A: **Dự đoán lớp 0.** z=−4+6=2; e⁻²≈0.135335, p=1/(1+0.135335)≈0.880797. Vì p<0.9 nên lớp 0, dù ở ngưỡng 0.5 sẽ là lớp 1.
+Q: Trong bảng mười hồ sơ, hạ ngưỡng từ 0.5 xuống 0.3 thay đổi những ô nào?
+A: **TP từ 3 lên 4, FP từ 2 lên 3, FN từ 2 xuống 1, TN từ 3 xuống 2.** F chuyển FN→TP, G chuyển TN→FP; recall từ 3/5=0.6 lên 4/5=0.8, precision từ 3/5=0.6 xuống 4/7≈0.571429.
+Q: p=0.8 có odds bao nhiêu? Hệ số 0.7 nhân odds lên bao nhiêu lần?
+A: **Odds=4, hệ số cho hệ số nhân khoảng 2.013753.** Lấy 0.8/(1−0.8)=4, rồi e^0.7≈2.013753; không nhân trực tiếp p với số đó. Ví dụ bắt đầu odds=1 thì p mới≈0.668188.
+Q: y=0, p=0.99 thì log loss bao nhiêu? Vì sao nhãn đúng chưa chắc loss bằng 0?
+A: **Loss≈4.605170.** Lấy −ln(1−0.99)=−ln(0.01). Log loss chấm xác suất của kết quả thật, không chỉ nhãn sau ngưỡng: mẫu y=1, p=0.5 được gọi đúng theo ≥ nhưng vẫn có loss≈0.693147.
+@tier B | Phỏng vấn lý thuyết
+Q: **B1.** Phân biệt Linear Regression và Logistic Regression.
+A: **Linear dự đoán đại lượng; Logistic dùng xác suất để phân loại.** Cùng predictor z tuyến tính, nhưng Linear/OLS giữ z và tối ưu SSE/MSE, Logistic qua sigmoid và học bằng log loss, thường kèm penalty. Ví dụ giá nhà dùng MAE/RMSE; có bán được nhà không dùng precision/recall và ngưỡng theo chi phí. Hệ số và rủi ro có phần tương ứng, không giống hệt.
+EN: Both share a linear predictor, but OLS predicts a numeric response using squared loss, whereas binary Logistic Regression models a class probability using a sigmoid and log loss.
+Q: **B2.** Vì sao có chữ Regression mà lại là Classification?
+A: **Vì mô hình hồi quy log-odds, còn target là lớp.** ln(p/(1−p)) được mô tả bằng β0+β·x; sigmoid đưa về xác suất rồi ngưỡng tạo class. Ví dụ p=0.8 có thể dẫn tới “đậu”, không phải điểm thi 0.8.
+EN: The regression structure describes log-odds as a linear function of predictors; the modeled outcome is categorical, so the task is classification.
+Q: **B3.** Sigmoid dùng để làm gì, có tính chất gì?
+A: **Đưa điểm thực z vào (0,1) để mô hình hóa xác suất.** Hàm tăng, φ(0)=0.5, φ(−z)=1−φ(z), tiệm cận 0/1; ngưỡng là bước riêng. Ví dụ z=2 cho p≈0.880797, nhưng nếu t=0.9 thì vẫn dự đoán lớp 0.
+EN: The sigmoid maps a real score to (0,1), is increasing, equals 0.5 at zero, and is symmetric through σ(−z)=1−σ(z); classification requires a separate decision rule.
+Q: **B4.** Giảm hay tăng threshold để tăng recall, vì sao?
+A: **Giảm threshold để recall tăng hoặc giữ trên cùng tập score.** Tập báo dương mở rộng nên TP không giảm, FN không tăng; số dương thật cố định. Ví dụ từ t=0.5 xuống 0.3 trong bài, recall 0.6→0.8 và FP 2→3; kiểm cả precision/chi phí trên validation vì precision không bảo đảm đơn điệu.
+EN: Lowering the threshold cannot reduce recall for fixed scores, since predicted positives form a superset. It can increase false positives; precision need not be monotonic.
+Q: **B5.** Vì sao Logistic thường dùng log loss thay vì MSE?
+A: **Log loss phù hợp mô hình nhãn nhị phân và cho mục tiêu lồi theo hệ số tuyến tính.** MSE ghép sigmoid nói chung không lồi, trong khi log loss còn phạt tự tin sai rất mạnh. Ví dụ y=0,p=0.99 cho loss≈4.605170; không suy ra MSE bị cấm cho mọi bài toán xác suất.
+EN: Binary log loss matches the Bernoulli likelihood and yields a convex objective for a linear logistic predictor; squared error composed with sigmoid is generally nonconvex.
+Q: **B6.** Diễn giải hệ số trong Logistic như thế nào?
+A: **Tăng feature một đơn vị làm log-odds tăng β và odds nhân e^β, giữ các feature khác cố định.** Cần nói rõ đơn vị, nhất là sau scale, và không suy nhân quả. Ví dụ β=0.7 nhân odds≈2.013753; p ban đầu 0.5 chuyển≈0.668188, không tăng 0.7.
+EN: A one-unit predictor increase adds β to log-odds and multiplies odds by exp(β), conditional on other modeled features; probability changes depend on the starting value.
+@tier C | Tình huống doanh nghiệp
+Q: **C1.** Sàng lọc bệnh hiếm cần recall cao, nhưng phòng xét nghiệm có giới hạn lượt mỗi ngày. Bạn chọn ngưỡng ra sao?
+A: **Chọn trên validation theo mục tiêu bỏ sót và năng lực xử lý, không chỉ hạ ngưỡng tối đa.** Xác định lớp dương, nhãn đáng tin và split phản ánh triển khai; so recall, precision, số FP và tổng lượt báo dương ở các ngưỡng. Hạ ngưỡng thường bắt thêm ca thật lẫn báo nhầm, nên thống nhất mức vận hành với đội chuyên môn, chốt rồi kiểm test độc lập. Không bảo đảm recall validation giữ nguyên khi tỉ lệ bệnh/dữ liệu đổi.
+WANT: Kết nối class hiếm, chi phí FN/FP và công suất thực tế; biết ngưỡng phải chọn ngoài test.
+Q: **C2.** Dự đoán khách rời bỏ để gửi ưu đãi. Team muốn dùng p để xếp hạng và gửi cho mọi khách p≥0.5. Bạn đề xuất gì?
+A: **Tách đánh giá xếp hạng khỏi chính sách gửi.** Dùng score để ưu tiên, nhưng chọn ngưỡng hoặc số khách trên validation theo ngân sách, chi phí ưu đãi và giá trị giữ khách; kiểm hiệu chuẩn nếu dùng p tính lợi ích kỳ vọng. Ví dụ khách có nguy cơ cao chưa chắc phản hồi ưu đãi; đo hiệu quả chiến dịch bằng thử nghiệm thích hợp, không coi xác suất churn là tác động nhân quả của việc gửi.
+WANT: Phân biệt ranking, quyết định theo chi phí và hiệu quả can thiệp; không mặc định 0.5 tối ưu kinh doanh.
+Q: **C3.** Duyệt khoản vay cần giải thích. Một hệ số sau StandardScaler bằng 0.7, bạn trình bày sao?
+A: **Nói một độ lệch chuẩn theo train làm odds của lớp 1 nhân khoảng 2.01, giữ biến khác cố định.** Xác nhận lớp 1 là vỡ nợ hay trả đúng hạn trước khi nói tăng/giảm rủi ro; không diễn giải thành xác suất tăng 70 điểm phần trăm. Kiểm cộng tuyến, độ ổn định theo nhóm/thời gian và quy trình dùng feature có sẵn lúc duyệt; hệ số dễ đọc không tự chứng minh công bằng hay đủ căn cứ cho quyết định thực tế.
+WANT: Giải thích đúng đơn vị, hướng class và giới hạn của hệ số; biết diễn giải model không thay thế kiểm chứng quyết định.
+Q: **C4.** Model gian lận báo accuracy 99% nhưng không bắt được vụ nào. Có nên giữ vì số cao?
+A: **Không dùng accuracy đó làm bằng chứng hữu ích.** Nếu gian lận chỉ 1%, luôn báo bình thường cũng đạt 99%, trong khi recall=0. Kiểm confusion matrix, phân bố score, precision/recall và chi phí; so baseline, thử ngưỡng trên validation và kiểm nhãn/leakage trước khi đổi model hoặc class_weight. Chốt cấu hình rồi đo test; tăng recall có thể tăng tải duyệt nhầm nên cần ngân sách xử lý.
+WANT: Nhìn ra baseline lớp đa số và thiết kế đánh giá theo giá trị phát hiện, không chỉ theo một metric tổng hợp.
+:::
+
+## Nối sang bài sau
+
+:::next
+Quay lại [[bài:supervised-algorithms]] để đặt [[bài:linear-regression]], [[bài:polynomial-regression]] và hồi quy logistic vào đúng nhóm. Tiếp theo là [[bài:svm]], bắt đầu ở slide 70: trong trường hợp tách tuyến tính, SVM hướng tới biên có khoảng cách tới các điểm gần nhất lớn nhất (maximum margin), còn Logistic học ranh giới theo log loss và regularization.
+
+Thực hành: [[bài:diabetes-first-model]] — tự gõ logistic từ csv đến prediction trên dữ liệu diabetes.
+:::
+
+## [sâu] Phần mở đầu gốc
 
 :::intro Đọc xong bài này bạn làm được
 - Gọi đúng tên **hồi quy logistic**, và giải thích vì sao đây là thuật toán phân loại.
@@ -43,7 +159,7 @@ Cả hai nằm ngoài [0,1], ngay trong miền train. Chúng vẫn là dự đo�
 
 > **EN:** An OLS fit to binary labels can predict below zero or above one even within the training range. Such values are not probabilities; clipping does not replace fitting a probabilistic classification model.
 
-## Con chuột 10 kg kéo lệch đường Linear thế nào? (ngoài slide)
+## [sâu] Con chuột 10 kg kéo lệch đường Linear thế nào? (ngoài slide)
 
 Ghi chú bổ sung của chủ repo dùng ví dụ: biết **cân nặng** của chuột, cần phân loại **không béo phì / béo phì**. Trực giác là nếu dùng một đường Linear Regression rồi cắt ở ngưỡng 0.5, một con chuột cực nặng có thể kéo lệch cả đường và làm thay đổi phân loại của con khác. Đây là cách nhìn cụ thể cho hạn chế của OLS khi đem dự đoán số áp vào nhãn 0/1.
 
@@ -129,7 +245,7 @@ for name, fitted in [("before", before), ("after", after)]:
     print(f"score(1.3 kg)={score:.6f}, obese={int(score >= 0.5)}")
 ```
 
-## Giữ điểm tuyến tính, đưa qua hàm sigmoid
+## [sâu] Giữ điểm tuyến tính, đưa qua hàm sigmoid
 
 Ta giữ phần cộng có trọng số đã học: **z** là điểm tuyến tính, bằng intercept **β0** cộng hệ số **βj** nhân feature **xj**; chỉ số j chạy từ 1 tới n, với n là số feature. Trong bài, β là hệ số đang xét; khi fit dữ liệu, ta chỉ có ước lượng của chúng. z có thể âm, dương, không bị chặn trong [0,1].
 
@@ -168,7 +284,7 @@ Trong [[slide:68]], hai nhãn y=0.3 và y=0.8 trên đường cong nên đọc l
 Ghi chú “output của Linear là input của sigmoid” đúng ở **cấu trúc phép tính z**. Khi huấn luyện Logistic, hệ số được học bằng loss phân loại, không lấy hệ số OLS đã fit nhãn 0/1 rồi giữ nguyên. Hai mô hình cùng khung tuyến tính nhưng khác mục tiêu học.
 :::
 
-## Tính sigmoid và hiểu đường phân tách
+## [sâu] Tính sigmoid và hiểu đường phân tách
 
 :::worked Năm giá trị của đường S (ngoài slide)
 Chọn z = −4, −2, 0, 2, 4 để thấy hai đuôi và tâm; làm tròn sau khi tính, không làm tròn trước khi so ngưỡng.
@@ -190,7 +306,7 @@ Sigmoid **đơn điệu tăng**: tăng z thì p tăng. Nó có tính đối xứ
 
 > **EN:** The sigmoid is increasing, symmetric around (0, 0.5), and asymptotic to zero and one. Its curved probability output still produces a linear decision boundary in the supplied feature space.
 
-## Odds và log-odds: tuyến tính ở đâu? (ngoài slide)
+## [sâu] Odds và log-odds: tuyến tính ở đâu? (ngoài slide)
 
 Ví dụ xác suất đậu p = 0.8: xác suất trượt là `1−0.8 = 0.2`. **Odds**, tức tỉ số xác suất xảy ra với không xảy ra, bằng `p/(1−p) = 0.8/0.2 = 4`: “4 so với 1”. Odds không phải xác suất; nó có thể lớn hơn 1.
 
@@ -204,7 +320,7 @@ Nếu x1 đã chuẩn hóa bằng StandardScaler, một đơn vị ở đây là
 
 > **EN:** A coefficient is an additive change in log-odds and a multiplicative change in odds, holding other modeled features fixed. It is neither a constant probability increment nor automatically a causal effect.
 
-## Tính tay dự đoán và log loss (ngoài slide)
+## [sâu] Tính tay dự đoán và log loss (ngoài slide)
 
 :::worked Một mô hình cho sẵn, chưa phải kết quả fit
 Tự soạn **z = −4 + x**, với x là giờ học. Chọn intercept −4 và slope 1 để các x chẵn dẫn tới đúng bảng sigmoid vừa tính; không tuyên bố đây là hệ số tối ưu của tám điểm OLS đầu bài.
@@ -272,7 +388,7 @@ Xác suất lớp thật tăng, loss giảm ở bước này. Một mẫu không
 
 > **EN:** For mean unregularized log loss, average the sample gradients (p−y)x, including a constant feature for the intercept. Update coefficients together from the old gradient; practical solvers need not use plain gradient descent.
 
-## Giảm hay tăng ngưỡng để tăng recall? (ngoài slide)
+## [sâu] Giảm hay tăng ngưỡng để tăng recall? (ngoài slide)
 
 Hãy tưởng tượng một máy sàng lọc: ngưỡng cao chỉ báo dương khi rất chắc; ngưỡng thấp cho nhiều hồ sơ vào nhóm cần kiểm tra hơn. Quy ước **positive** (dương) là lớp 1. Như [[bài:confusion-matrix]]: **TP** là dương thật báo dương, **FP** là âm thật báo dương, **FN** là dương thật bị bỏ sót, **TN** là âm thật báo âm.
 
@@ -321,7 +437,7 @@ Mỗi ngưỡng cho một điểm trên [[bài:roc-auc]]: trục tung TPR chính
 
 > **EN:** Choose the threshold from validation data using error costs, recall targets and operational capacity. Lock it before final test evaluation; a default of 0.5 is a convention, not a universal optimum.
 
-## Đọc từng ưu/nhược trên slide 69
+## [sâu] Đọc từng ưu/nhược trên slide 69
 
 :::compare GOOD/BAD và điều kiện đi kèm
 | Ý trên slide | Giải thích dễ hiểu và giới hạn |
@@ -342,7 +458,7 @@ Slide 69 ghi “Should not be used when the number of observations are lesser th
 
 > **EN:** Slide 69's warnings need qualification: high-dimensional problems can still be modeled with suitable regularization and validation. The linearity assumption concerns log-odds in the supplied features, and the discrete target does not make predicted probabilities discrete.
 
-## Linear và Logistic khác nhau thế nào? (ngoài slide)
+## [sâu] Linear và Logistic khác nhau thế nào? (ngoài slide)
 
 :::compare Câu hỏi phỏng vấn kinh điển
 | Trục so sánh | Linear Regression thông thường | Logistic Regression nhị phân |
@@ -364,7 +480,7 @@ Tên có chữ **regression** vì ta mô hình hóa log-odds bằng biểu thứ
 
 > **EN:** Linear and Logistic Regression share a linear predictor but differ in response model, loss, estimation and evaluation. Logistic Regression models linear log-odds for classification; shared structure does not make all robustness properties identical.
 
-## Thực hành và code sklearn (ngoài slide)
+## [sâu] Thực hành và code sklearn (ngoài slide)
 
 **Scale** feature giúp penalty không bị chi phối bởi đơn vị và hỗ trợ nhiều solver hội tụ; xem [[bài:feature-scaling]]. Fit scaler chỉ trên train, hoặc train của từng fold. **Pipeline** gói scaler và classifier để lúc predict dùng đúng mean/std đã học, tránh leakage. Accuracy có thể đánh lừa khi lớp hiếm; `class_weight` là tùy chọn đổi trọng số khi học, khác với đổi ngưỡng sau học và không thay cho đánh giá theo chi phí.
 
@@ -457,7 +573,7 @@ Mục tiêu recall 0.8 là lựa chọn minh họa, không phải chuẩn chung.
 
 Nguồn đối chiếu phần ngoài slide: [mô hình logistic và mục tiêu tối ưu](https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression), [LogisticRegression, C và solver](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html), [chọn threshold bằng validation](https://scikit-learn.org/stable/modules/classification_threshold.html).
 
-## Những bẫy dễ mắc (ngoài slide)
+## [sâu] Những bẫy dễ mắc (ngoài slide)
 
 :::pitfall Thấy chữ “hồi quy” thì dùng dự đoán giá nhà
 Logistic Regression là bộ phân loại trong phạm vi bài này. Giá nhà liên tục cần regressor; p=0.8 là xác suất lớp 1, không phải giá bằng 0.8.
@@ -488,72 +604,3 @@ Ngoài slide: khi dữ liệu tách hoàn toàn và không regularization, tối
 :::
 
 > **EN:** Keep task definition, threshold choice, calibration, imbalance, preprocessing and coefficient interpretation separate. Perfect separation can make unregularized coefficient estimates diverge.
-
-## Tóm tắt 1 phút
-
-:::recap
-- Hồi quy logistic (Logistic Regression) dùng cho classification: z tuyến tính → sigmoid → p → so ngưỡng → class.
-- φ là ký hiệu sigmoid trên slide; φ(0)=0.5, tăng theo z, có miền (0,1).
-- Ở ngưỡng 0.5, ranh giới là z=0; đường p cong nhưng ranh giới tuyến tính theo feature.
-- Log-odds = ln(p/(1−p)) = z; tăng xj một đơn vị nhân odds với e^βj.
-- Học bằng log loss, không fit OLS rồi gắn sigmoid; năm điểm ví dụ có loss trung bình 0.196661.
-- Hạ ngưỡng → TP không giảm, FN không tăng → recall tăng hoặc giữ; precision thường giảm nhưng không bắt buộc.
-- Chọn ngưỡng bằng validation theo chi phí, không dùng test để tune; AUC nhận score/xác suất.
-- Scale trong train, kiểm lớp hiếm và xác suất hiệu chuẩn; regularization không thay đánh giá độc lập.
-:::
-
-## Câu hỏi tự kiểm tra
-
-:::quiz
-@tier A | Hiểu bài
-Q: Tính φ(−2), rồi dự đoán ở ngưỡng 0.5 và 0.1.
-A: **p≈0.119203; lớp lần lượt 0 và 1.** Tính e²≈7.389056, cộng 1 được 8.389056, lấy nghịch đảo. So xác suất chưa làm tròn với ngưỡng; đổi ngưỡng không đổi p.
-Q: Với z=−4+x, x=6, hãy đi đủ các bước ra class ở t=0.9.
-A: **Dự đoán lớp 0.** z=−4+6=2; e⁻²≈0.135335, p=1/(1+0.135335)≈0.880797. Vì p<0.9 nên lớp 0, dù ở ngưỡng 0.5 sẽ là lớp 1.
-Q: Trong bảng mười hồ sơ, hạ ngưỡng từ 0.5 xuống 0.3 thay đổi những ô nào?
-A: **TP từ 3 lên 4, FP từ 2 lên 3, FN từ 2 xuống 1, TN từ 3 xuống 2.** F chuyển FN→TP, G chuyển TN→FP; recall từ 3/5=0.6 lên 4/5=0.8, precision từ 3/5=0.6 xuống 4/7≈0.571429.
-Q: p=0.8 có odds bao nhiêu? Hệ số 0.7 nhân odds lên bao nhiêu lần?
-A: **Odds=4, hệ số cho hệ số nhân khoảng 2.013753.** Lấy 0.8/(1−0.8)=4, rồi e^0.7≈2.013753; không nhân trực tiếp p với số đó. Ví dụ bắt đầu odds=1 thì p mới≈0.668188.
-Q: y=0, p=0.99 thì log loss bao nhiêu? Vì sao nhãn đúng chưa chắc loss bằng 0?
-A: **Loss≈4.605170.** Lấy −ln(1−0.99)=−ln(0.01). Log loss chấm xác suất của kết quả thật, không chỉ nhãn sau ngưỡng: mẫu y=1, p=0.5 được gọi đúng theo ≥ nhưng vẫn có loss≈0.693147.
-@tier B | Phỏng vấn lý thuyết
-Q: **B1.** Phân biệt Linear Regression và Logistic Regression.
-A: **Linear dự đoán đại lượng; Logistic dùng xác suất để phân loại.** Cùng predictor z tuyến tính, nhưng Linear/OLS giữ z và tối ưu SSE/MSE, Logistic qua sigmoid và học bằng log loss, thường kèm penalty. Ví dụ giá nhà dùng MAE/RMSE; có bán được nhà không dùng precision/recall và ngưỡng theo chi phí. Hệ số và rủi ro có phần tương ứng, không giống hệt.
-EN: Both share a linear predictor, but OLS predicts a numeric response using squared loss, whereas binary Logistic Regression models a class probability using a sigmoid and log loss.
-Q: **B2.** Vì sao có chữ Regression mà lại là Classification?
-A: **Vì mô hình hồi quy log-odds, còn target là lớp.** ln(p/(1−p)) được mô tả bằng β0+β·x; sigmoid đưa về xác suất rồi ngưỡng tạo class. Ví dụ p=0.8 có thể dẫn tới “đậu”, không phải điểm thi 0.8.
-EN: The regression structure describes log-odds as a linear function of predictors; the modeled outcome is categorical, so the task is classification.
-Q: **B3.** Sigmoid dùng để làm gì, có tính chất gì?
-A: **Đưa điểm thực z vào (0,1) để mô hình hóa xác suất.** Hàm tăng, φ(0)=0.5, φ(−z)=1−φ(z), tiệm cận 0/1; ngưỡng là bước riêng. Ví dụ z=2 cho p≈0.880797, nhưng nếu t=0.9 thì vẫn dự đoán lớp 0.
-EN: The sigmoid maps a real score to (0,1), is increasing, equals 0.5 at zero, and is symmetric through σ(−z)=1−σ(z); classification requires a separate decision rule.
-Q: **B4.** Giảm hay tăng threshold để tăng recall, vì sao?
-A: **Giảm threshold để recall tăng hoặc giữ trên cùng tập score.** Tập báo dương mở rộng nên TP không giảm, FN không tăng; số dương thật cố định. Ví dụ từ t=0.5 xuống 0.3 trong bài, recall 0.6→0.8 và FP 2→3; kiểm cả precision/chi phí trên validation vì precision không bảo đảm đơn điệu.
-EN: Lowering the threshold cannot reduce recall for fixed scores, since predicted positives form a superset. It can increase false positives; precision need not be monotonic.
-Q: **B5.** Vì sao Logistic thường dùng log loss thay vì MSE?
-A: **Log loss phù hợp mô hình nhãn nhị phân và cho mục tiêu lồi theo hệ số tuyến tính.** MSE ghép sigmoid nói chung không lồi, trong khi log loss còn phạt tự tin sai rất mạnh. Ví dụ y=0,p=0.99 cho loss≈4.605170; không suy ra MSE bị cấm cho mọi bài toán xác suất.
-EN: Binary log loss matches the Bernoulli likelihood and yields a convex objective for a linear logistic predictor; squared error composed with sigmoid is generally nonconvex.
-Q: **B6.** Diễn giải hệ số trong Logistic như thế nào?
-A: **Tăng feature một đơn vị làm log-odds tăng β và odds nhân e^β, giữ các feature khác cố định.** Cần nói rõ đơn vị, nhất là sau scale, và không suy nhân quả. Ví dụ β=0.7 nhân odds≈2.013753; p ban đầu 0.5 chuyển≈0.668188, không tăng 0.7.
-EN: A one-unit predictor increase adds β to log-odds and multiplies odds by exp(β), conditional on other modeled features; probability changes depend on the starting value.
-@tier C | Tình huống doanh nghiệp
-Q: **C1.** Sàng lọc bệnh hiếm cần recall cao, nhưng phòng xét nghiệm có giới hạn lượt mỗi ngày. Bạn chọn ngưỡng ra sao?
-A: **Chọn trên validation theo mục tiêu bỏ sót và năng lực xử lý, không chỉ hạ ngưỡng tối đa.** Xác định lớp dương, nhãn đáng tin và split phản ánh triển khai; so recall, precision, số FP và tổng lượt báo dương ở các ngưỡng. Hạ ngưỡng thường bắt thêm ca thật lẫn báo nhầm, nên thống nhất mức vận hành với đội chuyên môn, chốt rồi kiểm test độc lập. Không bảo đảm recall validation giữ nguyên khi tỉ lệ bệnh/dữ liệu đổi.
-WANT: Kết nối class hiếm, chi phí FN/FP và công suất thực tế; biết ngưỡng phải chọn ngoài test.
-Q: **C2.** Dự đoán khách rời bỏ để gửi ưu đãi. Team muốn dùng p để xếp hạng và gửi cho mọi khách p≥0.5. Bạn đề xuất gì?
-A: **Tách đánh giá xếp hạng khỏi chính sách gửi.** Dùng score để ưu tiên, nhưng chọn ngưỡng hoặc số khách trên validation theo ngân sách, chi phí ưu đãi và giá trị giữ khách; kiểm hiệu chuẩn nếu dùng p tính lợi ích kỳ vọng. Ví dụ khách có nguy cơ cao chưa chắc phản hồi ưu đãi; đo hiệu quả chiến dịch bằng thử nghiệm thích hợp, không coi xác suất churn là tác động nhân quả của việc gửi.
-WANT: Phân biệt ranking, quyết định theo chi phí và hiệu quả can thiệp; không mặc định 0.5 tối ưu kinh doanh.
-Q: **C3.** Duyệt khoản vay cần giải thích. Một hệ số sau StandardScaler bằng 0.7, bạn trình bày sao?
-A: **Nói một độ lệch chuẩn theo train làm odds của lớp 1 nhân khoảng 2.01, giữ biến khác cố định.** Xác nhận lớp 1 là vỡ nợ hay trả đúng hạn trước khi nói tăng/giảm rủi ro; không diễn giải thành xác suất tăng 70 điểm phần trăm. Kiểm cộng tuyến, độ ổn định theo nhóm/thời gian và quy trình dùng feature có sẵn lúc duyệt; hệ số dễ đọc không tự chứng minh công bằng hay đủ căn cứ cho quyết định thực tế.
-WANT: Giải thích đúng đơn vị, hướng class và giới hạn của hệ số; biết diễn giải model không thay thế kiểm chứng quyết định.
-Q: **C4.** Model gian lận báo accuracy 99% nhưng không bắt được vụ nào. Có nên giữ vì số cao?
-A: **Không dùng accuracy đó làm bằng chứng hữu ích.** Nếu gian lận chỉ 1%, luôn báo bình thường cũng đạt 99%, trong khi recall=0. Kiểm confusion matrix, phân bố score, precision/recall và chi phí; so baseline, thử ngưỡng trên validation và kiểm nhãn/leakage trước khi đổi model hoặc class_weight. Chốt cấu hình rồi đo test; tăng recall có thể tăng tải duyệt nhầm nên cần ngân sách xử lý.
-WANT: Nhìn ra baseline lớp đa số và thiết kế đánh giá theo giá trị phát hiện, không chỉ theo một metric tổng hợp.
-:::
-
-## Nối sang bài sau
-
-:::next
-Quay lại [[bài:supervised-algorithms]] để đặt [[bài:linear-regression]], [[bài:polynomial-regression]] và hồi quy logistic vào đúng nhóm. Tiếp theo là [[bài:svm]], bắt đầu ở slide 70: trong trường hợp tách tuyến tính, SVM hướng tới biên có khoảng cách tới các điểm gần nhất lớn nhất (maximum margin), còn Logistic học ranh giới theo log loss và regularization.
-
-Thực hành: [[bài:diabetes-first-model]] — tự gõ logistic từ csv đến prediction trên dữ liệu diabetes.
-:::

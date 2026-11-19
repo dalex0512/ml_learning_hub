@@ -1,13 +1,135 @@
 ---
 title: Cây quyết định (Decision Tree)
 order: 7
-description: "Đọc cây như luật nếu–thì, tính lại Gini từng nhánh của slide 77 và chọn độ sâu bằng CV để tránh học thuộc train."
+description: "Chọn câu hỏi làm các nhóm con thuần hơn bằng Gini có trọng số; cây sâu học thuộc, cây không cần scale."
 slides: 76-77
 needs: [logistic-regression, k-fold-cross-validation, classification-metrics]
 tags: [decision-tree, gini, entropy, impurity, overfitting, pruning, tree-depth]
 ---
 
 ## Câu hỏi nào nên hỏi trước?
+
+:::intro Mục tiêu bài này
+- Đọc một cây quyết định như một chuỗi câu hỏi và luật "nếu... thì...".
+- Hiểu cách chọn câu hỏi: làm hai nhóm con **thuần hơn**, đo bằng **Gini có trọng số**.
+- Hiểu vì sao cây không giới hạn **học thuộc**, và vì sao cây không cần scale.
+:::
+
+Trò "20 câu hỏi": để đoán một vật, ta hỏi các câu có/không, mỗi câu thu hẹp khả năng. Cây quyết định làm vậy: mỗi **nút** hỏi một câu về một feature ("Student = Yes?"), mỗi **nhánh** là một câu trả lời, mỗi **lá** đưa ra dự đoán. Đi từ **gốc** xuống lá là đọc ra một luật. Câu hỏi quan trọng: **hỏi câu nào trước?**
+
+Ý tưởng: chọn câu hỏi làm hai (hay nhiều) nhóm con **thuần nhất nhất**, tức mỗi nhóm có phần lớn cùng nhãn. Đo độ không thuần bằng **Gini**:
+
+> Gini = 1 − Σ pᵢ² (pᵢ là tỉ lệ lớp i trong nút)
+
+Nút toàn một lớp có Gini = 0 (thuần); nút 50/50 hai lớp có Gini = 0.5. Một cách chia được chấm bằng **Gini có trọng số** = tổng (số người trong nhánh / tổng) × Gini của nhánh. **Gini càng nhỏ càng tốt.**
+
+:::steps
+Bộ 14 người của slide 77: 9 người mua (Yes), 5 người không (No). Thử chia theo **Age** (Youth, Middle age, Senior).
+@step
+**Youth:** 2 Yes, 3 No (5 người): Gini = 1 − (0.4² + 0.6²) = **0.48**. **Middle age:** 4 Yes, 0 No: Gini = **0** (thuần). **Senior:** 3 Yes, 2 No: Gini = **0.48**.
+@step
+**Gini có trọng số** = (5 × 0.48 + 4 × 0 + 5 × 0.48) / 14 = **0.343**.
+@step
+Làm tương tự cho các feature khác: **Income 0.440**, **Student 0.367**, **Credit Rating 0.429**. Age có Gini có trọng số **nhỏ nhất (0.343)**, nên chọn làm gốc. Nhánh Middle age đã thuần, thành lá.
+:::
+
+Hãy tự tính: chọn từng feature và xem Gini của nhánh và Gini có trọng số.
+
+:::widget gini-calc
+:::
+
+:::predict
+Một câu hỏi tạo ra một nhánh rất thuần nhưng chỉ có **1 mẫu**, và một nhánh còn lại rất lớn và lẫn lộn. Câu hỏi đó có chắc là tốt không?
+@answer
+**Chưa chắc.** Gini **có trọng số** tính theo số mẫu của từng nhánh, nên nhánh nhỏ xíu rất thuần đóng góp rất ít, còn nhánh lớn lẫn lộn kéo Gini tổng lên. "Chia càng lệch càng tốt" nghĩa chính xác là: các nhóm con **thuần, tính theo trọng số số mẫu**, không chỉ một nhánh đẹp.
+:::
+
+## Cây sâu thuộc bài, không phải hiểu bài
+
+Cây tiếp tục chia đến khi mọi lá thuần thì có thể **thuộc lòng** dữ liệu train. Ở Project Bước 2, cây không giới hạn đạt **100% trên train** nhưng chỉ **74.7% trên test**. Kiểm soát bằng: giới hạn độ sâu (`max_depth`), số mẫu tối thiểu mỗi lá, hoặc cắt tỉa; chọn bằng cross-validation ([[bài:k-fold-cross-validation]]).
+
+## Thực hành
+
+- **Không cần scale:** cây chỉ so một feature với một ngưỡng, scale không đổi thứ tự nên không đổi cách chia ([[bài:feature-scaling]]).
+- **Dễ đọc** (thành luật), xử lý được cả số lẫn nhóm; **nhược:** dễ học thuộc, **bất ổn** (đổi ít dữ liệu, cây đổi nhiều), ranh giới vuông góc trục, **không ngoại suy**.
+- **Cây hồi quy:** lá dự đoán **trung bình** target của các mẫu trong lá; dự đoán là hàm bậc thang.
+- Thuật toán học là **tham lam**: mỗi nút chọn cách chia tốt nhất lúc đó, không đảm bảo cây tối ưu toàn cục. Entropy là cách đo độ không thuần khác, cho cây tương tự.
+
+:::ck
+Một cây không giới hạn độ sâu đạt 99% trên train và 70% trên test. Bạn chỉnh gì?
+@answer
+Giới hạn độ sâu hoặc số mẫu tối thiểu mỗi lá (hoặc cắt tỉa), chọn bằng cross-validation. Hoặc dùng [[bài:random-forest]] (nhiều cây bỏ phiếu) để giảm học thuộc.
+:::
+
+:::slides 76-77 | Slide 76–77: Decision Tree và Gini
+:::
+
+:::card Decision Tree
+- **Nút, nhánh, lá**; đi từ gốc xuống lá đọc ra luật.
+- **Gini = 1 − Σ pᵢ²** (0 là thuần); chọn cách chia có **Gini có trọng số nhỏ nhất** (Age 0.343, Student 0.367, Credit 0.429, Income 0.440).
+- **Cây không giới hạn học thuộc** (100% train so với 74.7% test); kiểm soát bằng max_depth, CV.
+- **Không cần scale**; dễ đọc nhưng bất ổn, không ngoại suy.
+:::
+
+## Câu hỏi tự kiểm tra
+
+:::quiz
+@tier A | Hiểu bài
+Q: Nút 3 Yes/2 No có Gini bao nhiêu? Nút 4 Yes/0 No thì sao?
+A: **0.48 và 0.** Nút đầu có p=3/5 và 2/5 nên 1−9/25−4/25=12/25=0.48; nút sau 1−1²−0²=0. Ví dụ Middle age trên slide là trường hợp thuần, không phải Gini càng lớn càng tốt.
+Q: Age chia 5/4/5 mẫu, Gini 0.48/0/0.48. Tính Gini split và đọc mũi tên Best.
+A: **12/35≈0.342857, làm tròn 0.343; Best chỉ Age.** Tính (5/14)×0.48+(4/14)×0+(5/14)×0.48. Age có số tổng thấp nhất, nhưng khi so cả bốn bảng phải giữ chú thích Credit có tổng nhãn không nhất quán.
+Q: Vì sao không chọn cách chia có một lá thuần một mẫu trong phản ví dụ?
+A: **Vì phần còn lại lớn và còn lẫn nhiều.** Nhánh 1 mẫu G=0 cộng nhánh 9 mẫu G=40/81 cho split 4/9≈0.444444; hai nhánh 5 mẫu với G=0.32 mỗi nhánh cho 0.32, tốt hơn. Phải dùng trọng số chứ không chỉ chọn nhánh đẹp nhất.
+Q: Mẫu salary=60,000, commute=60 phút, coffee=1 đi qua luật slide 76 ra sao?
+A: **Nhận offer.** 60,000≥50,000 nên qua root; 60 phút không “quá 1 giờ”, đi nhánh No ở commute; coffee=1 nên Accept. Đây là đọc luật minh họa, không phải chứng minh root salary được tối ưu từ dataset gốc.
+Q: Đọc bảng độ sâu: chọn depth nào? Vì sao không chọn None?
+A: **Chọn 5 trong lưới theo CV.** CV 0.89 cao nhất; None tuy train 1.0 nhưng CV 0.86. Giữ test sau lựa chọn; một lần chia/cấu hình không chứng minh depth=5 tốt cho mọi dataset.
+Q: Cây hồi quy hai lá trong bài dự đoán tại x=20 bằng bao nhiêu?
+A: **26/3≈8.666667.** x=20 đi vào lá phải chứa target 8/8/10, mean=26/3. Cây nhận input ngoài miền nhưng không tự kéo dài xu hướng tăng; đó là giới hạn ngoại suy cần kiểm khi triển khai.
+@tier B | Phỏng vấn lý thuyết
+Q: **B1.** How does a decision tree choose a split?
+A: **Chọn giảm impurity lớn nhất ở nút hiện tại trong các split hợp lệ.** Tính impurity con có trọng số, so trên cùng parent, rồi lặp ở con; đây là greedy nên không bảo đảm cây tối ưu toàn cục. Ví dụ Age có weighted Gini≈0.343 thấp hơn Student≈0.367 trên các bảng có cùng tổng nhãn.
+EN: A decision tree greedily selects a valid split that maximizes impurity reduction at the current node, using sample-weighted child impurities rather than a globally optimal tree search.
+Q: **B2.** What is Gini impurity?
+A: **Là mức lẫn class 1−Σp_i² trong một nút.** Thuần thì 0, phân bố đều thì lớn nhất; binary trần 0.5, C class trần 1−1/C. Ví dụ 50/50 có G=0.5, không có nghĩa accuracy bằng 50% trong mọi model.
+EN: Gini impurity is one minus the sum of squared class proportions. It is zero for a pure node and largest for equal proportions, with maximum 1−1/C for C classes.
+Q: **B3.** How do you prevent overfitting in a decision tree?
+A: **Giới hạn độ phức tạp và chọn bằng validation/CV.** Thử max_depth, min_samples_leaf/min_samples_split hoặc ccp_alpha, giữ tiền xử lý trong fold và test cuối. Ví dụ depth=5 thắng CV cây không giới hạn trong demo dù train error cao hơn; không chữa bằng cách tune lặp trên test.
+EN: Control depth and node sizes or apply cost-complexity pruning, select the procedure on validation folds, and reserve test data for final evaluation.
+Q: **B4.** Do decision trees need feature scaling?
+A: **CART dạng này thường không cần scale vì split theo ngưỡng từng cột.** Đổi đơn vị theo tỉ lệ dương giữ thứ tự và ngưỡng tương ứng, khác KNN/SVM dùng hình học khoảng cách. Vẫn phải encode categorical/kiểm missing và tránh leakage; scale không thay việc hạn chế depth.
+EN: Standard CART trees usually do not require feature scaling because they split individual features by thresholds. This does not remove encoding, missing-data or validation requirements.
+Q: **B5.** Gini vs entropy: có gì khác?
+A: **Cả hai đo độ không thuần nhưng dùng hàm khác nhau.** Gini dùng bình phương tỉ lệ, entropy dùng −p log2 p; tối ưu reduction trên cùng parent. Ví dụ binary 50/50 có Gini 0.5 và entropy 1, không so trực tiếp hai giá trị như cùng đơn vị; split được chọn có thể trùng hoặc khác.
+EN: Gini and entropy are alternative impurity measures based on squared proportions and logarithms respectively. Their numerical scales differ and they need not rank every candidate split identically.
+Q: **B6.** Why is a decision tree unstable?
+A: **Vì đổi một split sớm có thể đổi toàn bộ các split phía dưới.** Những ứng viên gần điểm nhau dễ đổi thứ hạng khi thêm/bớt mẫu, nhất là cây sâu. Ví dụ nhãn nhiễu làm một gốc đổi có thể kéo theo nhiều luật khác; forest sẽ dùng đa dạng cây để giảm biến động, không hứa triệt tiêu bias hay leakage.
+EN: Small data changes can alter an early greedy split and propagate throughout the tree. Deep trees can therefore have high variance; averaging diverse trees addresses some of that variability.
+@tier C | Tình huống doanh nghiệp
+Q: **C1.** Duyệt khoản vay cần giải thích luật cho người dùng. Có chọn cây là xong không?
+A: **Cây nhỏ là ứng viên dễ đọc, nhưng luật đọc được chưa đủ để quyết định đáng tin.** Chọn depth bằng validation, kiểm feature có sẵn lúc duyệt, lỗi theo nhóm và độ ổn định; phối hợp yêu cầu giải thích với người chịu trách nhiệm quyết định. Ví dụ luật “thu nhập vượt ngưỡng” học từ mẫu lệch không tự chứng minh nhân quả/công bằng; giữ test độc lập và theo dõi thay đổi dữ liệu.
+WANT: Phân biệt khả năng đọc luật với chất lượng, tính hợp lệ của feature và trách nhiệm kiểm chứng quyết định.
+Q: **C2.** Cây train 100% nhưng tuần sau sai nhiều. Bạn làm gì trước?
+A: **Kiểm split/leakage và khoảng cách giữa train với validation trước khi tăng độ sâu.** Rà biến biết sau kết quả, thời gian/nhóm lặp, encoding/imputation; so cây đơn giản và depth/leaf constraints trên validation phù hợp. Ví dụ cây None đạt train 1.0 nhưng thua depth=5 trên CV; nếu tuần mới đổi phân bố thì còn phải kiểm drift, không quy hết cho overfit.
+WANT: Chẩn đoán có thứ tự, phân biệt ghi nhớ, leakage và thay đổi phân bố; không sửa theo test đã xem nhiều lần.
+Q: **C3.** Dữ liệu có số, category dạng chữ và NaN. Cây có cần tiền xử lý không?
+A: **Có, cần pipeline phù hợp với loại dữ liệu và phiên bản estimator.** Sklearn CART không tự biến mọi chuỗi nominal thành nhánh nhóm; encode có kiểm chứng, kiểm native NaN đúng cấu hình hoặc dùng imputer fit trong fold. Ví dụ probe numeric NaN với gini/best chạy được không chứng minh toàn bộ bảng chữ/thiếu hợp lệ; tránh fit encoder/imputer trên test.
+WANT: Không nhầm “ít cần scale” với “không cần tiền xử lý”; biết kiểm giới hạn thư viện và leakage.
+Q: **C4.** Cây fraud accuracy rất cao nhưng bỏ sót class hiếm. Có dựa vào Gini train để kết luận tốt không?
+A: **Không, impurity dùng học split không thay metric quyết định.** Kiểm confusion matrix/precision/recall và chi phí, so baseline class đa số trên validation theo thời gian; cân nhắc class_weight và cấu hình depth/leaf có kiểm chứng. Ví dụ nhiều lá toàn class bình thường vẫn có thể bỏ sót fraud; chốt chính sách và cấu hình trước test cuối.
+WANT: Liên hệ mất cân bằng với tiêu chí học và mục tiêu vận hành, thay vì chỉ nhìn accuracy/impurity train.
+:::
+
+## Nối sang bài sau
+
+:::next
+Một cây có thể đổi nhiều khi dữ liệu thay nhẹ. [[bài:random-forest]] kết hợp nhiều cây được tạo khác nhau để giảm biến động; bài tiếp theo giải thích bootstrap, feature ngẫu nhiên và vì sao “70% dữ liệu” không phải mặc định của sklearn.
+
+Thực hành: [[bài:diabetes-evaluate-improve]] — so tree/forest với logistic và kiểm thực nghiệm việc không cần scale.
+:::
+
+## [sâu] Phần mở đầu gốc
 
 :::intro Đọc xong bài này bạn làm được
 - Đi từ gốc xuống lá để dự đoán bằng chuỗi luật nếu–thì.
@@ -30,7 +152,7 @@ tags: [decision-tree, gini, entropy, impurity, overfitting, pruning, tree-depth]
 Bảng nhận việc, entropy, ngưỡng số, code/CV, overfit, hồi quy và các hình matplotlib dưới đây là **bổ sung ngoài slide**; số tự soạn được ghi rõ. Bảng đếm Gini thì chép đúng slide 77, kể cả chỗ không nhất quán, rồi tính lại bằng Python.
 :::
 
-## Đi từ root tới leaf: đọc luật trước khi học luật
+## [sâu] Đi từ root tới leaf: đọc luật trước khi học luật
 
 **Node (nút)** là vị trí trên cây. **Root node (nút gốc)** là câu hỏi đầu; **decision/internal node (nút quyết định/nút trong)** chứa câu hỏi tiếp; **branch (nhánh)** là kết quả của câu hỏi; **leaf node (nút lá)** đưa ra dự đoán. **Split** là phép chia mẫu vào các nhánh. **Depth (độ sâu)** đếm số cạnh từ gốc, gốc có depth 0.
 
@@ -67,7 +189,7 @@ Salary tính bằng USD theo ví dụ; commute bằng phút; coffee 1=có, 0=kh�
 **E:** 55,000≥50,000 → đi tiếp; 45>60 là sai → hỏi coffee; coffee=1 → **nhận**. **G:** 65,000≥50,000 → đi tiếp; 90>60 đúng → **từ chối ngay**, không cần đọc coffee. D có salary đúng ngưỡng vẫn đi nhánh “ít nhất”; F có commute đúng 60 phút không phải “quá 1 giờ”.
 :::
 
-## “Chia càng lệch càng tốt” nghĩa chính xác là gì?
+## [sâu] “Chia càng lệch càng tốt” nghĩa chính xác là gì?
 
 **Impurity (độ không thuần)** đo mức lẫn nhãn **bên trong một nút**. Nhóm toàn Yes hoặc toàn No là thuần; nhóm Yes/No gần ngang nhau là lẫn. Câu hỏi tốt tạo các nhóm con thuần hơn, tính trên **tất cả các nhánh với trọng số số mẫu**. Không phải chia sao cho kích thước hai nhánh chênh nhau nhiều nhất, cũng không phải chỉ nhìn một nhánh rất đẹp.
 
@@ -112,7 +234,7 @@ Tự soạn nút cha 10 mẫu, 5 Yes/5 No, G_parent=0.5. Hai câu hỏi khác nh
 Chọn **cách 2** vì 0.32<0.444444, dù nó không có nhánh nào thuần tuyệt đối. Gain lần lượt `0.5−4/9≈0.055556` và `0.5−0.32=0.18`.
 :::
 
-## Tính lại toàn bộ Gini của slide 77
+## [sâu] Tính lại toàn bộ Gini của slide 77
 
 :::worked Age: mũi tên Best chỉ vào đây
 Đã đọc ảnh phóng to: **Youth 2 Yes/3 No**, **Middle age 4 Yes/0 No**, **Senior 3 Yes/2 No**. Tổng 14 mẫu, 9 Yes/5 No.
@@ -169,7 +291,7 @@ Slide 77 chia Age/Income thành ba nhánh; **CART trong sklearn chia nhị phân
 
 > **EN:** All four printed weighted Gini totals match the displayed counts after rounding, and the Best arrow points to Age. Child-node rounding and Credit Rating's inconsistent class totals must still be flagged; the slide does not supply a complete row-level dataset or a binary CART tree.
 
-## Entropy, ngưỡng số và cách học tham lam (ngoài slide)
+## [sâu] Entropy, ngưỡng số và cách học tham lam (ngoài slide)
 
 **Entropy** là một cách đo lẫn nhãn khác: `H=−Σ p_i log2(p_i)`, với log2 là logarit cơ số 2, quy ước 0 log2(0)=0. Binary 50/50 cho `H=−0.5×(−1)−0.5×(−1)=1`; nút thuần có H=0. **Information gain** là H cha trừ H con có trọng số, nên gain càng lớn càng tốt. Gini/entropy thường cho kết quả gần nhau nhưng không bắt buộc chọn cùng split.
 
@@ -197,7 +319,7 @@ Cây dừng khi nút thuần, không có split hợp lệ/có ích, chạm giớ
 
 > **EN:** Numerical CART splits test thresholds between adjacent sorted values; the toy data become pure at 3.5. A feature can be reused deeper in the tree. Growth stops when no useful valid split remains or a configured size/depth limit is reached.
 
-## Tính tay cây hồi quy và giới hạn ngoại suy (ngoài slide)
+## [sâu] Tính tay cây hồi quy và giới hạn ngoại suy (ngoài slide)
 
 Với **DecisionTreeRegressor** dùng squared_error, lá dự đoán mean target, chọn chia để giảm tổng sai số bình phương/MSE trong các con. Đây là lý do Decision Tree có dấu sao ở [[bài:supervised-algorithms]]. Không dùng Gini của nhãn class để chấm target liên tục; nối [[bài:regression-metrics]].
 
@@ -271,7 +393,7 @@ nan_tree.fit([[0],[1],[6],[np.nan]], [0,0,1,1])
 assert np.array_equal(nan_tree.predict([[0],[1],[6],[np.nan]]), [0,0,1,1])
 ```
 
-## Cây sâu có thể thuộc bài, không phải hiểu bài (ngoài slide)
+## [sâu] Cây sâu có thể thuộc bài, không phải hiểu bài (ngoài slide)
 
 Không giới hạn độ sâu có thể tạo những lá rất nhỏ, kể cả một mẫu, để tách cả nhiễu. Không phải **mọi** lá đều phải một mẫu: một nhóm lớn cùng class cũng thuần. Dữ liệu train tách được hết có accuracy 100% vẫn có thể kém ngoài mẫu.
 
@@ -368,7 +490,7 @@ print(classification_report(y_test,test_pred,digits=6,zero_division=0))
 
 > **EN:** Feature importances summarize normalized impurity reductions. They may favor features with many candidate thresholds and must not be interpreted as causal effects; correlated features can share attribution.
 
-## Thực hành: dễ đọc nhưng không miễn tiền xử lý (ngoài slide)
+## [sâu] Thực hành: dễ đọc nhưng không miễn tiền xử lý (ngoài slide)
 
 Ưu điểm: cây nhỏ có luật rõ, bắt được tương tác/phi tuyến, thường không cần scale vì hỏi **một cột với một ngưỡng**, không so khoảng cách giữa các cột. Đổi đơn vị theo tỉ lệ dương giữ thứ tự và cho ngưỡng tương ứng trong toán chính xác; đối chiếu [[bài:feature-scaling]], [[bài:k-nearest-neighbours]], [[bài:svm]]. Sai số số học có thể tạo khác biệt nhỏ, và scale không phải cách chữa overfit cây.
 
@@ -391,7 +513,7 @@ Logistic thường fit/predict khá gọn; chọn penalty/C và kiểm feature p
 
 > **EN:** Logistic models are compact baselines; kernel SVM costs depend on data and support vectors; KNN shifts work toward neighbor search at prediction time; trees search splits during fitting and traverse one path at prediction. Their main complexity controls differ, so noise sensitivity and runtime should be compared empirically.
 
-## Những hiểu sai cần chặn (ngoài slide)
+## [sâu] Những hiểu sai cần chặn (ngoài slide)
 
 :::pitfall Một nhánh rất lệch là split tốt nhất
 Phải tính impurity con có trọng số trên toàn lần chia. Nhánh một mẫu thuần vẫn có thể thua hai nhánh năm mẫu hơi lẫn, như 0.444444 so với 0.32.
@@ -416,74 +538,3 @@ Nhận x=20 không có nghĩa kéo dài xu hướng. Ví dụ stump vẫn trả 
 > **EN:** Weighted impurity, independent depth selection, input validation and noncausal importance interpretation remain essential even for an interpretable tree.
 
 Nguồn ngoài slide: [Decision Trees và CART](https://scikit-learn.org/stable/modules/tree.html), [DecisionTreeClassifier](https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html), [DecisionTreeRegressor](https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeRegressor.html).
-
-## Tóm tắt 1 phút
-
-:::recap
-- Cây dự đoán bằng đường đi gốc→câu hỏi→lá; root depth 0, lá là kết luận.
-- “Lệch” nên hiểu là nhãn thuần hơn trong các nhóm con, không phải nhánh lớn/nhỏ chênh nhau.
-- Gini=1−Σp_i²; binary trong [0,0.5]; so split bằng trung bình có trọng số số mẫu.
-- Cùng parent: Gini con nhỏ nhất tương đương gain lớn nhất; cây greedy, không tối ưu toàn cục.
-- Slide 77: Age nhỏ nhất 0.342857; tổng Credit Rating bị đảo so với ba bảng khác, không tự sửa dữ liệu.
-- CART sklearn chia nhị phân; depth/min_samples/pruning cần chọn bằng CV, train 100% không đủ.
-- Cây thường không cần scale nhưng cần input/encoding/missing hợp lệ, chống leakage.
-- Cây hồi quy dùng mean lá với squared_error, không kéo dài xu hướng ngoài miền train.
-:::
-
-## Câu hỏi tự kiểm tra
-
-:::quiz
-@tier A | Hiểu bài
-Q: Nút 3 Yes/2 No có Gini bao nhiêu? Nút 4 Yes/0 No thì sao?
-A: **0.48 và 0.** Nút đầu có p=3/5 và 2/5 nên 1−9/25−4/25=12/25=0.48; nút sau 1−1²−0²=0. Ví dụ Middle age trên slide là trường hợp thuần, không phải Gini càng lớn càng tốt.
-Q: Age chia 5/4/5 mẫu, Gini 0.48/0/0.48. Tính Gini split và đọc mũi tên Best.
-A: **12/35≈0.342857, làm tròn 0.343; Best chỉ Age.** Tính (5/14)×0.48+(4/14)×0+(5/14)×0.48. Age có số tổng thấp nhất, nhưng khi so cả bốn bảng phải giữ chú thích Credit có tổng nhãn không nhất quán.
-Q: Vì sao không chọn cách chia có một lá thuần một mẫu trong phản ví dụ?
-A: **Vì phần còn lại lớn và còn lẫn nhiều.** Nhánh 1 mẫu G=0 cộng nhánh 9 mẫu G=40/81 cho split 4/9≈0.444444; hai nhánh 5 mẫu với G=0.32 mỗi nhánh cho 0.32, tốt hơn. Phải dùng trọng số chứ không chỉ chọn nhánh đẹp nhất.
-Q: Mẫu salary=60,000, commute=60 phút, coffee=1 đi qua luật slide 76 ra sao?
-A: **Nhận offer.** 60,000≥50,000 nên qua root; 60 phút không “quá 1 giờ”, đi nhánh No ở commute; coffee=1 nên Accept. Đây là đọc luật minh họa, không phải chứng minh root salary được tối ưu từ dataset gốc.
-Q: Đọc bảng độ sâu: chọn depth nào? Vì sao không chọn None?
-A: **Chọn 5 trong lưới theo CV.** CV 0.89 cao nhất; None tuy train 1.0 nhưng CV 0.86. Giữ test sau lựa chọn; một lần chia/cấu hình không chứng minh depth=5 tốt cho mọi dataset.
-Q: Cây hồi quy hai lá trong bài dự đoán tại x=20 bằng bao nhiêu?
-A: **26/3≈8.666667.** x=20 đi vào lá phải chứa target 8/8/10, mean=26/3. Cây nhận input ngoài miền nhưng không tự kéo dài xu hướng tăng; đó là giới hạn ngoại suy cần kiểm khi triển khai.
-@tier B | Phỏng vấn lý thuyết
-Q: **B1.** How does a decision tree choose a split?
-A: **Chọn giảm impurity lớn nhất ở nút hiện tại trong các split hợp lệ.** Tính impurity con có trọng số, so trên cùng parent, rồi lặp ở con; đây là greedy nên không bảo đảm cây tối ưu toàn cục. Ví dụ Age có weighted Gini≈0.343 thấp hơn Student≈0.367 trên các bảng có cùng tổng nhãn.
-EN: A decision tree greedily selects a valid split that maximizes impurity reduction at the current node, using sample-weighted child impurities rather than a globally optimal tree search.
-Q: **B2.** What is Gini impurity?
-A: **Là mức lẫn class 1−Σp_i² trong một nút.** Thuần thì 0, phân bố đều thì lớn nhất; binary trần 0.5, C class trần 1−1/C. Ví dụ 50/50 có G=0.5, không có nghĩa accuracy bằng 50% trong mọi model.
-EN: Gini impurity is one minus the sum of squared class proportions. It is zero for a pure node and largest for equal proportions, with maximum 1−1/C for C classes.
-Q: **B3.** How do you prevent overfitting in a decision tree?
-A: **Giới hạn độ phức tạp và chọn bằng validation/CV.** Thử max_depth, min_samples_leaf/min_samples_split hoặc ccp_alpha, giữ tiền xử lý trong fold và test cuối. Ví dụ depth=5 thắng CV cây không giới hạn trong demo dù train error cao hơn; không chữa bằng cách tune lặp trên test.
-EN: Control depth and node sizes or apply cost-complexity pruning, select the procedure on validation folds, and reserve test data for final evaluation.
-Q: **B4.** Do decision trees need feature scaling?
-A: **CART dạng này thường không cần scale vì split theo ngưỡng từng cột.** Đổi đơn vị theo tỉ lệ dương giữ thứ tự và ngưỡng tương ứng, khác KNN/SVM dùng hình học khoảng cách. Vẫn phải encode categorical/kiểm missing và tránh leakage; scale không thay việc hạn chế depth.
-EN: Standard CART trees usually do not require feature scaling because they split individual features by thresholds. This does not remove encoding, missing-data or validation requirements.
-Q: **B5.** Gini vs entropy: có gì khác?
-A: **Cả hai đo độ không thuần nhưng dùng hàm khác nhau.** Gini dùng bình phương tỉ lệ, entropy dùng −p log2 p; tối ưu reduction trên cùng parent. Ví dụ binary 50/50 có Gini 0.5 và entropy 1, không so trực tiếp hai giá trị như cùng đơn vị; split được chọn có thể trùng hoặc khác.
-EN: Gini and entropy are alternative impurity measures based on squared proportions and logarithms respectively. Their numerical scales differ and they need not rank every candidate split identically.
-Q: **B6.** Why is a decision tree unstable?
-A: **Vì đổi một split sớm có thể đổi toàn bộ các split phía dưới.** Những ứng viên gần điểm nhau dễ đổi thứ hạng khi thêm/bớt mẫu, nhất là cây sâu. Ví dụ nhãn nhiễu làm một gốc đổi có thể kéo theo nhiều luật khác; forest sẽ dùng đa dạng cây để giảm biến động, không hứa triệt tiêu bias hay leakage.
-EN: Small data changes can alter an early greedy split and propagate throughout the tree. Deep trees can therefore have high variance; averaging diverse trees addresses some of that variability.
-@tier C | Tình huống doanh nghiệp
-Q: **C1.** Duyệt khoản vay cần giải thích luật cho người dùng. Có chọn cây là xong không?
-A: **Cây nhỏ là ứng viên dễ đọc, nhưng luật đọc được chưa đủ để quyết định đáng tin.** Chọn depth bằng validation, kiểm feature có sẵn lúc duyệt, lỗi theo nhóm và độ ổn định; phối hợp yêu cầu giải thích với người chịu trách nhiệm quyết định. Ví dụ luật “thu nhập vượt ngưỡng” học từ mẫu lệch không tự chứng minh nhân quả/công bằng; giữ test độc lập và theo dõi thay đổi dữ liệu.
-WANT: Phân biệt khả năng đọc luật với chất lượng, tính hợp lệ của feature và trách nhiệm kiểm chứng quyết định.
-Q: **C2.** Cây train 100% nhưng tuần sau sai nhiều. Bạn làm gì trước?
-A: **Kiểm split/leakage và khoảng cách giữa train với validation trước khi tăng độ sâu.** Rà biến biết sau kết quả, thời gian/nhóm lặp, encoding/imputation; so cây đơn giản và depth/leaf constraints trên validation phù hợp. Ví dụ cây None đạt train 1.0 nhưng thua depth=5 trên CV; nếu tuần mới đổi phân bố thì còn phải kiểm drift, không quy hết cho overfit.
-WANT: Chẩn đoán có thứ tự, phân biệt ghi nhớ, leakage và thay đổi phân bố; không sửa theo test đã xem nhiều lần.
-Q: **C3.** Dữ liệu có số, category dạng chữ và NaN. Cây có cần tiền xử lý không?
-A: **Có, cần pipeline phù hợp với loại dữ liệu và phiên bản estimator.** Sklearn CART không tự biến mọi chuỗi nominal thành nhánh nhóm; encode có kiểm chứng, kiểm native NaN đúng cấu hình hoặc dùng imputer fit trong fold. Ví dụ probe numeric NaN với gini/best chạy được không chứng minh toàn bộ bảng chữ/thiếu hợp lệ; tránh fit encoder/imputer trên test.
-WANT: Không nhầm “ít cần scale” với “không cần tiền xử lý”; biết kiểm giới hạn thư viện và leakage.
-Q: **C4.** Cây fraud accuracy rất cao nhưng bỏ sót class hiếm. Có dựa vào Gini train để kết luận tốt không?
-A: **Không, impurity dùng học split không thay metric quyết định.** Kiểm confusion matrix/precision/recall và chi phí, so baseline class đa số trên validation theo thời gian; cân nhắc class_weight và cấu hình depth/leaf có kiểm chứng. Ví dụ nhiều lá toàn class bình thường vẫn có thể bỏ sót fraud; chốt chính sách và cấu hình trước test cuối.
-WANT: Liên hệ mất cân bằng với tiêu chí học và mục tiêu vận hành, thay vì chỉ nhìn accuracy/impurity train.
-:::
-
-## Nối sang bài sau
-
-:::next
-Một cây có thể đổi nhiều khi dữ liệu thay nhẹ. [[bài:random-forest]] kết hợp nhiều cây được tạo khác nhau để giảm biến động; bài tiếp theo giải thích bootstrap, feature ngẫu nhiên và vì sao “70% dữ liệu” không phải mặc định của sklearn.
-
-Thực hành: [[bài:diabetes-evaluate-improve]] — so tree/forest với logistic và kiểm thực nghiệm việc không cần scale.
-:::

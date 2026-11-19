@@ -395,5 +395,9 @@ Không còn cảnh 3D, không hiệu ứng cuộn; trang tải nhanh và đọc 
 3. Cần công cụ mới: thêm dữ liệu vào `scripts/make-widget-data.py` (sinh JSON), component trong `components/widgets/`, đăng ký ở `components/widgets/index.tsx`.
 4. `npx tsc --noEmit`, `npm run build`, mở trang xem thật (sáng và tối).
 
-### Còn lại
-Module 01: 01 đến 07, 09, 10, 13 đến 17, 19 đến 23 (và tách đôi 17, 20, 21). Module 02: toàn bộ (cần Sân thử 2D). Thứ tự theo mục 7.
+### Tiến độ cuối
+**Đã viết lại cả 31 bài** (Module 01: 23 bài; Module 02: 8 bài) theo khuôn lõi + Đào sâu, với khối Đoán trước, Kiểm hiểu, Làm tay từng bước, Thẻ nhớ, và 16 công cụ tương tác: `threshold-matrix`, `scaler-before-after`, `fold-visualizer`, `confusion-sorter`, `loss-outlier`, `corr-drag`, `linear-fit`, `poly-degree`, `roc-sweep`, `logistic-play`, `svm-margin`, `resample`, `knn-play`, `gini-calc`, `bootstrap-vote`, `split-bar`.
+
+**Khác với kế hoạch ban đầu:** không tách đôi các bài 17, 20, 21, 03, 04. Làn Đào sâu đã đưa phần lõi của mỗi bài xuống dưới 2.000 từ, nên không cần đổi id và thứ tự trong roadmap.
+
+**Việc còn có thể làm:** các bài 02 đến 07, 09, 10, 13 đến 17, 19 đến 23 và toàn bộ Module 02 mới có phần lõi viết nhanh; có thể bổ sung thêm công cụ (bảng bóc cột, sơ đồ bấm được, ô thử regex, chọn cách điền thiếu) và nâng chất từng bài khi bạn đọc thấy chưa đủ sâu.

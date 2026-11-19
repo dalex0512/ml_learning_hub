@@ -1,13 +1,126 @@
 ---
 title: "Rừng ngẫu nhiên (Random Forest)"
 order: 8
-description: "Kết hợp các cây đa dạng bằng bootstrap và feature ngẫu nhiên, kiểm OOB, chọn số cây bằng CV và đọc feature importance đúng giới hạn."
+description: "Nhiều cây đa dạng (bootstrap, feature ngẫu nhiên) bỏ phiếu ổn định hơn một cây; OOB và số cây."
 slides: 78-80
 needs: [decision-tree, k-fold-cross-validation]
 tags: [random-forest, bagging, bootstrap, ensemble, oob, feature-importance, classification, regression]
 ---
 
 ## Vì sao kết hợp nhiều cây?
+
+:::intro Mục tiêu bài này
+- Hiểu **Random Forest**: nhiều cây khác nhau bỏ phiếu, ổn định hơn một cây.
+- Hiểu hai nguồn ngẫu nhiên tạo sự **đa dạng**: **bootstrap** và chọn feature ngẫu nhiên.
+- Tính được xác suất bỏ phiếu đa số và hiểu **out-of-bag (OOB)**.
+:::
+
+Hỏi ý kiến **một người** hay **một hội đồng**? Một cây quyết định hay thay đổi và hay học thuộc. Nếu ta huấn luyện nhiều cây và cho chúng **bỏ phiếu**, lỗi riêng của từng cây có thể bù trừ nhau. Hãy tính: năm cây, mỗi cây đúng 70%, và (giả định) mắc lỗi **độc lập**. Đa số (ít nhất 3 trong 5 cây) đúng với xác suất:
+
+> P = C(5,3)·0.7³·0.3² + C(5,4)·0.7⁴·0.3 + 0.7⁵ = 0.309 + 0.360 + 0.168 = **0.837**
+
+Từ 70% lên **83.7%** chỉ nhờ bỏ phiếu. Nhưng điều kiện quyết định là **độc lập**: nếu năm cây giống hệt nhau, bỏ phiếu không giúp gì (vẫn 70%).
+
+:::predict
+Nếu ta cho **cả năm cây học trên toàn bộ dữ liệu train như nhau**, với cùng thuật toán tham lam, các cây sẽ khác nhau nhiều không? Bỏ phiếu giúp được bao nhiêu?
+@answer
+Các cây sẽ **gần như giống hệt nhau**: cùng dữ liệu, cùng cách chia tham lam. Bỏ phiếu giữa các cây giống nhau **gần như không cải thiện gì** so với một cây. Muốn cải thiện, các cây phải **khác nhau**: đó là lý do phải làm cho mỗi cây học từ một góc nhìn khác.
+:::
+
+## Hai nguồn ngẫu nhiên để các cây khác nhau
+
+1. **Bootstrap (bagging):** mỗi cây học trên một **mẫu bốc có hoàn lại** từ dữ liệu train (cùng kích thước n). Mẫu nào không được chọn gọi là **out-of-bag (OOB)**.
+2. **Chọn feature ngẫu nhiên:** ở **mỗi lần chia**, cây chỉ xét một tập con feature ngẫu nhiên (mặc định `sqrt` số feature cho phân loại trong sklearn), nên các cây không đều chọn cùng feature mạnh nhất.
+
+Hãy thử cả hai: bấm "Lấy mẫu mới" để xem bootstrap, và kéo số cây để xem bỏ phiếu.
+
+:::widget bootstrap-vote
+:::
+
+Một mẫu **không** được chọn trong n lần bốc với xác suất (1 − 1/n)ⁿ, tiến tới 1/e ≈ **36.8%** khi n lớn; nên mỗi cây thấy khoảng **63.2%** mẫu khác nhau, và 36.8% còn lại là OOB. Vì OOB chưa được cây đó thấy, nó dùng được như một **validation miễn phí** (`oob_score=True`), nhưng vẫn nên giữ bộ test cuối.
+
+## Chọn số cây và đọc kết quả
+
+- **Nhiều cây hơn** thường ổn định hơn nhưng lợi ích giảm dần, tốn thời gian và bộ nhớ; thêm cây không gây overfit thêm, nhưng cây quá sâu trên dữ liệu nhiễu vẫn có thể. Chọn bằng cross-validation.
+- **Một cây và cả rừng:** ở Project (CV 5-fold), accuracy trung bình của Tree là **0.704**, của Forest **0.770**: rừng cao hơn và ổn định hơn cây không giới hạn.
+- **Feature importance** cho biết cột nào giảm độ không thuần nhiều nhất qua các cây; đừng đọc như quan hệ nhân quả, và nó thiên về feature có nhiều giá trị.
+- **Không cần scale**; ít cần tinh chỉnh; nặng hơn và khó giải thích hơn một cây; vẫn **không ngoại suy**.
+
+:::ck
+Một đồng nghiệp bảo "thêm cây mãi thì Random Forest sẽ không bao giờ overfit". Đúng hay sai?
+@answer
+**Đúng một nửa.** Thêm cây **giảm phương sai** và thường không làm overfit nặng hơn, nhưng nếu mỗi cây quá sâu trên dữ liệu nhiễu, rừng vẫn có thể bám nhiễu; và nếu feature rò rỉ nhãn, rừng vẫn rò rỉ. Thêm cây không chữa được lỗi dữ liệu.
+:::
+
+:::slides 78-80 | Slide 78–80: Random Forest, bỏ phiếu đa số
+:::
+
+:::card Random Forest
+- **Nhiều cây bỏ phiếu**; 5 cây độc lập, mỗi cây đúng 70% cho đa số đúng **83.7%**; cây giống nhau thì vote vô nghĩa.
+- **Đa dạng** từ bootstrap (mỗi cây thấy ~63.2% mẫu; 36.8% là OOB) và chọn feature ngẫu nhiên mỗi lần chia.
+- **Số cây:** chọn bằng CV; lợi ích giảm dần.
+- **Không cần scale**; nặng, khó giải thích hơn một cây; importance không phải nhân quả.
+:::
+
+## Câu hỏi tự kiểm tra
+
+:::quiz
+@tier A | Hiểu bài
+Q: Theo hard vote, A,A,B ra class nào? Với bảy phiếu A,B,A,A,B,A,B thì sao?
+A: **Đều ra A.** Lần đầu A thắng 2/3, lần sau 4/7; đó là đếm nhãn cứng. Ví dụ sklearn trung bình xác suất có thể cho kết quả khác, nên cần biết phiếu đang là nhãn hay phân bố xác suất.
+Q: Ba cây có P(A)=0.51,0.51,0.01. Sklearn forest chọn class nào?
+A: **B.** Trung bình P(A)=1.03/3≈0.343333, P(B)≈0.656667; sklearn chọn xác suất trung bình lớn nhất. Đây là phản ví dụ với hard vote A,A,B, không phải lỗi bỏ phiếu của thư viện.
+Q: Bootstrap mười lượt trong bài bỏ sót mẫu nào? Tỉ lệ kỳ vọng OOB của một dòng là bao nhiêu?
+A: **Bỏ sót 2,4,6,10; kỳ vọng OOB của mỗi dòng là 0.9¹⁰≈0.348678.** Bộ rút thực có bốn OOB, còn kỳ vọng số OOB là khoảng 3.486784; số thực hiện không cần bằng kỳ vọng. Có hoàn lại nên 10 lượt chỉ chứa 6 dòng khác nhau trong lần rút này.
+Q: Vì sao max_samples=0.7 không nghĩa mỗi cây thấy 70% dòng khác nhau?
+A: **Vì đó là số lượt rút có hoàn lại, có thể trùng dòng.** Khi N lớn, 0.7N lượt cho tỉ lệ khác nhau kỳ vọng khoảng 1−exp(−0.7)=0.503415. Ví dụ hai lượt cùng rút một dòng chỉ tăng số lượt, không tăng số dòng khác nhau.
+Q: Theo bảng CV, chọn 100 hay 300 cây?
+A: **Chọn 100 trong lưới này khi ưu tiên rẻ hơn ở cùng CV mean.** Cả hai đạt 0.876667, lần đo 100 cây khoảng 1.773 giây so với 5.248 giây cho 300; std fold khác nhau không đủ để tuyên bố một mô hình chắc chắn tốt hơn. Không mở test để phá hòa.
+Q: Năm cây độc lập đều đúng 70% có đa số đúng bao nhiêu? Điều kiện nào dễ sai trong forest thật?
+A: **0.83692, với giả định độc lập cùng p=0.7.** Cộng ba trường hợp đúng 3/4/5 cây được 0.3087+0.36015+0.16807. Forest dùng cùng nguồn dữ liệu nên lỗi có tương quan; không dùng con số này làm lời hứa accuracy thực tế.
+@tier B | Phỏng vấn lý thuyết
+Q: **B1.** How does Random Forest work?
+A: **Kết hợp nhiều cây tạo bởi bootstrap và feature sampling từng split.** Mỗi cây học trên mẫu có hoàn lại; classifier sklearn trung bình xác suất rồi chọn class, regressor trung bình dự đoán số. Ví dụ A,A,B trên slide là hard vote minh họa, không mô tả đầy đủ soft vote của sklearn.
+EN: Random Forest combines trees trained with bootstrap samples and random feature candidates at each split. Scikit-learn averages class probabilities for classification and numerical predictions for regression.
+Q: **B2.** Why does Random Forest train each tree on a random subset?
+A: **Để các cây có lỗi bớt giống nhau, giúp trung bình giảm variance.** Cùng dữ liệu/feature/quy tắc có thể cho các cây trùng nhau; bootstrap đổi trọng lượng mẫu, feature sampling đổi ứng viên split. Ví dụ năm bản sao luôn sai cùng lúc vẫn chỉ đúng 70%, không đạt 83.692% của giả định độc lập.
+EN: Randomized samples and split candidates encourage diversity and reduce error correlation. Averaging near-identical trees offers little variance reduction; a bootstrap sample contains repeated rows rather than a simple distinct subset.
+Q: **B3.** What are bagging and out-of-bag error?
+A: **Bagging gộp model học trên bootstrap; OOB dùng các cây bỏ sót dòng cần đánh giá.** Với N lượt từ N dòng, xác suất một dòng OOB là (1−1/N)^N, tiến tới 1/e. Ví dụ mẫu 2 không xuất hiện trong bộ rút minh họa nên có thể được cây ấy dự đoán OOB; test cuối vẫn giữ riêng.
+EN: Bagging aggregates models fitted to bootstrap samples. An OOB prediction uses only models whose bootstrap samples omitted that row; it is useful internal evaluation but does not automatically validate preprocessing or replace final testing.
+Q: **B4.** How does Random Forest reduce overfitting compared with a single tree?
+A: **Chủ yếu giảm variance bằng trung bình các cây đa dạng.** Tương quan cao giới hạn lợi ích; bias không nhất thiết giữ nguyên và thêm cây không chữa leakage. Ví dụ demo RF hơn cây không giới hạn về CV nhưng vẫn thua cây depth=5 đã tune, nên không tuyên bố luôn thắng.
+EN: Averaging diverse trees primarily reduces variance relative to a deep individual tree. Correlated errors, bias, noisy labels and leakage remain limitations, so better generalization is empirical rather than guaranteed.
+Q: **B5.** Random Forest vs Gradient Boosting?
+A: **RF tạo các cây ngẫu nhiên để gộp, boosting xây mô hình nối tiếp nhằm cải thiện objective hiện tại.** Hai họ khác cơ chế; hiệu quả phụ thuộc dữ liệu và tuning. Ví dụ XGBoost/LightGBM là những triển khai boosting sẽ học sau, không phải tên khác của RF.
+EN: Random Forest aggregates randomized trees, whereas gradient boosting sequentially adds models to improve a current objective. They are different ensemble families and neither universally dominates.
+Q: **B6.** How do you obtain feature importance and what are its pitfalls?
+A: **Đọc feature_importances_ để có importance dựa trên giảm impurity, rồi kiểm giới hạn.** Nhiều ngưỡng có thể được ưu ái, feature tương quan chia sẻ thông tin; permutation importance là kiểm bổ sung trên tập phù hợp. Ví dụ x2≈0.536936 trong demo không nghĩa can thiệp x2 gây 53.7% thay đổi kết quả thật.
+EN: Impurity-based importance summarizes normalized split reductions across trees. High cardinality, correlated predictors and noncausal associations complicate interpretation; permutation importance can provide a complementary evaluation.
+@tier C | Tình huống doanh nghiệp
+Q: **C1.** Cần baseline churn trên bảng khách hàng có nhiều category. Bạn bắt đầu thế nào?
+A: **Thử RF cùng baseline đơn giản trong pipeline được validation đúng.** Xác định thời điểm dự đoán, encode/impute trong fold, chọn metric theo chi phí giữ khách, kiểm class lệch và thời gian/khách lặp. Ví dụ “ngày hủy hợp đồng” biết sau churn phải bỏ; OOB cao không cứu feature rò rỉ nhãn.
+WANT: Dùng RF như baseline có kiểm chứng, xử lý tính sẵn có của feature, categorical, leakage và split phù hợp nghiệp vụ.
+Q: **C2.** Forest vượt giới hạn RAM và latency. Có chỉ tăng n_jobs không?
+A: **Đo bottleneck rồi giảm độ phức tạp với kiểm tra chất lượng.** Thử ít cây hơn, depth/leaf size phù hợp và đo lại CV/latency/RAM ở môi trường đích; song song hóa không giảm số cây lưu. Ví dụ bảng này 100 và 300 cùng CV mean nên 100 đáng thử; distillation là một hướng khác chỉ nêu tên khi cần, không tự triển khai khi chưa đo.
+WANT: Cân đối chất lượng và tài nguyên qua phép đo thực, không coi song song hóa là cách xóa chi phí mô hình.
+Q: **C3.** Nghiệp vụ muốn biết yếu tố nào “gây” churn từ importance. Bạn trả lời sao?
+A: **Biểu đồ importance mô tả model, chưa chứng minh nguyên nhân.** Kiểm feature nhiều mức, tương quan, độ ổn định và leakage; bổ sung permutation trên dữ liệu phù hợp rồi giải thích giới hạn. Ví dụ hai biến hoạt động gần trùng nhau chia importance, không thể kết luận biến ít điểm là vô dụng hay can thiệp biến cao điểm sẽ giảm churn.
+WANT: Phân biệt liên hệ dự đoán với nhân quả; giải thích thiên vị importance và kế hoạch kiểm chứng cho người dùng nghiệp vụ.
+Q: **C4.** Forest fraud accuracy cao, OOB đẹp nhưng bỏ sót giao dịch rủi ro. Sửa gì?
+A: **Chọn mục tiêu lỗi và quy trình đánh giá đúng trước khi tăng số cây.** Đọc confusion matrix/recall/precision theo thời gian, so class đa số, kiểm stratify khi phù hợp và thử class_weight trên development. Ví dụ cột xác nhận gian lận có sau điều tra gây leakage; giữ test cuối và kiểm threshold/chi phí trên validation thay vì tối ưu accuracy tổng.
+WANT: Chẩn đoán mất cân bằng, leakage và metric; hiểu OOB hay nhiều cây không thay được thiết kế đánh giá.
+:::
+
+## Nối sang phần sau
+
+:::next
+Module Supervised kết thúc phạm vi slide 64–80 tại đây. [[slide:81]] mở **Unsupervised Learning**, minh họa Before/After K-Means: các mô hình supervised vừa học cần label khi huấn luyện, còn K-Means tìm nhóm không dùng label làm đáp án học. Phần đó thuộc module 03, chưa viết bài nên chưa có liên kết bài học. Có thể quay về [[bài:supervised-algorithms]] để ôn bản đồ hoặc [[bài:decision-tree]] để đọc lại nền tảng từng cây.
+
+Thực hành: [[bài:diabetes-evaluate-improve]] — kiểm forest trên bảng diabetes và chọn pipeline bằng cv.
+:::
+
+## [sâu] Phần mở đầu gốc
 
 :::intro
 Một [[bài:decision-tree]] có thể đổi nhiều khi thêm vài mẫu. Nếu hỏi một hội đồng gồm nhiều cây được tạo khác nhau, các lỗi riêng có thể bù bớt cho nhau. **Rừng ngẫu nhiên (Random Forest)** kết hợp cây bằng hai nguồn ngẫu nhiên: mẫu train cho từng cây và feature ứng viên tại từng lần chia. Mục tiêu chính là giảm biến động; chất lượng trên dữ liệu mới vẫn phải đo.
@@ -18,7 +131,7 @@ Một [[bài:decision-tree]] có thể đổi nhiều khi thêm vài mẫu. Nế
 :::slides 78-80 | Từ một cây tới nhiều cây, pipeline huấn luyện và ví dụ bỏ phiếu trái cây
 :::
 
-## Một người hay một hội đồng?
+## [sâu] Một người hay một hội đồng?
 
 [[slide:78]] đặt một cây cạnh nhiều cây dự đoán Class 1/Class 2. **Ensemble** nghĩa là mô hình kết hợp nhiều mô hình con. Hỏi năm bản sao có cùng lỗi thì không giúp bằng hỏi năm người có hiểu biết khác nhau.
 
@@ -36,7 +149,7 @@ P(đa số đúng) = C(5,3)×0.7³×0.3² + C(5,4)×0.7⁴×0.3 + 0.7⁵
 
 > **EN:** An ensemble can improve predictions when its members make sufficiently different errors. The 83.692% majority-vote calculation assumes five independent binary voters with identical 70% accuracy; real forest errors are correlated.
 
-## Đọc pipeline và phiếu trái cây trên slide
+## [sâu] Đọc pipeline và phiếu trái cây trên slide
 
 [[slide:79]] vẽ Training Set → Training Data 1…n → Decision Tree 1…n → Voting (averaging) → Prediction. Test Set được vẽ riêng: dữ liệu đánh giá không dùng để tạo các tập bootstrap hay chọn split. Slide không ghi “70%”.
 
@@ -54,7 +167,7 @@ Hồi quy lấy trung bình dự đoán số từ các cây. Ví dụ ngoài sli
 
 > **EN:** The slides illustrate hard-label majority voting. Scikit-learn instead averages per-tree class probabilities and chooses the highest average, which can disagree with hard voting. Regression forests average numerical tree predictions.
 
-## Hai nguồn ngẫu nhiên tạo đa dạng (ngoài slide)
+## [sâu] Hai nguồn ngẫu nhiên tạo đa dạng (ngoài slide)
 
 **Bootstrap** là lấy mẫu **có hoàn lại**: rút một dòng rồi vẫn có thể rút lại dòng đó. **Bagging** (bootstrap aggregating) huấn luyện nhiều mô hình trên các bootstrap sample rồi kết hợp. Mặc định mỗi cây RF sklearn rút N lượt từ N dòng train, vì `bootstrap=True, max_samples=None`; số dòng khác nhau thường nhỏ hơn N.
 
@@ -68,7 +181,7 @@ Không phải mỗi cây cố định một tập feature cho suốt đời cây
 
 > **EN:** Standard forests combine bootstrap sampling per tree with random feature candidates per split. The default bootstrap draw count is the training-set size, not 70% distinct rows. A tree may use different features at different nodes.
 
-## Làm tay bootstrap và out-of-bag (ngoài slide)
+## [sâu] Làm tay bootstrap và out-of-bag (ngoài slide)
 
 :::worked Mười mẫu, seed 42 — tự soạn, không phải số liệu slide
 Đánh số mẫu 1…10. `default_rng(42).integers(1,11,size=10)` rút được:
@@ -102,7 +215,7 @@ OOB không thay [[bài:train-test-split|test cuối]]. Nếu imputer/encoder/fea
 
 > **EN:** OOB predictions for a row use only trees whose bootstrap samples omitted that row. The familiar 36.8% OOB and 63.2% distinct-sample rates are large-N expectations. OOB evaluation does not automatically validate preprocessing or replace an untouched final test set.
 
-## Code kiểm xác suất, bootstrap và hình (ngoài slide)
+## [sâu] Code kiểm xác suất, bootstrap và hình (ngoài slide)
 
 Code Python độc lập, sinh ảnh bootstrap bằng matplotlib; seed và các ví dụ là tự soạn.
 
@@ -146,7 +259,7 @@ fig.savefig(out / "random-forest-bootstrap.png", dpi=170)
 plt.close(fig)
 ```
 
-## Chọn bao nhiêu cây? (ngoài slide)
+## [sâu] Chọn bao nhiêu cây? (ngoài slide)
 
 **n_estimators** là số cây T. Tăng T thường làm kết quả trung bình bớt phụ thuộc những lượt ngẫu nhiên riêng, nhưng tốn RAM, thời gian train và predict. Không giống tăng depth của một cây, thêm cây chủ yếu làm giảm phương sai do lấy trung bình; không hứa CV tăng từng bước, không miễn overfit do nhiễu/leakage.
 
@@ -172,7 +285,7 @@ Chọn **100 cây**: CV mean bằng 300 nhưng rẻ hơn trong lần đo này. S
 
 > **EN:** Select the number of trees on development folds while accounting for cost. More trees reduce Monte Carlo variability but do not guarantee monotonically increasing CV accuracy. The measured timings cover an entire five-fold run and depend on hardware and runtime conditions.
 
-## Một cây và cả rừng: kiểm trên cùng dữ liệu (ngoài slide)
+## [sâu] Một cây và cả rừng: kiểm trên cùng dữ liệu (ngoài slide)
 
 | Mô hình | Accuracy fit toàn development | CV mean | CV std |
 |---|---|---|---|
@@ -194,7 +307,7 @@ Hình dùng cùng development. Màu là P(class1), đường đỏ là mức 0.5
 
 > **EN:** Forest averaging often reduces the variance of deep trees, but bias need not remain exactly unchanged. In this demonstration a tuned shallow tree has a higher CV mean than the tested forest. Averaged tree probability surfaces remain piecewise constant, even when they look visually smoother.
 
-## Code thí nghiệm đầy đủ và feature importance (ngoài slide)
+## [sâu] Code thí nghiệm đầy đủ và feature importance (ngoài slide)
 
 Code độc lập dùng NumPy 2.5.4, sklearn 1.9.1, matplotlib. Chạy tuần tự để so thời gian; không cần cài Graphviz. `n_jobs=1` giữ điều kiện đo, có thể đổi `n_jobs` để song song hóa khi dùng thật. Không dùng scale ở đây; xem [[bài:feature-scaling]], [[bài:categorical-encoding]], [[bài:missing-values-outliers]] cho input bảng thật.
 
@@ -307,7 +420,7 @@ Importance là tổng giảm impurity có trọng số do feature tạo ra, chu�
 
 > **EN:** Impurity importance summarizes split-related reductions, not causal effects. High-cardinality features and correlated predictors complicate its interpretation. OOB, CV and final-test scores estimate performance through different procedures and need not coincide.
 
-## Khi nên thử, khi phải dè chừng (ngoài slide)
+## [sâu] Khi nên thử, khi phải dè chừng (ngoài slide)
 
 Forest thường là baseline hữu ích cho dữ liệu bảng, bắt tương tác mà ít cần scale. Vẫn phải [[bài:categorical-encoding|mã hóa dữ liệu chữ]] phù hợp, kiểm [[bài:missing-values-outliers|missing/outlier]], giữ preprocessing trong fold, bảo đảm mọi feature có sẵn tại lúc dự đoán. `class_weight='balanced'` là cấu hình có thể thử cho [[bài:imbalanced-data]], nhưng phải đo metric theo chi phí chứ không tin accuracy tổng.
 
@@ -340,7 +453,7 @@ Bảng có **sáu nhóm, bảy tên mô hình** vì gộp Linear/Polynomial. Sli
 
 > **EN:** Forests are useful tabular baselines, with costs in memory, latency and global interpretability. Model choice remains data- and validation-dependent. Boosting is a different sequential ensemble family. The summary groups Linear and Polynomial Regression into one row.
 
-## Những hiểu sai cần chặn (ngoài slide)
+## [sâu] Những hiểu sai cần chặn (ngoài slide)
 
 :::pitfall Nhiều cây bảo đảm không overfit
 Rừng vẫn có thể học nhiễu hoặc feature rò rỉ. Thêm cây không chữa một cột chứa kết quả tương lai; kiểm feature/split, depth/leaf size và CV trước khi tăng n_estimators.
@@ -365,74 +478,3 @@ Sklearn trung bình xác suất nên ba nhãn A,A,B có thể vẫn cho B. Hồi
 > **EN:** More trees cannot repair leakage, biased validation or invalid inputs. OOB is not a substitute for final testing, impurity importance is not causal, probability averaging differs from hard voting, and regression forests do not extend a learned trend beyond the observed range.
 
 Nguồn ngoài slide: [Forests of randomized trees](https://scikit-learn.org/stable/modules/ensemble.html#forest), [RandomForestClassifier](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html), [Permutation importance](https://scikit-learn.org/stable/modules/permutation_importance.html).
-
-## Tóm tắt 1 phút
-
-:::recap
-- RF kết hợp cây đa dạng để thường giảm variance; không hứa accuracy luôn cao hơn cây đã tune.
-- Bootstrap mặc định N lượt có hoàn lại; khoảng 63.2% dòng khác nhau là kỳ vọng giới hạn.
-- max_features chọn feature ứng viên từng split; không cố định một bộ feature suốt cây.
-- Slide dùng hard voting; sklearn classifier trung bình xác suất, hồi quy trung bình số.
-- OOB của một dòng chỉ dùng cây không từng rút dòng đó; vẫn giữ test cuối.
-- Chọn n_estimators/depth/feature bằng development, cân bằng chất lượng và chi phí.
-- Impurity importance có thiên vị và không là nhân quả; forest vẫn cần input hợp lệ/chống leakage.
-- Supervised trong phạm vi slide 64–80 kết thúc; slide 81 chuyển sang Unsupervised.
-:::
-
-## Câu hỏi tự kiểm tra
-
-:::quiz
-@tier A | Hiểu bài
-Q: Theo hard vote, A,A,B ra class nào? Với bảy phiếu A,B,A,A,B,A,B thì sao?
-A: **Đều ra A.** Lần đầu A thắng 2/3, lần sau 4/7; đó là đếm nhãn cứng. Ví dụ sklearn trung bình xác suất có thể cho kết quả khác, nên cần biết phiếu đang là nhãn hay phân bố xác suất.
-Q: Ba cây có P(A)=0.51,0.51,0.01. Sklearn forest chọn class nào?
-A: **B.** Trung bình P(A)=1.03/3≈0.343333, P(B)≈0.656667; sklearn chọn xác suất trung bình lớn nhất. Đây là phản ví dụ với hard vote A,A,B, không phải lỗi bỏ phiếu của thư viện.
-Q: Bootstrap mười lượt trong bài bỏ sót mẫu nào? Tỉ lệ kỳ vọng OOB của một dòng là bao nhiêu?
-A: **Bỏ sót 2,4,6,10; kỳ vọng OOB của mỗi dòng là 0.9¹⁰≈0.348678.** Bộ rút thực có bốn OOB, còn kỳ vọng số OOB là khoảng 3.486784; số thực hiện không cần bằng kỳ vọng. Có hoàn lại nên 10 lượt chỉ chứa 6 dòng khác nhau trong lần rút này.
-Q: Vì sao max_samples=0.7 không nghĩa mỗi cây thấy 70% dòng khác nhau?
-A: **Vì đó là số lượt rút có hoàn lại, có thể trùng dòng.** Khi N lớn, 0.7N lượt cho tỉ lệ khác nhau kỳ vọng khoảng 1−exp(−0.7)=0.503415. Ví dụ hai lượt cùng rút một dòng chỉ tăng số lượt, không tăng số dòng khác nhau.
-Q: Theo bảng CV, chọn 100 hay 300 cây?
-A: **Chọn 100 trong lưới này khi ưu tiên rẻ hơn ở cùng CV mean.** Cả hai đạt 0.876667, lần đo 100 cây khoảng 1.773 giây so với 5.248 giây cho 300; std fold khác nhau không đủ để tuyên bố một mô hình chắc chắn tốt hơn. Không mở test để phá hòa.
-Q: Năm cây độc lập đều đúng 70% có đa số đúng bao nhiêu? Điều kiện nào dễ sai trong forest thật?
-A: **0.83692, với giả định độc lập cùng p=0.7.** Cộng ba trường hợp đúng 3/4/5 cây được 0.3087+0.36015+0.16807. Forest dùng cùng nguồn dữ liệu nên lỗi có tương quan; không dùng con số này làm lời hứa accuracy thực tế.
-@tier B | Phỏng vấn lý thuyết
-Q: **B1.** How does Random Forest work?
-A: **Kết hợp nhiều cây tạo bởi bootstrap và feature sampling từng split.** Mỗi cây học trên mẫu có hoàn lại; classifier sklearn trung bình xác suất rồi chọn class, regressor trung bình dự đoán số. Ví dụ A,A,B trên slide là hard vote minh họa, không mô tả đầy đủ soft vote của sklearn.
-EN: Random Forest combines trees trained with bootstrap samples and random feature candidates at each split. Scikit-learn averages class probabilities for classification and numerical predictions for regression.
-Q: **B2.** Why does Random Forest train each tree on a random subset?
-A: **Để các cây có lỗi bớt giống nhau, giúp trung bình giảm variance.** Cùng dữ liệu/feature/quy tắc có thể cho các cây trùng nhau; bootstrap đổi trọng lượng mẫu, feature sampling đổi ứng viên split. Ví dụ năm bản sao luôn sai cùng lúc vẫn chỉ đúng 70%, không đạt 83.692% của giả định độc lập.
-EN: Randomized samples and split candidates encourage diversity and reduce error correlation. Averaging near-identical trees offers little variance reduction; a bootstrap sample contains repeated rows rather than a simple distinct subset.
-Q: **B3.** What are bagging and out-of-bag error?
-A: **Bagging gộp model học trên bootstrap; OOB dùng các cây bỏ sót dòng cần đánh giá.** Với N lượt từ N dòng, xác suất một dòng OOB là (1−1/N)^N, tiến tới 1/e. Ví dụ mẫu 2 không xuất hiện trong bộ rút minh họa nên có thể được cây ấy dự đoán OOB; test cuối vẫn giữ riêng.
-EN: Bagging aggregates models fitted to bootstrap samples. An OOB prediction uses only models whose bootstrap samples omitted that row; it is useful internal evaluation but does not automatically validate preprocessing or replace final testing.
-Q: **B4.** How does Random Forest reduce overfitting compared with a single tree?
-A: **Chủ yếu giảm variance bằng trung bình các cây đa dạng.** Tương quan cao giới hạn lợi ích; bias không nhất thiết giữ nguyên và thêm cây không chữa leakage. Ví dụ demo RF hơn cây không giới hạn về CV nhưng vẫn thua cây depth=5 đã tune, nên không tuyên bố luôn thắng.
-EN: Averaging diverse trees primarily reduces variance relative to a deep individual tree. Correlated errors, bias, noisy labels and leakage remain limitations, so better generalization is empirical rather than guaranteed.
-Q: **B5.** Random Forest vs Gradient Boosting?
-A: **RF tạo các cây ngẫu nhiên để gộp, boosting xây mô hình nối tiếp nhằm cải thiện objective hiện tại.** Hai họ khác cơ chế; hiệu quả phụ thuộc dữ liệu và tuning. Ví dụ XGBoost/LightGBM là những triển khai boosting sẽ học sau, không phải tên khác của RF.
-EN: Random Forest aggregates randomized trees, whereas gradient boosting sequentially adds models to improve a current objective. They are different ensemble families and neither universally dominates.
-Q: **B6.** How do you obtain feature importance and what are its pitfalls?
-A: **Đọc feature_importances_ để có importance dựa trên giảm impurity, rồi kiểm giới hạn.** Nhiều ngưỡng có thể được ưu ái, feature tương quan chia sẻ thông tin; permutation importance là kiểm bổ sung trên tập phù hợp. Ví dụ x2≈0.536936 trong demo không nghĩa can thiệp x2 gây 53.7% thay đổi kết quả thật.
-EN: Impurity-based importance summarizes normalized split reductions across trees. High cardinality, correlated predictors and noncausal associations complicate interpretation; permutation importance can provide a complementary evaluation.
-@tier C | Tình huống doanh nghiệp
-Q: **C1.** Cần baseline churn trên bảng khách hàng có nhiều category. Bạn bắt đầu thế nào?
-A: **Thử RF cùng baseline đơn giản trong pipeline được validation đúng.** Xác định thời điểm dự đoán, encode/impute trong fold, chọn metric theo chi phí giữ khách, kiểm class lệch và thời gian/khách lặp. Ví dụ “ngày hủy hợp đồng” biết sau churn phải bỏ; OOB cao không cứu feature rò rỉ nhãn.
-WANT: Dùng RF như baseline có kiểm chứng, xử lý tính sẵn có của feature, categorical, leakage và split phù hợp nghiệp vụ.
-Q: **C2.** Forest vượt giới hạn RAM và latency. Có chỉ tăng n_jobs không?
-A: **Đo bottleneck rồi giảm độ phức tạp với kiểm tra chất lượng.** Thử ít cây hơn, depth/leaf size phù hợp và đo lại CV/latency/RAM ở môi trường đích; song song hóa không giảm số cây lưu. Ví dụ bảng này 100 và 300 cùng CV mean nên 100 đáng thử; distillation là một hướng khác chỉ nêu tên khi cần, không tự triển khai khi chưa đo.
-WANT: Cân đối chất lượng và tài nguyên qua phép đo thực, không coi song song hóa là cách xóa chi phí mô hình.
-Q: **C3.** Nghiệp vụ muốn biết yếu tố nào “gây” churn từ importance. Bạn trả lời sao?
-A: **Biểu đồ importance mô tả model, chưa chứng minh nguyên nhân.** Kiểm feature nhiều mức, tương quan, độ ổn định và leakage; bổ sung permutation trên dữ liệu phù hợp rồi giải thích giới hạn. Ví dụ hai biến hoạt động gần trùng nhau chia importance, không thể kết luận biến ít điểm là vô dụng hay can thiệp biến cao điểm sẽ giảm churn.
-WANT: Phân biệt liên hệ dự đoán với nhân quả; giải thích thiên vị importance và kế hoạch kiểm chứng cho người dùng nghiệp vụ.
-Q: **C4.** Forest fraud accuracy cao, OOB đẹp nhưng bỏ sót giao dịch rủi ro. Sửa gì?
-A: **Chọn mục tiêu lỗi và quy trình đánh giá đúng trước khi tăng số cây.** Đọc confusion matrix/recall/precision theo thời gian, so class đa số, kiểm stratify khi phù hợp và thử class_weight trên development. Ví dụ cột xác nhận gian lận có sau điều tra gây leakage; giữ test cuối và kiểm threshold/chi phí trên validation thay vì tối ưu accuracy tổng.
-WANT: Chẩn đoán mất cân bằng, leakage và metric; hiểu OOB hay nhiều cây không thay được thiết kế đánh giá.
-:::
-
-## Nối sang phần sau
-
-:::next
-Module Supervised kết thúc phạm vi slide 64–80 tại đây. [[slide:81]] mở **Unsupervised Learning**, minh họa Before/After K-Means: các mô hình supervised vừa học cần label khi huấn luyện, còn K-Means tìm nhóm không dùng label làm đáp án học. Phần đó thuộc module 03, chưa viết bài nên chưa có liên kết bài học. Có thể quay về [[bài:supervised-algorithms]] để ôn bản đồ hoặc [[bài:decision-tree]] để đọc lại nền tảng từng cây.
-
-Thực hành: [[bài:diabetes-evaluate-improve]] — kiểm forest trên bảng diabetes và chọn pipeline bằng cv.
-:::

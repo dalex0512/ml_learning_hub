@@ -1,13 +1,129 @@
 ---
 title: Máy vector hỗ trợ (Support Vector Machine — SVM)
 order: 5
-description: "Chọn đường phân tách có margin lớn, tìm support vector và dùng kernel để uốn ranh giới; tính tay rồi kiểm C/gamma bằng Pipeline và CV."
+description: "Chọn đường có lề rộng nhất, soft margin với C, và kernel để uốn ranh giới bằng cách thêm chiều."
 slides: 70-74
 needs: [logistic-regression, polynomial-regression, feature-scaling, classification-metrics]
 tags: [svm, support-vector, hyperplane, margin, kernel, rbf, soft-margin, C, gamma]
 ---
 
-## Nhiều đường cùng đúng, đường nào nên chọn?
+## Nhiều đường cùng đúng, chọn đường nào?
+
+:::intro Mục tiêu bài này
+- Hiểu SVM chọn đường phân tách có **lề (margin) rộng nhất**, và **support vector** là gì.
+- Hiểu **soft margin** (tham số C) cho dữ liệu không tách hoàn toàn.
+- Hiểu ý tưởng **kernel**: thêm chiều để ranh giới cong, mà không phải dựng thêm cột.
+:::
+
+Hai nhóm điểm tách được bằng **vô số** đường thẳng. Đường sát một nhóm thì mong manh: một điểm mới nhích nhẹ là bị đoán sai. SVM chọn đường **cách đều hai nhóm và xa nhất có thể**: đường có **lề (margin) rộng nhất**. Những điểm nằm ngay trên mép lề gọi là **support vector**: chỉ chúng quyết định đường; bỏ các điểm khác đi, đường không đổi.
+
+:::predict
+Hai nhóm điểm tách được. Ta **xóa một điểm xa mép lề** (không phải support vector). Đường SVM có đổi không? Còn nếu xóa một support vector?
+@answer
+Xóa điểm xa mép: **đường không đổi** (nó không quyết định gì). Xóa một support vector: đường **thường đổi** (lề có thể rộng hơn). Vì vậy SVM chỉ "nhớ" một phần nhỏ dữ liệu, các điểm nằm sát biên.
+:::
+
+Hãy tự tìm: kéo góc và vị trí của đường; chỉ những đường tách đúng mới có lề, và nút "Đặt về lề rộng nhất" cho đường tối ưu.
+
+:::widget svm-margin
+:::
+
+## Soft margin: khi dữ liệu không tách hoàn toàn
+
+Dữ liệu thật thường lẫn lộn, không có đường nào tách hoàn toàn. **Soft margin** cho phép vài điểm **nằm sai phía hoặc trong lề**, với một **mức phạt** điều khiển bởi **C**:
+
+- **C lớn:** phạt nặng điểm sai, lề hẹp, bám sát dữ liệu (dễ overfit).
+- **C nhỏ:** chấp nhận nhiều điểm sai hơn, lề rộng, đơn giản hơn (dễ underfit).
+
+## Kernel: khi một đường thẳng không đủ
+
+:::steps
+Dữ liệu 1 chiều: lớp A ở x = −1, 0, 1; lớp B ở x = −3 và x = 3. **Không có điểm cắt nào** trên trục x tách được hai lớp (A nằm giữa B).
+@step
+**Thêm chiều:** thêm cột z = x². Lớp A có z = 1, 0, 1; lớp B có z = 9, 9.
+@step
+Trong mặt phẳng (x, z), một **đường thẳng ngang z = 4** tách hoàn toàn hai lớp. Đường thẳng đó, khi nhìn lại trên trục x, là ranh giới cong.
+@step
+**Kernel trick:** thay vì dựng thật các cột mới (có thể là vô hạn), kernel tính trực tiếp "độ giống" như thể mẫu đã ở không gian cao chiều. Kernel **RBF** phổ biến: tham số **gamma** điều khiển độ cong (gamma lớn: ranh giới uốn sát từng điểm, dễ overfit).
+:::
+
+## Dùng SVM đúng cách
+
+- **Scale trước** (khoảng cách và lề nhạy với đơn vị, [[bài:feature-scaling]]).
+- **Chọn C và gamma bằng cross-validation** trong Pipeline, không chọn bằng bộ test.
+- **So với Logistic:** SVM có thể bắt ranh giới cong (kernel) nhưng không cho xác suất mặc định và chậm hơn với dữ liệu rất lớn.
+
+:::ck
+SVM RBF với gamma rất lớn đạt 100% trên train nhưng thấp trên test. Có bất ngờ không? Chỉnh gì?
+@answer
+Không bất ngờ: gamma lớn uốn ranh giới sát từng điểm nên **học thuộc** (overfitting). Giảm gamma và/hoặc giảm C, chọn bằng cross-validation.
+:::
+
+:::slides 70-74 | Slide 70–74: Support Vector Machine
+:::
+
+:::card SVM
+- **Chọn đường có lề rộng nhất**; **support vector** là các điểm trên mép lề quyết định đường.
+- **Soft margin (C):** C lớn bám dữ liệu hơn, C nhỏ đơn giản hơn.
+- **Kernel:** thêm chiều (x → x²) để một đường thẳng tách được; kernel RBF với gamma điều khiển độ cong.
+- **Scale trước; chọn C, gamma bằng CV.**
+:::
+
+## Câu hỏi tự kiểm tra
+
+:::quiz
+@tier A | Hiểu bài
+Q: Với w=(3,4), b=−5, tính ‖w‖, margin toàn dải và khoảng cách điểm (3,0) tới biên.
+A: **Chuẩn 5, margin 0.4, khoảng cách 0.8**, khi w,b dùng chuẩn hóa mép ±1. Tính √(3²+4²)=5; 2/5=0.4. Tại (3,0), f=3×3+4×0−5=4, khoảng cách |4|/5=0.8; không đọc f=4 thành xác suất hay khoảng cách trực tiếp.
+Q: Trong ví dụ 1D x=1 thuộc −1, x=3 thuộc +1, thêm x=0 và x=5 đúng lớp có đổi biên không?
+A: **Không, trong bài toán cố định thang đo này biên vẫn x=2.** Nghiệm w=1,b=−2 cho y f=1 ở hai mẫu cũ; điểm mới cho y f=2 và 3, nằm ngoài margin. Ví dụ code fit lại vẫn giữ support vector [1,3]; refit scaler là bài toán khác nên không suy rộng máy móc.
+Q: Với bốn điểm A,B,C,D trong bài, điểm nào là support vector? D cách biên bao xa?
+A: **A,B,C là support vector trong nghiệm ví dụ; D cách biên 3.** Với w=(1,0),b=0, ba điểm đầu thỏa y f=1; D=(3,0) có y f=3. Lấy |3|/1=3 cho khoảng cách, còn margin toàn dải là 2.
+Q: Ánh xạ z=x², cắt z=2.5 thì hai điểm cắt trên x có phải ±1.5 không?
+A: **Không, là ±√2.5≈±1.581139.** Giải x²=2.5 rồi lấy hai căn đối dấu. Ví dụ x=−1,0,1 ở dưới đường, x=±2,±3 ở trên; ±1.5 chỉ tương ứng mức z=2.25.
+Q: Đọc bảng C và bảng RBF: có chọn cấu hình train 100% thay cho CV tốt nhất không?
+A: **Không; dùng CV theo mục tiêu đã chốt.** C nhỏ có 112/120 support vector nên không mặc định SVM chỉ dùng vài điểm. Ở vòng tròn, C=1,gamma=100 có train 1.0 nhưng CV 0.855556, thấp hơn C=1,gamma=1 với CV 0.983333; test giữ cho đánh giá cuối.
+@tier B | Phỏng vấn lý thuyết
+Q: **B1.** Support vector là gì và vì sao chỉ chúng quan trọng trong nghiệm?
+A: **Đó là các mẫu có hệ số đóng góp vào biểu diễn nghiệm SVM.** Ở hard margin chúng nằm trên mép; soft margin còn có mẫu vi phạm, kể cả sai phía. Điểm ngoài margin không góp trực tiếp, nhưng chọn preprocessing và thay dữ liệu trước fit vẫn có thể đổi nghiệm; ví dụ bài 2D có ba support vector và một điểm xa D.
+EN: Support vectors have nonzero contributions to the fitted SVM representation. They lie on the hard margin or may violate the soft margin; non-support points outside the margin do not directly contribute under a fixed representation.
+Q: **B2.** Maximum margin nghĩa là gì, vì sao có thể giúp tổng quát hóa?
+A: **Là tối đa khoảng đệm nhỏ nhất tới các điểm train trong hard-margin setting.** Nó giảm nhạy với nhiễu input nhỏ theo thang đo đã chọn; dưới chuẩn hóa ±1, tối thiểu ‖w‖² tương đương tối đa 2/‖w‖. Ví dụ ba đường cùng đúng nhưng đường giữa có clearance 1 thay vì 0.5; không hứa chống được drift hay mọi nhãn sai.
+EN: Maximum margin maximizes the minimum geometric clearance under hard-margin constraints. It can improve robustness to small perturbations in the chosen metric, but does not guarantee generalization under arbitrary data shifts.
+Q: **B3.** Kernel trick là gì? Cho một ví dụ số.
+A: **Tính tích vô hướng trong không gian ánh xạ mà không dựng mọi tọa độ.** Với a=(1,2),b=(3,1), kernel (a·b)²=(3+2)²=25, bằng φ(a)·φ(b) khi φ(u)=(u1²,√2u1u2,u2²). Tránh dựng feature không đồng nghĩa tránh chi phí so các cặp mẫu.
+EN: A kernel evaluates a feature-space inner product implicitly, such as (a·b)² for a quadratic feature map. This avoids explicit expansion but not necessarily expensive pairwise computations.
+Q: **B4.** C và gamma ảnh hưởng thế nào?
+A: **C đặt giá vi phạm margin; RBF gamma đặt độ cục bộ của kernel.** C lớn cố giảm hinge violations, có thể bám nhiễu; gamma lớn cho ảnh hưởng hẹp, dễ tạo biên phức tạp. Chọn cùng nhau bằng CV; ví dụ C=1,gamma=100 khớp dev tuyệt đối nhưng CV kém cấu hình 1/1.
+EN: C controls the relative penalty on margin violations, while RBF gamma controls locality. Their effects interact and should be selected jointly through validation rather than training fit.
+Q: **B5.** SVM khác Logistic Regression ở đâu?
+A: **SVM tối ưu margin/hinge loss, Logistic tối ưu mô hình xác suất bằng log loss.** SVC mặc định cho score/class, Logistic cho xác suất ước lượng; cả hai cần kiểm scale và regularization. Ví dụ muốn ranh giới phi tuyến có thể thử RBF, còn cần xác suất chiến dịch nên so Logistic với SVM được hiệu chuẩn, không coi score là p.
+EN: SVM emphasizes margins and hinge loss, whereas Logistic Regression fits probabilities with log loss. Default SVC scores are not probabilities; nonlinear kernels and probability calibration address different requirements.
+Q: **B6.** Vì sao SVM cần chú ý scale?
+A: **Vì đơn vị feature quyết định hình học khoảng cách và mức regularization.** Chênh 10 tuổi/1,000,000 đồng tạo bình phương chênh 100/10^12, nên tiền chi phối khoảng cách thô. Dùng Pipeline fit scaler trong từng fold; nếu dữ liệu đã ở thang phù hợp thì không bắt buộc chuẩn hóa lặp lại.
+EN: Feature units change distances, kernel values and regularization geometry. Scale heterogeneous features inside each training fold, while respecting representations that are already appropriately normalized.
+@tier C | Tình huống doanh nghiệp
+Q: **C1.** Ít ảnh/văn bản có nhãn nhưng feature nhiều chiều: có nên thử SVM không?
+A: **Có thể thử như ứng viên, phải đánh giá cách biểu diễn và regularization.** Dùng feature phù hợp như vector văn bản/embedding ảnh, so linear SVM và Logistic bằng split đúng nhóm/nguồn, chọn C qua CV; với sparse text không center phá tính thưa. Nhiều chiều không tự tốt hơn và kernel chưa chắc cần thiết; ví dụ ít ảnh nhưng pixel nhiễu có thể thua feature biểu diễn tốt. Giữ test độc lập và kiểm chất lượng nhãn.
+WANT: Nối ít nhãn với biểu diễn, regularization và đánh giá; không mặc định RBF thắng vì linh hoạt.
+Q: **C2.** Dữ liệu tăng 100 lần, kernel SVM train quá chậm. Bạn làm gì?
+A: **Đo nút thắt rồi so phương án mở rộng, không chỉ tăng máy.** Số cặp kernel đầy đủ tăng 10,000 lần về mặt đếm, dù cache/solver làm thời gian thực tế khác. So LinearSVC hoặc Logistic/SGD với metric và latency, cân nhắc kernel approximation hay tập con đại diện được kiểm chứng; ví dụ dữ liệu text nhiều chiều có thể đủ với linear. Kiểm cả số support vector vì nó ảnh hưởng dự đoán, giữ chất lượng bằng validation.
+WANT: Hiểu chi phí theo số mẫu, phân biệt đếm cặp với thời gian thực tế và đề xuất phương án có đo đánh đổi.
+Q: **C3.** Khách rời bỏ cần xác suất để tính lợi ích ưu đãi. Có lấy decision_function của SVC làm xác suất không?
+A: **Không; score chỉ là điểm quyết định, có thể dùng xếp hạng nhưng không tự là xác suất.** So Logistic baseline hoặc hiệu chuẩn SVM bằng CV trên development, kiểm chất lượng xác suất và lợi ích chiến dịch trước khi chốt; không dùng test để học hiệu chuẩn. Ví dụ score=2 không nghĩa p=2 hay 200%; bản sklearn hiện tại cũng khuyến nghị CalibratedClassifierCV thay tùy chọn probability cũ.
+WANT: Phân biệt score/ranking/probability và thiết kế hiệu chuẩn không leakage, thay vì chỉ gọi thêm một hàm API.
+Q: **C4.** Chỉ đủ tài nguyên train một tập con ảnh mèo/chó. Có lấy toàn ảnh model hay nhầm không?
+A: **Không chọn toàn ảnh khó mà bỏ đại diện và nhãn tin cậy.** Dùng model ban đầu tìm mẫu gần biên/bất định, kiểm nhãn rồi chọn thêm đa dạng nhóm/điều kiện, giữ cả mẫu dễ đại diện và test độc lập. Ví dụ ảnh nhãn sai có thể rất khó nhưng kéo margin sai, nhất là C lớn; support vector của tập đầy đủ cũng chưa biết trước fit. Nếu chọn ảnh chưa nhãn để hỏi người gán, đó là active learning, khác chỉ lọc tập đã nhãn.
+WANT: Giữ trực giác điểm sát biên nhiều thông tin, đồng thời phân biệt nhiễu, selection bias và chiến lược lấy mẫu có kiểm chứng.
+:::
+
+## Nối sang bài sau
+
+:::next
+[[bài:supervised-algorithms]] đã có Logistic và SVM trong nhóm phân loại. Tiếp theo là [[bài:k-nearest-neighbours]] ở slide 75: thay vì học một đường phân tách như SVM, KNN dự đoán từ những mẫu train gần input mới.
+:::
+
+## [sâu] Phần mở đầu gốc
 
 :::intro Đọc xong bài này bạn làm được
 - Giải thích **máy vector hỗ trợ**, margin và vai trò của những điểm sát biên.
@@ -54,7 +170,7 @@ Margin lớn giúp chống lại một mức xê dịch nhỏ của input **tron
 
 > **EN:** Equal training accuracy does not imply equal clearance. A larger margin tolerates larger input perturbations in the chosen feature metric, but it is not a guarantee against distribution shift or labeling errors.
 
-## Siêu phẳng, hai mép và support vector
+## [sâu] Siêu phẳng, hai mép và support vector
 
 **Hyperplane (siêu phẳng)** là tập điểm thỏa một phương trình tuyến tính có vector hệ số khác 0: trong không gian 2D nó là đường thẳng 1D; trong 3D là mặt phẳng 2D; trong n chiều là một tập phẳng **n−1 chiều**. “Nhỏ hơn 1” nói về **số chiều**, không phải bậc đa thức.
 
@@ -95,7 +211,7 @@ Với nghiệm đã cố định và thang đo cố định, bỏ hoặc dịch 
 
 > **EN:** Hard-margin SVM maximizes geometric clearance subject to canonical constraints. Non-support points outside the margin do not contribute to the fitted representation, but preprocessing changes and degenerate solutions require care; support vectors need not be a small fraction of the sample.
 
-## Tính tay từ 1D tới 2D (ngoài slide)
+## [sâu] Tính tay từ 1D tới 2D (ngoài slide)
 
 :::worked Một chiều: ở giữa 1 và 3
 Chọn số đối xứng quanh 2 để tính tay gọn: lớp −1 ở x=1, lớp +1 ở x=3. Trong 1D, siêu phẳng là **một điểm cắt**. Đặt biên tại `x=(1+3)/2=2`, khoảng cách mỗi bên `2−1=3−2=1`.
@@ -180,7 +296,7 @@ fig.savefig(out / "svm-max-margin.png", dpi=160)
 plt.close(fig)
 ```
 
-## Không tách hoàn toàn: soft margin và C (ngoài slide)
+## [sâu] Không tách hoàn toàn: soft margin và C (ngoài slide)
 
 Nếu hai mẫu có cùng feature nhưng trái nhãn, không có đường nào tách đúng hết. Hoặc chỉ một nhãn nhiễu đã ép đường nghiêng rất mạnh. **Soft margin** cho phép điểm vào dải margin, thậm chí sang phía sai, rồi tính một mức phạt để đổi lấy biên hợp lý hơn.
 
@@ -264,7 +380,7 @@ fig.savefig(out / "svm-soft-margin.png", dpi=160)
 plt.close(fig)
 ```
 
-## Khi một đường không đủ: thêm chiều có ý nghĩa
+## [sâu] Khi một đường không đủ: thêm chiều có ý nghĩa
 
 Trong [[slide:71]], “linearly separable” nghĩa là tách được hai class bằng một đường trong 2D. Khi một lớp nằm giữa và lớp kia bao quanh, một đường không thể ôm riêng lớp ở giữa. [[slide:72]] đưa dữ liệu từ 2D lên 3D: **φ** (phi) ở đây là **hàm ánh xạ feature**, không phải sigmoid φ trong bài Logistic. Nó nhận x1,x2 và tạo vector mới `(x1,x2,z)`; z là feature tính từ input cũ, không phải một nhãn mới cần thu thập.
 
@@ -304,7 +420,7 @@ Slide 72 vẽ nhóm giữa ở phía cao hơn, nhưng **không cho công thức 
 
 [Mở hình gốc](/plots/svm-lift-circle.png). Hai vòng có bán kính 1 và 2, tám điểm mỗi vòng; màu/lớp được giữ nguyên ở cả ba panel. Chỉ đổi cách biểu diễn feature.
 
-## Kernel trick: không cần dựng mọi chiều (ngoài slide)
+## [sâu] Kernel trick: không cần dựng mọi chiều (ngoài slide)
 
 Tạo x² bằng tay là cách dễ thấy ý tưởng, nhưng không gian feature có thể rất lớn, thậm chí vô hạn chiều. **Kernel** là hàm `K(a,b)=φ(a)·φ(b)`: tính tích vô hướng giữa hai input **sau ánh xạ**, thông qua công thức trực tiếp trên input gốc. “Độ giống” là cách nói trực giác; không phải cứ chọn một hàm bất kỳ gọi là similarity thì có kernel hợp lệ.
 
@@ -393,7 +509,7 @@ print("kernel, radius:", (a @ b)**2, np.sqrt(2.5))
 print("RBF distance=2:", np.exp(-0.1*4), np.exp(-1*4))
 ```
 
-## Scale trước, chọn C và gamma bên trong CV (ngoài slide)
+## [sâu] Scale trước, chọn C và gamma bên trong CV (ngoài slide)
 
 Khoảng cách phụ thuộc đơn vị: hai người lệch **10 tuổi và 1,000,000 đồng** cho bình phương khoảng cách thô `10²+1,000,000²=100+10^12`; số hạng tiền lớn gấp **10^10** lần số hạng tuổi. Với feature tuổi khoảng 0–100 và thu nhập khoảng 0–10^8, hình học thô có thể bị đơn vị tiền chi phối. Đổi đồng sang triệu đồng làm cùng dữ liệu có khoảng cách khác. Với SVM tuyến tính, đổi đơn vị còn đổi mức phạt ‖w‖²; với RBF, nó đổi trực tiếp ‖a−b‖² trong kernel.
 
@@ -503,7 +619,7 @@ print(classification_report(y_test, test_pred, digits=6, zero_division=0))
 print("test accuracy:", round(best.score(X_test, y_test), 6))
 ```
 
-## SVM hay Logistic: chọn theo điều mình cần (ngoài slide)
+## [sâu] SVM hay Logistic: chọn theo điều mình cần (ngoài slide)
 
 :::compare Cùng phân loại, khác mục tiêu và đầu ra
 | Tiêu chí | SVM/SVC | Logistic Regression |
@@ -526,7 +642,7 @@ Dữ liệu lệch lớp có thể thử `class_weight`, xem [[bài:imbalanced-d
 
 > **EN:** Choose based on validation quality, required outputs, interpretability and scale. Kernel SVC is not inherently probabilistic and pairwise kernel computations can be costly; linear alternatives and proper calibration solve different needs.
 
-## Chọn tập con: điểm khó có phải luôn tốt? (ngoài slide)
+## [sâu] Chọn tập con: điểm khó có phải luôn tốt? (ngoài slide)
 
 Ghi chú chủ repo đặt câu hỏi: nếu chỉ đủ tài nguyên học từ một phần dữ liệu ảnh đã gán nhãn, nên chọn ảnh nào? Ta giữ bản chất câu hỏi bằng ví dụ **ảnh mèo/chó dễ nhầm**, không suy diễn quốc tịch hoặc đặc điểm nhóm người từ khuôn mặt.
 
@@ -538,7 +654,7 @@ Tên ý tưởng gần gũi là **hard example mining** (tập trung mẫu khó 
 
 > **EN:** Informative boundary examples motivate hard example mining and uncertainty-based active learning, but they are not a universal sampling rule. Preserve representative coverage, trustworthy labels and an independent evaluation set; difficult mislabeled examples can be harmful.
 
-## Những hiểu sai cần chặn (ngoài slide)
+## [sâu] Những hiểu sai cần chặn (ngoài slide)
 
 :::pitfall Đường nào tách đúng train cũng tốt như nhau
 Ba đường hook đều 100% nhưng clearance khác nhau. Margin giúp chọn giữa chúng; không thay thế việc đo dữ liệu mới.
@@ -563,70 +679,3 @@ Tuổi và tiền khác thang đo làm đổi hình học; scale trong Pipeline,
 > **EN:** Training fit, support-vector sparsity, kernel geometry, scaling and probabilistic interpretation are separate concerns. Validate the complete learning procedure rather than relying on a single geometric picture.
 
 Nguồn đối chiếu phần ngoài slide: [SVM và công thức tối ưu](https://scikit-learn.org/stable/modules/svm.html), [SVC và các thuộc tính](https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html), [tương tác C/gamma](https://scikit-learn.org/stable/auto_examples/svm/plot_rbf_parameters.html), [Pipeline](https://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html).
-
-## Tóm tắt 1 phút
-
-:::recap
-- Siêu phẳng có n−1 chiều trong không gian n chiều; linear SVM dùng w·x+b=0.
-- Chuẩn hóa mép ở ±1: clearance mỗi bên 1/‖w‖, margin toàn dải 2/‖w‖.
-- Support vector là mẫu đóng góp vào nghiệm; soft margin còn gồm điểm vi phạm, không bảo đảm số ít.
-- C lớn phạt vi phạm nặng hơn; C nhỏ thường cho dải rộng hơn, cần kiểm underfit/overfit.
-- Ánh xạ thêm feature có thể làm biên cong ở input gốc thành siêu phẳng ở không gian mới.
-- Kernel tính tích vô hướng ngầm; RBF gamma lớn làm ảnh hưởng hẹp, cần chọn cùng C.
-- Scale trong train/fold, chọn bằng CV, giữ test riêng; default SVC không có xác suất.
-- Mẫu khó cần nhãn tin cậy và độ phủ; không suy “càng khó/càng nhiều chiều càng tốt”.
-:::
-
-## Câu hỏi tự kiểm tra
-
-:::quiz
-@tier A | Hiểu bài
-Q: Với w=(3,4), b=−5, tính ‖w‖, margin toàn dải và khoảng cách điểm (3,0) tới biên.
-A: **Chuẩn 5, margin 0.4, khoảng cách 0.8**, khi w,b dùng chuẩn hóa mép ±1. Tính √(3²+4²)=5; 2/5=0.4. Tại (3,0), f=3×3+4×0−5=4, khoảng cách |4|/5=0.8; không đọc f=4 thành xác suất hay khoảng cách trực tiếp.
-Q: Trong ví dụ 1D x=1 thuộc −1, x=3 thuộc +1, thêm x=0 và x=5 đúng lớp có đổi biên không?
-A: **Không, trong bài toán cố định thang đo này biên vẫn x=2.** Nghiệm w=1,b=−2 cho y f=1 ở hai mẫu cũ; điểm mới cho y f=2 và 3, nằm ngoài margin. Ví dụ code fit lại vẫn giữ support vector [1,3]; refit scaler là bài toán khác nên không suy rộng máy móc.
-Q: Với bốn điểm A,B,C,D trong bài, điểm nào là support vector? D cách biên bao xa?
-A: **A,B,C là support vector trong nghiệm ví dụ; D cách biên 3.** Với w=(1,0),b=0, ba điểm đầu thỏa y f=1; D=(3,0) có y f=3. Lấy |3|/1=3 cho khoảng cách, còn margin toàn dải là 2.
-Q: Ánh xạ z=x², cắt z=2.5 thì hai điểm cắt trên x có phải ±1.5 không?
-A: **Không, là ±√2.5≈±1.581139.** Giải x²=2.5 rồi lấy hai căn đối dấu. Ví dụ x=−1,0,1 ở dưới đường, x=±2,±3 ở trên; ±1.5 chỉ tương ứng mức z=2.25.
-Q: Đọc bảng C và bảng RBF: có chọn cấu hình train 100% thay cho CV tốt nhất không?
-A: **Không; dùng CV theo mục tiêu đã chốt.** C nhỏ có 112/120 support vector nên không mặc định SVM chỉ dùng vài điểm. Ở vòng tròn, C=1,gamma=100 có train 1.0 nhưng CV 0.855556, thấp hơn C=1,gamma=1 với CV 0.983333; test giữ cho đánh giá cuối.
-@tier B | Phỏng vấn lý thuyết
-Q: **B1.** Support vector là gì và vì sao chỉ chúng quan trọng trong nghiệm?
-A: **Đó là các mẫu có hệ số đóng góp vào biểu diễn nghiệm SVM.** Ở hard margin chúng nằm trên mép; soft margin còn có mẫu vi phạm, kể cả sai phía. Điểm ngoài margin không góp trực tiếp, nhưng chọn preprocessing và thay dữ liệu trước fit vẫn có thể đổi nghiệm; ví dụ bài 2D có ba support vector và một điểm xa D.
-EN: Support vectors have nonzero contributions to the fitted SVM representation. They lie on the hard margin or may violate the soft margin; non-support points outside the margin do not directly contribute under a fixed representation.
-Q: **B2.** Maximum margin nghĩa là gì, vì sao có thể giúp tổng quát hóa?
-A: **Là tối đa khoảng đệm nhỏ nhất tới các điểm train trong hard-margin setting.** Nó giảm nhạy với nhiễu input nhỏ theo thang đo đã chọn; dưới chuẩn hóa ±1, tối thiểu ‖w‖² tương đương tối đa 2/‖w‖. Ví dụ ba đường cùng đúng nhưng đường giữa có clearance 1 thay vì 0.5; không hứa chống được drift hay mọi nhãn sai.
-EN: Maximum margin maximizes the minimum geometric clearance under hard-margin constraints. It can improve robustness to small perturbations in the chosen metric, but does not guarantee generalization under arbitrary data shifts.
-Q: **B3.** Kernel trick là gì? Cho một ví dụ số.
-A: **Tính tích vô hướng trong không gian ánh xạ mà không dựng mọi tọa độ.** Với a=(1,2),b=(3,1), kernel (a·b)²=(3+2)²=25, bằng φ(a)·φ(b) khi φ(u)=(u1²,√2u1u2,u2²). Tránh dựng feature không đồng nghĩa tránh chi phí so các cặp mẫu.
-EN: A kernel evaluates a feature-space inner product implicitly, such as (a·b)² for a quadratic feature map. This avoids explicit expansion but not necessarily expensive pairwise computations.
-Q: **B4.** C và gamma ảnh hưởng thế nào?
-A: **C đặt giá vi phạm margin; RBF gamma đặt độ cục bộ của kernel.** C lớn cố giảm hinge violations, có thể bám nhiễu; gamma lớn cho ảnh hưởng hẹp, dễ tạo biên phức tạp. Chọn cùng nhau bằng CV; ví dụ C=1,gamma=100 khớp dev tuyệt đối nhưng CV kém cấu hình 1/1.
-EN: C controls the relative penalty on margin violations, while RBF gamma controls locality. Their effects interact and should be selected jointly through validation rather than training fit.
-Q: **B5.** SVM khác Logistic Regression ở đâu?
-A: **SVM tối ưu margin/hinge loss, Logistic tối ưu mô hình xác suất bằng log loss.** SVC mặc định cho score/class, Logistic cho xác suất ước lượng; cả hai cần kiểm scale và regularization. Ví dụ muốn ranh giới phi tuyến có thể thử RBF, còn cần xác suất chiến dịch nên so Logistic với SVM được hiệu chuẩn, không coi score là p.
-EN: SVM emphasizes margins and hinge loss, whereas Logistic Regression fits probabilities with log loss. Default SVC scores are not probabilities; nonlinear kernels and probability calibration address different requirements.
-Q: **B6.** Vì sao SVM cần chú ý scale?
-A: **Vì đơn vị feature quyết định hình học khoảng cách và mức regularization.** Chênh 10 tuổi/1,000,000 đồng tạo bình phương chênh 100/10^12, nên tiền chi phối khoảng cách thô. Dùng Pipeline fit scaler trong từng fold; nếu dữ liệu đã ở thang phù hợp thì không bắt buộc chuẩn hóa lặp lại.
-EN: Feature units change distances, kernel values and regularization geometry. Scale heterogeneous features inside each training fold, while respecting representations that are already appropriately normalized.
-@tier C | Tình huống doanh nghiệp
-Q: **C1.** Ít ảnh/văn bản có nhãn nhưng feature nhiều chiều: có nên thử SVM không?
-A: **Có thể thử như ứng viên, phải đánh giá cách biểu diễn và regularization.** Dùng feature phù hợp như vector văn bản/embedding ảnh, so linear SVM và Logistic bằng split đúng nhóm/nguồn, chọn C qua CV; với sparse text không center phá tính thưa. Nhiều chiều không tự tốt hơn và kernel chưa chắc cần thiết; ví dụ ít ảnh nhưng pixel nhiễu có thể thua feature biểu diễn tốt. Giữ test độc lập và kiểm chất lượng nhãn.
-WANT: Nối ít nhãn với biểu diễn, regularization và đánh giá; không mặc định RBF thắng vì linh hoạt.
-Q: **C2.** Dữ liệu tăng 100 lần, kernel SVM train quá chậm. Bạn làm gì?
-A: **Đo nút thắt rồi so phương án mở rộng, không chỉ tăng máy.** Số cặp kernel đầy đủ tăng 10,000 lần về mặt đếm, dù cache/solver làm thời gian thực tế khác. So LinearSVC hoặc Logistic/SGD với metric và latency, cân nhắc kernel approximation hay tập con đại diện được kiểm chứng; ví dụ dữ liệu text nhiều chiều có thể đủ với linear. Kiểm cả số support vector vì nó ảnh hưởng dự đoán, giữ chất lượng bằng validation.
-WANT: Hiểu chi phí theo số mẫu, phân biệt đếm cặp với thời gian thực tế và đề xuất phương án có đo đánh đổi.
-Q: **C3.** Khách rời bỏ cần xác suất để tính lợi ích ưu đãi. Có lấy decision_function của SVC làm xác suất không?
-A: **Không; score chỉ là điểm quyết định, có thể dùng xếp hạng nhưng không tự là xác suất.** So Logistic baseline hoặc hiệu chuẩn SVM bằng CV trên development, kiểm chất lượng xác suất và lợi ích chiến dịch trước khi chốt; không dùng test để học hiệu chuẩn. Ví dụ score=2 không nghĩa p=2 hay 200%; bản sklearn hiện tại cũng khuyến nghị CalibratedClassifierCV thay tùy chọn probability cũ.
-WANT: Phân biệt score/ranking/probability và thiết kế hiệu chuẩn không leakage, thay vì chỉ gọi thêm một hàm API.
-Q: **C4.** Chỉ đủ tài nguyên train một tập con ảnh mèo/chó. Có lấy toàn ảnh model hay nhầm không?
-A: **Không chọn toàn ảnh khó mà bỏ đại diện và nhãn tin cậy.** Dùng model ban đầu tìm mẫu gần biên/bất định, kiểm nhãn rồi chọn thêm đa dạng nhóm/điều kiện, giữ cả mẫu dễ đại diện và test độc lập. Ví dụ ảnh nhãn sai có thể rất khó nhưng kéo margin sai, nhất là C lớn; support vector của tập đầy đủ cũng chưa biết trước fit. Nếu chọn ảnh chưa nhãn để hỏi người gán, đó là active learning, khác chỉ lọc tập đã nhãn.
-WANT: Giữ trực giác điểm sát biên nhiều thông tin, đồng thời phân biệt nhiễu, selection bias và chiến lược lấy mẫu có kiểm chứng.
-:::
-
-## Nối sang bài sau
-
-:::next
-[[bài:supervised-algorithms]] đã có Logistic và SVM trong nhóm phân loại. Tiếp theo là [[bài:k-nearest-neighbours]] ở slide 75: thay vì học một đường phân tách như SVM, KNN dự đoán từ những mẫu train gần input mới.
-:::
