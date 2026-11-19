@@ -106,3 +106,7 @@ desc = data.describe().T.loc[cols, ["mean", "std", "min", "25%", "50%", "75%", "
 zeros = {c: int((data[c] == 0).sum()) for c in cols}
 dump("describe.json", {"cols": cols, "stats": ["mean", "std", "min", "25%", "50%", "75%", "max"],
                        "values": [[round(float(v), 3) for v in desc.loc[c]] for c in cols], "zeros": zeros})
+
+# 6. Insulin: 20 bệnh nhân đầu và 394 giá trị khác 0 (bài 17)
+nz = data.Insulin[data.Insulin > 0]
+dump("insulin.json", {"first20": [int(v) for v in data.Insulin.head(20)], "nonzero": [int(v) for v in nz]})

@@ -13,6 +13,7 @@ import ParamKnob from "./ParamKnob";
 import FoldCompare from "./FoldCompare";
 import ScenarioCards from "./ScenarioCards";
 import DescribeTable from "./DescribeTable";
+import MissingOutlier from "./MissingOutlier";
 import { KnnPlay, GiniCalc, BootstrapVote, SplitBar } from "./ModelWidgets";
 
 /** Đăng ký công cụ tương tác; dùng trong bài bằng  :::widget tên  */
@@ -41,4 +42,5 @@ export const WIDGETS: Record<string, React.ComponentType<{ props?: string }>> = 
   "fold-compare": FoldCompare,
   "scenario-cards": ScenarioCards,
   "describe-table": DescribeTable,
+  "missing-outlier": MissingOutlier,
 };

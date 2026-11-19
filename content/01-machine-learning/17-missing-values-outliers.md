@@ -1,7 +1,7 @@
 ---
 title: Step 3.1–3.2 — Xử lý dữ liệu thiếu và Outliers
 order: 17
-description: "Ba dạng dữ liệu thiếu hoặc lạ, cách điền bằng median học từ train, và phát hiện outlier bằng IQR và z-score."
+description: "Hai phần đầu của Step 3 (slide 45 và 46): bỏ hay điền dữ liệu thiếu bằng median học từ train, và phát hiện outlier bằng IQR và z-score trên Insulin, quyết định theo nguyên nhân."
 slides: 45-46
 needs: [descriptive-statistics]
 tags: [missing, imputation, outlier, iqr, zscore, MCAR, MAR, MNAR, MissForest, IterativeImputer]
@@ -10,59 +10,94 @@ tags: [missing, imputation, outlier, iqr, zscore, MCAR, MAR, MNAR, MissForest, I
 ## Dữ liệu thiếu hay dữ liệu khác thường: xử lý thế nào mà không rò rỉ?
 
 :::intro Mục tiêu bài này
-- Nhận ra ba dạng: ô thiếu rõ ràng, thiếu trá hình (số 0), và giá trị khác thường (outlier).
-- Chọn cách xử lý thiếu (xóa, điền) và biết vì sao điền bằng **median học từ train**.
-- Phát hiện outlier bằng **IQR** và **z-score**, và quyết định giữ, cắt hay bỏ.
+- Nhận ra ba dạng vấn đề ở slide 45 và 46: ô thiếu rõ ràng, giá trị thiếu hoặc sai trá hình, và **outlier**.
+- Chọn cách xử lý thiếu (bỏ hay điền) và biết vì sao điền bằng **median học từ train**.
+- Phát hiện outlier bằng **IQR** và **z-score**, thấy chúng cho kết quả khác nhau, và quyết định giữ, cắt hay bỏ theo nguyên nhân.
 :::
 
-Ba dạng vấn đề, mỗi dạng một cách nhận ra:
+Slide 45 và 46 là hai trong **bốn phần của Step 3 (Data preprocessing)**: *Handle missing or invalid values* (3.1), *Remove outliers* (3.2), *Data transformation* (3.3: [[bài:feature-scaling]], [[bài:categorical-encoding]]) và *Remove multicollinearity* (3.4: [[bài:correlation-multicollinearity]]). Bài này làm hai phần đầu.
 
-1. **Ô thiếu rõ ràng:** giá trị `NaN`, ô trống. `isna()` đếm được.
-2. **Thiếu trá hình:** ô bị ghi thành giá trị "thay thế" như `0`, `-1`, `"N/A"`. Phải nhìn `describe()` ([[bài:descriptive-statistics]]) mới thấy. Diabetes: Insulin **374** ô, SkinThickness **227** ô là 0 vô lý.
-3. **Giá trị khác thường (outlier):** giá trị cực đoan, nằm rất xa phần lớn dữ liệu. Có thể là lỗi, có thể là thật.
+## Ba dạng vấn đề
+
+1. **Ô thiếu rõ ràng:** giá trị `NaN`, ô trống. Slide 45 dùng bảng Titanic với các ô thiếu (Missing values) ở những cột như `Age` và `Cabin`; `isna()` đếm được.
+2. **Thiếu hoặc sai trá hình:** ô bị ghi thành giá trị "thay thế" như `0`, `-1`, `"N/A"`. Phải nhìn `describe()` ([[bài:descriptive-statistics]]) mới thấy. Diabetes không có ô `NaN` nào, nhưng **374** ô Insulin và **227** ô SkinThickness là số 0 vô lý.
+3. **Giá trị khác thường (outlier):** nằm rất xa phần lớn dữ liệu. Slide 46 minh họa bằng một chú chim cánh cụt **trắng giữa bầy đen**: nó có thật, nhưng khác thường.
+
+:::slides 45-46 | Slide 45–46: Step 3.1 xử lý dữ liệu thiếu hoặc sai; Step 3.2 loại bỏ outliers
+:::
 
 ## Dữ liệu thiếu: bỏ hay điền?
 
-**Bỏ hàng** đơn giản, nhưng đắt: với Insulin, bỏ mọi hàng có ô thiếu sẽ mất **gần một nửa** (374/768) bệnh nhân. **Điền** (imputation) giữ lại dữ liệu bằng một giá trị hợp lý: trung bình, **trung vị**, giá trị phổ biến nhất, hoặc dự đoán từ các cột khác.
+**Bỏ hàng** đơn giản nhưng đắt. Nhìn 20 bệnh nhân đầu của Diabetes: cột Insulin có **11 ô bằng 0** trên 20. Xóa mọi hàng đó thì chỉ còn 9 bệnh nhân, mất hơn một nửa dữ liệu (cả các cột khác của họ, vốn đo đầy đủ). **Điền** (imputation) giữ lại dữ liệu bằng một giá trị hợp lý: trung bình, **trung vị**, giá trị phổ biến nhất, hoặc dự đoán từ các cột khác. Hãy tự thử cả bốn cách trên đúng 20 giá trị đó:
 
-:::predict
-Cột Insulin (sau khi coi số 0 là thiếu) trên bộ train có trung vị **120** và trung bình **154.3**. Điền ô thiếu bằng cái nào hợp lý hơn, và vì sao?
-@answer
-**Trung vị.** Insulin lệch phải với vài giá trị rất lớn (tới 846) kéo trung bình lên. Điền bằng trung bình gán cho người chưa đo một giá trị lớn hơn phần đông người thật sự được đo. Trung vị bền với giá trị cực đoan.
+:::widget missing-outlier
+impute
 :::
 
-Việc điền là một bước **học từ dữ liệu** (nó tính trung vị), nên theo luật chung: **tính trung vị chỉ từ train** rồi áp cho cả train và test; tốt nhất đặt `SimpleImputer` trong Pipeline ([[bài:ml-pipeline]]). Ở Project Bước 7, điền median cho năm cột **không làm điểm cross-validation đổi đáng kể**: dọn dữ liệu đúng nguyên tắc không đảm bảo điểm tăng, chỉ có đo bằng CV mới biết.
+:::predict
+Trong 9 giá trị Insulin đã biết của 20 bệnh nhân đầu (83, 88, 94, 96, 168, 175, 230, 543, 846), trung bình là 258 và trung vị là 168. Điền ô thiếu bằng cái nào hợp lý hơn, và vì sao?
+@answer
+**Trung vị (168).** Hai giá trị rất lớn (543 và 846) kéo trung bình lên 258, cao hơn tới 7 trong 9 giá trị thật. Điền bằng trung bình gán cho người chưa đo một giá trị lớn hơn phần đông người thật sự được đo. Trung vị **bền** với giá trị cực đoan. Trên bộ train của Project: median Insulin là **120**, mean là **154.3**.
+:::
 
-## Outlier: phát hiện, rồi quyết định
+Việc điền cũng là một bước **học từ dữ liệu** (nó tính median), nên theo luật chung: **tính median chỉ từ train** rồi áp cho cả train và test; tốt nhất đặt `SimpleImputer` trong Pipeline ([[bài:ml-pipeline]]). Ở Project Bước 7, điền median cho năm cột **không làm điểm cross-validation đổi đáng kể**: dọn dữ liệu đúng nguyên tắc không đảm bảo điểm tăng, chỉ đo bằng CV mới biết.
 
-Hai cách phổ biến, áp vào Insulin (394 giá trị khác 0):
+:::ck
+Bạn điền ô thiếu bằng median của **toàn bộ** dữ liệu (cả test) rồi mới chia train/test. Điều đó sai ở đâu?
+@answer
+Median đã tính cả hàng test, nên giá trị điền cho train mang thông tin của test: một dạng **rò rỉ dữ liệu**. Với một con số đơn giản thì rò rỉ nhỏ, nhưng nguyên tắc không đổi, và với các bước học nhiều hơn (điền theo nhóm, điền bằng model) rò rỉ có thể lớn. Đúng cách: chia trước, `fit` imputer trên train.
+:::
 
-- **IQR:** Q1 = 76.25, Q3 = 190, IQR = Q3 − Q1 = 113.75. Hàng rào trên = Q3 + 1.5 × IQR = **360.6**; có **24** giá trị vượt.
-- **z-score:** `(x − mean) / std`; coi |z| > 3 là outlier; có **8** giá trị vượt.
+## Outlier: phát hiện bằng hai cách
 
-Hai cách cho kết quả **khác nhau** (24 so với 8) vì z-score giả định dữ liệu gần phân phối chuẩn, trong khi Insulin lệch phải mạnh: mean và std bị chính outlier kéo lên. Khi lệch, IQR đáng tin hơn.
+Hai cách phổ biến, áp vào cột Insulin (394 giá trị khác 0):
 
-Phát hiện rồi, **quyết định** theo nguyên nhân:
+:::steps
+**IQR:** sắp xếp rồi lấy phân vị 25% **Q1 = 76.25** và 75% **Q3 = 190**. Khoảng giữa **IQR = Q3 − Q1 = 113.75**.
+@step
+**Hàng rào trên** = Q3 + 1.5 × IQR = 190 + 170.6 = **360.6**. Có **24** giá trị lớn hơn hàng rào: coi là outlier theo IQR.
+@step
+**z-score:** mean = 155.55, std = 118.63. Một giá trị bị coi là outlier nếu |z| = |(x − mean) / std| > 3. Có **8** giá trị vượt (giá trị lớn nhất, 846, có z = 5.82).
+@step
+Hai cách cho **24 so với 8**: khác nhau vì Insulin **lệch phải mạnh**, mean và std bị chính các giá trị lớn kéo lên nên z-score "dễ tính" hơn. Với dữ liệu lệch, IQR đáng tin hơn.
+:::
 
-- **Là lỗi nhập liệu** (tuổi 200): sửa hoặc bỏ.
-- **Là giá trị thật nhưng hiếm** (Insulin 846): thường **giữ**; dùng scaler hoặc model bền hơn.
-- **Cắt ngưỡng (winsorize):** thay giá trị vượt hàng rào bằng chính hàng rào, với ngưỡng học từ train.
+Hãy tự kéo hệ số k của IQR và ngưỡng z để thấy số outlier đổi:
+
+:::widget missing-outlier
+outlier
+:::
+
+## Phát hiện rồi thì làm gì?
+
+Quyết định theo **nguyên nhân**, không theo con số:
+
+- **Là lỗi nhập liệu** (tuổi 200, giá nhà thiếu hoặc thừa số 0): sửa hoặc bỏ.
+- **Là giá trị thật nhưng hiếm** (Insulin 846 ở một bệnh nhân thật): thường **giữ**; dùng scaler bền, model ít nhạy, hoặc biến đổi (ví dụ log).
+- **Cắt ngưỡng (winsorize):** thay giá trị vượt hàng rào bằng chính hàng rào; ngưỡng phải học từ **train**.
+- Chim cánh cụt trắng ở slide 46 là bài học: nó **hiếm nhưng thật**; xóa nó là xóa một phần của thế giới mà model cần gặp.
 
 :::ck
 Insulin 846 vượt hàng rào 360.6. Bạn nên xóa bệnh nhân đó khỏi dữ liệu không?
 @answer
-**Chưa nên vội.** Hãy kiểm tra: đó có thể là bệnh nhân thật có insulin cao, chính là kiểu mẫu ta muốn model nhận ra. Chỉ xóa khi xác định là lỗi. Nếu giữ, dùng cách xử lý bền (cắt ngưỡng, scaler bền, hoặc model ít nhạy như cây). Outlier không đồng nghĩa với lỗi.
+**Chưa nên vội.** Hãy kiểm tra: đó có thể là bệnh nhân thật có insulin cao, chính là kiểu mẫu ta muốn model nhận ra. Chỉ xóa khi xác định là lỗi. Nếu giữ, dùng cách xử lý bền (cắt ngưỡng, scaler bền, hoặc model ít nhạy như cây). Outlier **không đồng nghĩa với lỗi**.
 :::
 
-:::slides 45-46 | Slide 45–46: xử lý dữ liệu thiếu và outliers
-:::
+## Những hiểu sai thường gặp
+
+- **"Không có NaN nghĩa là không thiếu."** Số 0 vô lý che đi dữ liệu thiếu (Diabetes không có `NaN` nhưng 374 ô Insulin thiếu).
+- **"Điền bằng mean luôn ổn."** Mean nhạy với giá trị cực đoan; với dữ liệu lệch, median an toàn hơn.
+- **"Outlier là phải bỏ."** Có thể là tín hiệu quan trọng; bỏ theo nguyên nhân.
+- **"z-score và IQR cho cùng kết quả."** Khác nhau khi dữ liệu lệch (24 so với 8).
+- **"Dọn dữ liệu chắc chắn tăng điểm."** Project Bước 7: không đáng kể; chỉ CV mới cho biết.
 
 :::card Dữ liệu thiếu và outlier
+- **Step 3 có bốn phần (slide 45–46):** xử lý thiếu, bỏ outlier, biến đổi dữ liệu, bỏ đa cộng tuyến.
 - **Ba dạng:** ô `NaN`, thiếu trá hình (0, −1, "N/A"), outlier.
-- **Xử lý thiếu:** bỏ (mất nhiều dữ liệu) hoặc điền; **median** bền hơn mean khi lệch.
+- **Xử lý thiếu:** bỏ (20 bệnh nhân đầu mất 11/20) hoặc điền; **median** (168) bền hơn mean (258) khi có giá trị lớn.
 - **Điền là bước học từ dữ liệu:** median chỉ tính từ train, đặt trong Pipeline.
-- **Outlier:** IQR (hàng rào Q3 + 1.5 IQR) hoặc z-score; hai cách có thể khác nhau khi dữ liệu lệch.
-- **Quyết định theo nguyên nhân:** lỗi thì sửa hoặc bỏ; thật thì thường giữ.
+- **Outlier:** IQR (hàng rào Q3 + 1.5 IQR = 360.6, 24 giá trị) và z-score (|z| > 3, 8 giá trị); khác nhau khi dữ liệu lệch.
+- **Quyết định theo nguyên nhân:** lỗi thì sửa hoặc bỏ; thật mà hiếm thì thường giữ.
 :::
 
 ## Câu hỏi tự kiểm tra
