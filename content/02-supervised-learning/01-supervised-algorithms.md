@@ -1,7 +1,7 @@
 ---
 title: Bản đồ thuật toán Supervised Learning
 order: 1
-description: "Không có mô hình tốt nhất: đọc bản đồ thuật toán, thử baseline trước rồi so ứng viên bằng cross-validation."
+description: "Bản đồ thuật toán Supervised Learning (slide 64): chọn ứng viên theo ba câu hỏi, baseline trước, và so sánh thật bằng cross-validation trên Diabetes."
 slides: 64
 needs: [classification-vs-regression, model-training-pipeline]
 tags: [supervised, regression, classification, algorithm, baseline]
@@ -15,12 +15,27 @@ tags: [supervised, regression, classification, algorithm, baseline]
 - Biết quy trình chọn: **baseline trước**, rồi so các ứng viên bằng cross-validation.
 :::
 
-Sau khi đặt bài toán ([[bài:classification-vs-regression]]), câu hỏi tiếp theo: dùng mô hình nào? Câu trả lời trung thực là: **không có mô hình tốt nhất cho mọi bài**. Có những mô hình hợp với từng kiểu dữ liệu, và cách duy nhất để biết là thử, đo công bằng, rồi so sánh. Slide 64 xếp các thuật toán thành hai cột (hồi quy và phân loại); dấu sao đánh dấu thuật toán dùng được cho cả hai.
+Sau khi đặt bài toán ([[bài:classification-vs-regression]]), câu hỏi tiếp theo: dùng mô hình nào? Câu trả lời trung thực là: **không có mô hình tốt nhất cho mọi bài**. Mỗi mô hình hợp với một kiểu dữ liệu, và cách duy nhất để biết là thử, đo công bằng, rồi so sánh.
+
+## Đọc slide 64
+
+:::slides 64 | Slide 64: Supervised Learning algorithms, hai cột Regression và Classification
+:::
+
+- **Cột Regression (hồi quy):** Linear Regression, Polynomial Regression, và dòng chú thích "Could also be used here".
+- **Cột Classification (phân loại):** Logistic Regression, Support Vector Machine\*, K-nearest neighbours\*, Naive Bayes, Decision Tree\*, Random Forest\*.
+- **Chữ xanh có dấu \*** là các thuật toán **cũng dùng được cho hồi quy** (SVM, KNN, Decision Tree, Random Forest). Logistic Regression dù tên có chữ "regression" vẫn là bộ phân loại.
+- **Naive Bayes** có trên slide nhưng khóa học không có bài riêng cho nó; ở đây chỉ cần biết nó là một họ phân loại dựa trên xác suất.
+
+Thử thu hẹp ứng viên theo loại target và nhu cầu giải thích:
+
+:::widget algo-filter
+:::
 
 :::predict
 Bạn có một bảng 768 dòng, 8 cột số, nhãn 0/1. Bạn **chưa biết** mô hình nào hợp. Cách nào nên làm đầu tiên: (a) chọn mô hình phức tạp nhất, (b) chọn một mô hình đơn giản làm baseline rồi so các mô hình khác với nó, (c) chọn mô hình mà bài báo mới nhất khen?
 @answer
-**(b).** Một baseline đơn giản (đoán lớp đông nhất, rồi Logistic Regression) cho bạn **mức sàn** để biết các mô hình phức tạp có thật sự hơn không. Ở Project, Logistic và Random Forest hơn kém nhau chưa đến một điểm trên cross-validation: mô hình phức tạp hơn không tự động tốt hơn.
+**(b).** Một baseline đơn giản cho bạn **mức sàn** để biết mô hình phức tạp có thật sự hơn không. Số đo ngay bên dưới sẽ cho thấy vì sao.
 :::
 
 ## Mỗi họ giải quyết điều gì
@@ -40,9 +55,24 @@ Ba câu hỏi giúp thu hẹp:
 
 1. **Target là số hay nhóm?** (số: hồi quy; nhóm: phân loại.)
 2. **Có cần giải thích được không?** (Linear, Logistic, cây: dễ đọc; SVM kernel, forest: khó hơn.)
-3. **Dữ liệu cần scale không, có nhiều outlier không?** (KNN, SVM, Logistic cần scale; cây thì không.)
+3. **Dữ liệu cần scale không, có nhiều outlier không?** (KNN, SVM, Logistic cần scale; cây thì không, [[bài:feature-scaling]].)
 
-Rồi chọn **2 đến 3 ứng viên**, đặt chung một Pipeline và so bằng cross-validation ([[bài:k-fold-cross-validation]]), đúng như Project Bước 6.
+Rồi chọn **2 đến 3 ứng viên**, đặt chung một Pipeline và so bằng cross-validation ([[bài:k-fold-cross-validation]]).
+
+## Thử thật trên Diabetes
+
+Cùng một bảng Diabetes (768 hàng, 8 feature, 34.9% là nhãn 1), 5-fold CV có phân tầng (`StratifiedKFold(5, shuffle=True, random_state=42)`), mô hình mặc định, accuracy trung bình:
+
+| Mô hình | Accuracy | Độ lệch giữa các fold |
+|---|---|---|
+| Baseline: đoán lớp đông (nhãn 0) | 0.651 | 0.002 |
+| Logistic Regression (có scale) | **0.775** | 0.015 |
+| Random Forest | 0.769 | 0.018 |
+| SVM (có scale) | 0.762 | 0.017 |
+| KNN (có scale) | 0.728 | 0.020 |
+| Decision Tree (một cây) | 0.700 | 0.041 |
+
+Ba điều đọc được. **Một:** baseline 0.651 trùng đúng tỉ lệ lớp đông, nên mọi mô hình phải vượt mức đó mới có giá trị. **Hai:** mô hình đơn giản nhất (Logistic) đứng đầu, chỉ hơn Random Forest 0.006, nhỏ hơn độ lệch giữa các fold (0.015 đến 0.018): hai mô hình này **chưa phân biệt được**. **Ba:** một cây đơn lẻ kém nhất và dao động mạnh nhất (0.041), đúng lý do người ta gộp nhiều cây thành forest. Đây là kết quả trên **một** bộ dữ liệu với tham số mặc định; bộ khác có thể cho thứ tự khác.
 
 :::ck
 Một mô hình đạt accuracy 80% trên bộ test, nhưng đoán toàn lớp đông cũng được 78%. Nên kết luận gì?
@@ -50,14 +80,20 @@ Một mô hình đạt accuracy 80% trên bộ test, nhưng đoán toàn lớp �
 Mô hình chỉ hơn mức sàn **2 điểm**: chưa chắc có giá trị. Luôn so với **baseline** (đoán lớp đông, hoặc mô hình đơn giản nhất) trước khi khen một con số.
 :::
 
-:::slides 64 | Slide 64: bản đồ thuật toán Supervised Learning
-:::
+## Những hiểu sai thường gặp
+
+- **"Có mô hình tốt nhất."** Không; thứ tự phụ thuộc dữ liệu, metric và cách chia.
+- **"Phức tạp hơn là tốt hơn."** Trên Diabetes, Logistic đơn giản ngang hoặc hơn Forest.
+- **"Logistic Regression là hồi quy."** Nó là bộ phân loại; chữ "regression" nằm ở cách nó tính xác suất.
+- **"Dấu * nghĩa là dùng thế nào cũng được."** Chỉ nghĩa là có phiên bản cho cả hai loại target; mỗi phiên bản là một mô hình riêng.
+- **"Hơn 0.006 là thắng."** Khi chênh lệch nhỏ hơn độ lệch giữa các fold thì chưa kết luận được.
 
 :::card Bản đồ thuật toán
 - **Không có mô hình tốt nhất** cho mọi bài; thử và đo công bằng.
-- **Baseline trước** (đoán lớp đông, Logistic), rồi so ứng viên bằng CV.
+- **Baseline trước** (đoán lớp đông: 0.651 trên Diabetes), rồi so ứng viên bằng CV.
 - **Thu hẹp bằng ba câu hỏi:** target là số hay nhóm; cần giải thích không; có cần scale không.
-- **Mô hình phức tạp hơn không tự động tốt hơn.**
+- **Dấu \* ở slide 64:** SVM, KNN, Decision Tree, Random Forest dùng được cho cả hai loại target.
+- **Mô hình phức tạp hơn không tự động tốt hơn:** Logistic 0.775 so với Forest 0.769.
 :::
 
 ## Câu hỏi tự kiểm tra
