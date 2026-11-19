@@ -1,7 +1,7 @@
 ---
 title: Metric cho Regression — MAE và RMSE
 order: 14
-description: "MAE và RMSE khác nhau ở cách đối xử với sai số lớn; R² so model với việc đoán bừa bằng trung bình."
+description: "MAE và RMSE khác nhau ở cách đối xử với sai số lớn (tính tay trên bảng giá nhà của slide 38), R² so với đoán trung bình, MAPE và cách chọn metric."
 slides: 38
 needs: [loss-function]
 tags: [mae, rmse, r2, regression, outlier]
@@ -10,65 +10,107 @@ tags: [mae, rmse, r2, regression, outlier]
 ## Dự đoán lệch bao nhiêu?
 
 :::intro Mục tiêu bài này
-- Tính **MAE**, **RMSE** và hiểu chúng khác nhau ở cách đối xử với sai số lớn.
+- Tính tay **MAE** và **RMSE** trên bảng giá nhà của slide 38, và nói được chúng khác nhau ở cách đối xử với sai số lớn.
 - Đọc **R²** như "tốt hơn đoán bừa bằng trung bình bao nhiêu".
-- Chọn metric hồi quy theo cái giá của sai số lớn.
+- Chọn metric hồi quy theo cái giá của sai số lớn, và biết giới hạn của MAPE.
 :::
 
-Trong hồi quy, mỗi dự đoán lệch khỏi giá trị thật một **sai số** `e = ŷ − y`. Ta cần gói nhiều sai số thành một con số **cùng đơn vị với y** để dễ đọc:
+Slide 38 lấy lại đúng bảng giá nhà của [[bài:loss-function]] (đơn vị tỉ VND) và đưa hai công thức đánh giá model hồi quy:
 
-- **MAE** = trung bình `|e|`: "trung bình dự đoán lệch bao nhiêu".
-- **RMSE** = căn của trung bình `e²`: cũng là mức lệch điển hình, nhưng **phạt nặng sai số lớn**.
+| Diện tích | Số tầng | Thành phố | Trong ngõ | Prediction | Label | Sai số `e` = pred − label |
+|---|---|---|---|---|---|---|
+| 40 | 6 | HCM | No | 3.45 | 3.75 | −0.30 |
+| 60 | 4 | Hà Nội | No | 3.90 | 4.12 | −0.22 |
+| 120 | 3 | Hải Dương | Yes | 2.12 | 2.20 | −0.08 |
+| 50 | 4 | Huế | No | 2.90 | 2.30 | **+0.60** |
 
-Công thức này giống [[bài:loss-function]] (L1 và L2); khác ở chỗ ở đây ta dùng nó để **đánh giá**, không để học.
+- **Mean Absolute Error (MAE)** = (1/N) Σ |y_prediction − y_actual|
+- **Root Mean Squared Error (RMSE)** = √( (1/N) Σ (y_prediction − y_actual)² )
+
+Công thức trùng với L1 và L2 của bài Loss function; khác ở **vai trò**: ở đó ta dùng chúng để **học**, ở đây dùng để **đánh giá** model trên dữ liệu chưa thấy. Hai metric đều **cùng đơn vị với y** (tỉ đồng), nên dễ đọc.
+
+:::slides 38 | Slide 38: metric cho Regression, MAE và RMSE trên bảng giá nhà
+:::
 
 :::steps
-Năm căn nhà, giá thật (tỉ đồng): 2.0, 2.5, 3.0, 3.5, 4.0. Model đoán 2.2, 2.4, 3.3, 3.4, 4.0, nên sai số `e` = 0.2, −0.1, 0.3, −0.1, 0.
+**MAE:** (0.30 + 0.22 + 0.08 + 0.60) / 4 = 1.20 / 4 = **0.30 tỉ đồng**. Đọc: "trung bình mỗi dự đoán lệch khoảng 0.30 tỉ".
 @step
-**MAE** = (0.2 + 0.1 + 0.3 + 0.1 + 0) / 5 = **0.14** tỉ đồng.
+**MSE:** (0.30² + 0.22² + 0.08² + 0.60²) / 4 = (0.0900 + 0.0484 + 0.0064 + 0.3600) / 4 = 0.5048 / 4 = **0.1262**.
 @step
-**MSE** = (0.04 + 0.01 + 0.09 + 0.01 + 0) / 5 = 0.03. **RMSE** = √0.03 = **0.173** tỉ đồng. RMSE hơi lớn hơn MAE vì sai số 0.3 bị bình phương.
+**RMSE** = √0.1262 = **0.355 tỉ đồng**. Căn bậc hai đưa đơn vị về lại "tỉ đồng" (MSE có đơn vị tỉ², khó đọc).
+@step
+**RMSE ≥ MAE** luôn đúng (0.355 ≥ 0.300). Hai số bằng nhau chỉ khi mọi sai số có cùng độ lớn; khoảng cách giữa chúng cho biết sai số **không đều** đến mức nào.
 :::
 
 :::predict
-Căn nhà thứ năm bị đoán lệch **3 tỉ** (đoán 7, thật 4), bốn căn kia giữ nguyên. MAE và RMSE mới là bao nhiêu? Cái nào tăng nhiều hơn?
+Căn nhà Huế bị đoán lệch thêm 3 tỉ (đoán 5.9 thay vì 2.9, sai số +3.6), ba căn kia giữ nguyên. MAE và RMSE mới là bao nhiêu? Cái nào tăng nhiều hơn?
 @answer
-MAE = (0.2 + 0.1 + 0.3 + 0.1 + 3) / 5 = **0.74** (gấp 5.3 lần). RMSE = √1.83 ≈ **1.353** (gấp 7.8 lần). **RMSE tăng nhiều hơn**, vì sai số 3 bị bình phương thành 9, chiếm gần hết MSE.
+MAE = (0.30 + 0.22 + 0.08 + 3.6) / 4 = **1.05** (gấp 3.5 lần). RMSE = √((0.09 + 0.0484 + 0.0064 + 12.96) / 4) = √3.276 ≈ **1.81** (gấp 5.1 lần). **RMSE tăng nhiều hơn**, vì sai số 3.6 bị bình phương thành 12.96, chiếm gần hết tổng.
 :::
 
-Hãy tự kéo: thanh trượt làm căn nhà thứ năm lệch thêm, và bảng cho thấy MAE, RMSE, R² đổi thế nào.
+Hãy tự kéo: công cụ dùng đúng bốn căn nhà của slide; kéo thanh trượt để căn nhà Huế bị đoán lệch thêm và theo dõi MAE, MSE, RMSE, R².
 
 :::widget loss-outlier
+slide
 :::
 
 ## R²: so với việc "đoán bừa bằng trung bình"
 
-**R² = 1 − (tổng bình phương sai số của model) / (tổng bình phương sai số của cách đoán luôn là trung bình của y)**.
+MAE và RMSE chỉ nói "lệch bao nhiêu", không nói đó là **tốt hay tệ**. **R²** thêm một mốc so sánh: cách đoán đơn giản nhất là **luôn đoán giá trung bình** của y.
 
-- R² = 1: model hoàn hảo. R² = 0: **không hơn** cách luôn đoán trung bình. R² **âm**: tệ hơn cả đoán trung bình.
-- Ví dụ trên: giá trung bình là 3.0, tổng bình phương so với trung bình là 2.5; tổng bình phương sai số của model là 0.15, nên R² = 1 − 0.15 / 2.5 = **0.94**. Khi căn nhà thứ năm lệch 3 tỉ, R² = **−2.66**: model tệ hơn đoán trung bình.
+> R² = 1 − (tổng bình phương sai số của model) / (tổng bình phương sai số của cách luôn đoán trung bình)
 
-## Chọn metric theo cái giá của sai số lớn
+:::steps
+Giá nhà thật trung bình: (3.75 + 4.12 + 2.20 + 2.30) / 4 = **3.0925**. Cách đoán "luôn 3.0925" có tổng bình phương sai số = (0.6575² + 1.0275² + 0.8925² + 0.7925²) = **2.9127**.
+@step
+Tổng bình phương sai số của model = **0.5048** (đã tính ở trên).
+@step
+**R² = 1 − 0.5048 / 2.9127 = 0.827.** Model giải thích được khoảng 83% biến động của giá nhà so với cách đoán trung bình.
+@step
+Khi căn nhà Huế bị lệch thêm 3 tỉ, tổng bình phương sai số lên 13.1, và R² = 1 − 13.1 / 2.9127 = **−3.50**: model **tệ hơn** cả cách luôn đoán trung bình.
+:::
 
-- **MAE**: dễ giải thích ("trung bình lệch 0.14 tỉ"), bền với outlier. Hợp khi mọi sai số đáng kể như nhau.
+- **R² = 1:** hoàn hảo. **R² = 0:** không hơn đoán trung bình. **R² âm:** tệ hơn đoán trung bình.
+- MAE của cách "luôn đoán trung bình" là 0.8425 tỉ; MAE của model là 0.30: model giảm sai số trung bình khoảng 64%.
+- Ví dụ trên Diabetes (đoán Glucose từ các cột còn lại): MAE 19.2 mg/dL so với 24.4 của cách đoán trung bình, R² = 0.36 ([[bài:classification-vs-regression]]).
+
+## MAPE và chọn metric
+
+**MAPE** = trung bình |e| / |y|, cho sai số **theo phần trăm**: với bảng nhà là **10.8%**. Dễ hiểu với người không chuyên, nhưng **hỏng khi y gần 0** (chia cho số rất nhỏ) và thiên về phạt dự đoán quá thấp. Nên dùng cùng MAE hoặc RMSE chứ không thay thế.
+
+Chọn theo **cái giá của sai số lớn**:
+
+- **MAE**: dễ giải thích ("trung bình lệch 0.30 tỉ"), **bền với outlier**. Hợp khi mọi sai số đáng kể như nhau.
 - **RMSE**: nhạy sai số lớn. Hợp khi **sai lớn đắt hơn nhiều** (dự báo tồn kho: thiếu hàng nhiều tệ hơn thiếu ít).
-- **R²**: cho biết model giải thích được bao nhiêu phần biến động; không thay cho MAE hay RMSE vì không có đơn vị.
-- Luôn **ghi kèm đơn vị**, và đừng suy quá xa từ một con số.
+- **R²**: nói model hơn mức sàn bao nhiêu; không có đơn vị nên không thay được MAE hay RMSE.
+- Luôn **ghi kèm đơn vị** và **so với mức sàn** (đoán trung bình).
 
 :::ck
 Hai model cùng có MAE = 5 triệu. Model A sai đều quanh 5 triệu; model B chính xác hầu hết nhưng có vài lần sai 50 triệu. RMSE của hai model giống hay khác? Bạn chọn model nào nếu một lần sai 50 triệu rất đắt?
 @answer
-**RMSE của B lớn hơn A nhiều**, vì các sai số 50 triệu bị bình phương. Nếu một sai lớn rất đắt, chọn **A** (RMSE thấp hơn). MAE giống nhau che mất khác biệt này.
+**RMSE của B lớn hơn A nhiều**, vì các sai số 50 triệu bị bình phương. Nếu một sai lớn rất đắt, chọn **A** (RMSE thấp hơn). MAE giống nhau che mất khác biệt này; đây là lý do nên báo cáo cả MAE và RMSE.
 :::
 
-:::slides 38 | Slide 38: metric cho hồi quy
+:::ck
+Model đạt R² = 0.95 trên **train** nhưng 0.40 trên **test**. Điều đó nói lên gì, và bạn tin con số nào?
+@answer
+Model **học vẹt (overfitting)**: tốt trên dữ liệu đã học, kém trên dữ liệu mới. Tin con số trên **test** (0.40); như mọi metric, R² chỉ có nghĩa khi tính trên dữ liệu model chưa từng thấy ([[bài:train-test-split]]).
 :::
+
+## Những hiểu sai thường gặp
+
+- **"MAE nhỏ là model tốt."** Phải so với **mức sàn** và theo đơn vị của bài toán (0.30 tỉ có nhỏ không còn tùy giá nhà).
+- **"RMSE và MAE là một."** RMSE phạt sai số lớn nặng hơn; chúng chỉ bằng nhau khi mọi sai số cùng độ lớn.
+- **"R² không thể âm."** Có thể âm trên dữ liệu mới, khi model tệ hơn đoán trung bình.
+- **"R² cao thì dự đoán chính xác."** R² cao vẫn có thể có MAE lớn nếu y trải rộng; luôn xem cả hai.
+- **"MAPE luôn tiện."** Hỏng khi y gần 0.
 
 :::card Metric hồi quy
-- **MAE** = trung bình |e| (đơn vị của y, bền với outlier). **RMSE** = √(trung bình e²) (phạt nặng sai số lớn).
+- **MAE** = trung bình |e| (đơn vị của y, bền với outlier). **RMSE** = √(trung bình e²) (phạt nặng sai số lớn); RMSE ≥ MAE.
 - **R² = 1 − SS_model / SS_trung_bình**: 1 là hoàn hảo, 0 là bằng đoán trung bình, âm là tệ hơn.
-- **Ví dụ:** MAE 0.14, RMSE 0.173, R² 0.94; một sai số 3 tỉ làm MAE 0.74, RMSE 1.353, R² −2.66.
-- **Chọn theo giá của sai lớn**; luôn ghi đơn vị.
+- **Bảng nhà slide 38:** MAE 0.30, RMSE 0.355, R² 0.827 (mức sàn MAE 0.8425); Huế lệch thêm 3 tỉ: MAE 1.05, RMSE 1.81, R² −3.50.
+- **MAPE** (10.8%) cho sai số theo phần trăm nhưng hỏng khi y gần 0.
+- **Chọn theo giá của sai lớn; luôn ghi đơn vị và so với mức sàn; chấm trên dữ liệu chưa thấy.**
 :::
 
 ## Câu hỏi tự kiểm tra

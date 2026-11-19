@@ -1,7 +1,7 @@
 ---
 title: Machine Learning Pipeline — 7 bước của một dự án ML
 order: 15
-description: "Bảy bước của một dự án ML, mỗi bước học ở bài nào, và vì sao pipeline là chu trình lặp cần gói bằng Pipeline."
+description: "Bảy bước của slide 39, mỗi bước học ở bài nào và ở đâu trong Project, vì sao pipeline là chu trình lặp, và dùng Pipeline của scikit-learn để các bước học từ dữ liệu không rò rỉ."
 slides: 39
 needs: [model-training-pipeline, train-test-split, classification-metrics, regression-metrics]
 tags: [pipeline, workflow, deployment, leakage]
@@ -10,61 +10,105 @@ tags: [pipeline, workflow, deployment, leakage]
 ## Từ các mảnh kiến thức đến một dự án trọn vẹn
 
 :::intro Mục tiêu bài này
-- Nhớ **bảy bước** của một dự án ML và câu hỏi mà mỗi bước trả lời.
-- Biết mỗi bước được học ở bài nào của khóa.
-- Hiểu pipeline là **chu trình lặp**, không phải đường thẳng, và cách gói bước tiền xử lý để không rò rỉ.
+- Nhớ **bảy bước** của slide 39 và câu hỏi mà mỗi bước trả lời.
+- Biết mỗi bước được học ở bài nào của khóa và ở bước nào của Project.
+- Hiểu pipeline là **chu trình lặp**, và dùng `Pipeline` của scikit-learn để các bước học từ dữ liệu không rò rỉ.
 :::
 
-Mỗi bài trước dạy một mảnh. Bài này ghép chúng thành bản đồ để bạn biết mình đang đứng ở đâu:
+Mỗi bài trước dạy một mảnh. Bài này ghép chúng thành bản đồ để bạn biết mình đang đứng ở đâu. Slide 39 vẽ **Machine Learning pipeline** gồm bảy bước:
 
-| Bước | Câu hỏi | Học ở |
-|---|---|---|
-| 1. Thu thập dữ liệu | Có dữ liệu nào, nhãn từ đâu? | [[bài:labeled-data]] |
-| 2. Thống kê mô tả | Dữ liệu trông thế nào, có gì lạ? | [[bài:descriptive-statistics]] |
-| 3. Tiền xử lý | Làm sạch và biến đổi ra sao? | [[bài:missing-values-outliers]], [[bài:feature-scaling]], [[bài:categorical-encoding]], [[bài:correlation-multicollinearity]], [[bài:imbalanced-data]] |
-| 4. Trực quan hóa | Hình vẽ nói gì? | [[bài:data-visualization]] |
-| 5. Xây dựng và huấn luyện model | Chọn model nào, học ra sao? | Module 02 |
-| 6. Đánh giá | Tốt đến đâu, sai kiểu nào? | [[bài:train-test-split]], [[bài:confusion-matrix]], [[bài:classification-metrics]], [[bài:regression-metrics]] |
-| 7. Triển khai | Đưa vào dùng thật thế nào? | ngoài phạm vi khóa này |
+:::slides 39 | Slide 39: Machine Learning pipeline, bảy bước từ Data collection đến Model deployment
+:::
+
+| Bước | Tên (slide 39) | Ý nghĩa | Câu hỏi | Học ở |
+|---|---|---|---|---|
+| 1 | Data collection | Thu thập dữ liệu | Có dữ liệu nào, nhãn đến từ đâu? | [[bài:labeled-data]] |
+| 2 | Statistics | Hiểu dữ liệu thông qua thống kê | Dữ liệu trông thế nào, có gì lạ? | [[bài:descriptive-statistics]] |
+| 3 | Data preprocessing | Tiền xử lý dữ liệu | Làm sạch, biến đổi ra sao? | [[bài:missing-values-outliers]], [[bài:feature-scaling]], [[bài:categorical-encoding]], [[bài:correlation-multicollinearity]], [[bài:imbalanced-data]] |
+| 4 | Data visualization | Trực quan hóa dữ liệu | Hình vẽ nói gì? | [[bài:data-visualization]] |
+| 5 | Model building | Xây dựng và huấn luyện mô hình | Chọn model nào, học ra sao? | Module 02 |
+| 6 | Model evaluation | Đánh giá mô hình | Tốt đến đâu, sai kiểu nào? | [[bài:train-test-split]], [[bài:confusion-matrix]], [[bài:classification-metrics]], [[bài:regression-metrics]] |
+| 7 | Model deployment | Triển khai mô hình | Đưa vào dùng thật thế nào? | ngoài phạm vi khóa này |
+
+Hãy bấm từng bước để xem câu hỏi, đầu ra và lỗi hay gặp của nó.
+
+:::widget flow-map
+pipeline7
+:::
 
 :::predict
 Bạn vừa nhận một file CSV mới. Việc đầu tiên nên làm là huấn luyện thử một model cho nhanh, hay nhìn dữ liệu trước?
 @answer
-**Nhìn dữ liệu trước** (bước 2). Trong Project, nhìn dữ liệu cho thấy mức sàn 65.1% và năm cột có số 0 vô lý; nếu huấn luyện ngay, ta không biết điểm 75% là tốt hay tệ, và không biết dữ liệu đang có lỗi.
+**Nhìn dữ liệu trước** (Step 2). Trong Project Bước 1, nhìn dữ liệu cho thấy mức sàn 65.1% và năm cột có số 0 vô lý; nếu huấn luyện ngay, ta không biết điểm 75% là tốt hay tệ, và không biết dữ liệu đang có lỗi. Nhìn dữ liệu rẻ, huấn luyện trên dữ liệu bẩn đắt.
 :::
 
 ## Pipeline không phải đường thẳng
 
-Bảy bước nghe như một dây chuyền, nhưng thực tế là **vòng lặp**: đánh giá (bước 6) thấy điểm kém thì quay về tiền xử lý (bước 3) hoặc thu thập thêm dữ liệu (bước 1); trực quan hóa (bước 4) có thể phát hiện lỗi khiến ta quay lại bước 2. Một dự án thật lặp qua các bước nhiều lần.
+Bảy bước nghe như một dây chuyền, nhưng thực tế là **vòng lặp**:
 
-Khi lặp, điều nguy hiểm nhất là **rò rỉ dữ liệu**: mọi bước **học từ dữ liệu** (điền thiếu, scale, mã hóa, chọn feature) chỉ được `fit` trên train. Cách để không thể làm sai là gói các bước vào một **Pipeline** của scikit-learn:
+- **Đánh giá (Step 6) thấy điểm kém:** quay về tiền xử lý (Step 3) hoặc thu thập thêm dữ liệu (Step 1).
+- **Trực quan hóa (Step 4) lộ ra lỗi:** quay lại thống kê (Step 2) hoặc làm sạch (Step 3).
+- **Model chạy thật (Step 7) gặp dữ liệu khác lúc học** (dữ liệu "trôi"): quay về Step 1.
+
+Project Diabetes là một lượt đi qua pipeline và có một vòng lặp thật: Bước 1 (Step 2) phát hiện số 0 vô lý; Bước 5 (Step 6) đọc kết quả; Bước 7 quay lại xử lý số 0 (Step 3) và **đo lại** xem có cải thiện không (câu trả lời: không đáng kể). Mỗi vòng lặp có đo lường, không phải làm theo linh cảm.
+
+| Bước Project | Step của pipeline |
+|---|---|
+| 1. Nhìn dữ liệu | Step 2 (statistics) |
+| 2. Tách đề, cất bộ test | Step 3 (chuẩn bị) và đánh giá |
+| 3. Chuẩn hoá | Step 3 (preprocessing) |
+| 4. Huấn luyện, dự đoán | Step 5 (model building) |
+| 5, 6. Đọc kết quả, so sánh bằng CV | Step 6 (evaluation) |
+| 7. Số 0 thiếu | Step 3 (lặp lại) |
+| 8. Chốt mô hình | Step 5 và 6 |
+
+## Rò rỉ trong pipeline, và `Pipeline` của scikit-learn
+
+Rủi ro lớn nhất khi ghép các bước là **rò rỉ dữ liệu** ([[từ:data-leakage]]): mọi bước **học từ dữ liệu** (điền thiếu, scale, mã hóa, chọn feature) chỉ được `fit` trên train. Bảng sau nói bước nào "học" và học cái gì:
+
+| Bước tiền xử lý | Học gì từ dữ liệu | Rò rỉ nếu fit trên cả test |
+|---|---|---|
+| Điền thiếu (`SimpleImputer`) | median, mean | median tính cả test |
+| Scale (`StandardScaler`) | mean, std | mean, std tính cả test |
+| Mã hóa (`OneHotEncoder`) | danh sách nhóm | nhóm của test lọt vào |
+| Resample (SMOTE) | các mẫu lân cận | mẫu test sinh ra "con cháu" trong train |
+
+Cách để **không thể làm sai** là gói tất cả vào một `Pipeline`:
 
 ```python
 pipe = Pipeline([("imputer", SimpleImputer(strategy="median")),
                  ("scaler", StandardScaler()),
                  ("model", LogisticRegression())])
+pipe.fit(x_train, y_train)      # tự fit từng bước, chỉ trên train
+pipe.predict(x_test)            # tự transform test bằng số đo của train
 ```
 
-`pipe.fit(x_train, y_train)` tự `fit` từng bước trên train; `pipe.predict(x_test)` tự `transform` test.
-
-## Đi qua pipeline trên Diabetes
-
-Project là một lượt đi qua pipeline này: nhìn dữ liệu (bước 2), tách train/test và chuẩn hóa (bước 3), huấn luyện Logistic (bước 5), đọc kết quả, so sánh bằng cross-validation, xử lý số 0 thiếu và chốt mô hình (bước 6). Hãy làm Project song song với việc đọc các bài của từng bước.
+Thứ tự trong Pipeline cũng quan trọng: **điền thiếu trước, rồi scale**, vì scaler không xử lý được ô `NaN`. Và `cross_validate(pipe, ...)` tự `fit` lại cả chuỗi trong **từng fold** ([[bài:k-fold-cross-validation]]).
 
 :::ck
 Bạn phát hiện điểm test thấp. Có nên cứ đổi sang model phức tạp hơn ngay không? Hay nên làm gì trước?
 @answer
-**Chưa nên.** Kiểm tra theo thứ tự rẻ đến đắt: dữ liệu có lỗi hay rò rỉ không (bước 2, 3), đánh giá có đúng metric không (bước 6), rồi mới thử model khác (bước 5). Đổi model phức tạp trên dữ liệu bẩn thường chỉ làm mô hình học vẹt cái bẩn.
+**Chưa nên.** Kiểm tra theo thứ tự **rẻ đến đắt**: dữ liệu có lỗi hay rò rỉ không (Step 2, 3), đánh giá có đúng metric không (Step 6), rồi mới thử model khác (Step 5). Đổi model phức tạp trên dữ liệu bẩn thường chỉ làm model học vẹt cái bẩn.
 :::
 
-:::slides 39 | Slide 39: bảy bước của một dự án ML
+:::ck
+Một đồng nghiệp scale toàn bộ dữ liệu trong Step 3, rồi chia train/test ở Step 6. Pipeline sai ở đâu, và sửa thế nào?
+@answer
+Scale **trước khi chia** đã cho scaler nhìn thấy test (rò rỉ). Sửa: chia trước, `fit` scaler trên train, hoặc đặt scaler trong `Pipeline` để thứ tự luôn đúng. Điểm cao thu được trước đây là lạc quan.
 :::
+
+## Những hiểu sai thường gặp
+
+- **"Pipeline là một đường thẳng, làm xong bước nào là xong."** Thực tế lặp qua lại nhiều lần.
+- **"Huấn luyện là phần quan trọng nhất."** Thường tiền xử lý và hiểu dữ liệu quyết định phần lớn chất lượng.
+- **"Mỗi bước tự do."** Có thứ tự và có ràng buộc (chia trước khi `fit`; điền thiếu trước khi scale).
+- **"Đã có điểm cao là xong."** Còn Step 7: dữ liệu thật có thể khác dữ liệu học; model cần được theo dõi.
 
 :::card ML Pipeline
-- **Bảy bước:** thu thập, thống kê, tiền xử lý, trực quan hóa, xây model, đánh giá, triển khai.
-- **Nhìn dữ liệu trước khi huấn luyện** (mức sàn, số 0 vô lý).
-- **Là chu trình lặp**, không phải đường thẳng.
-- **Pipeline sklearn** gói tiền xử lý và model để `fit` đúng chỗ, không rò rỉ.
+- **Bảy bước (slide 39):** data collection, statistics, preprocessing, visualization, model building, evaluation, deployment.
+- **Nhìn dữ liệu trước khi huấn luyện** (Project: mức sàn 65.1%, số 0 vô lý).
+- **Là chu trình lặp**; mỗi vòng có đo lường (Project Bước 7 quay lại xử lý số 0 rồi đo lại).
+- **Mọi bước học từ dữ liệu (imputer, scaler, encoder, SMOTE) chỉ `fit` trên train**; gói bằng `Pipeline`: điền thiếu trước scale.
 :::
 
 ## Câu hỏi tự kiểm tra
