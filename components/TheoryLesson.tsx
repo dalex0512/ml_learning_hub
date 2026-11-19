@@ -168,10 +168,7 @@ function BlockView({ block, storeKey }: { block: Block; storeKey: string }) {
 
 export default function TheoryLesson({ topicData, moduleId, moduleTitle, moduleOrder, topicOrder, needs, prev, next, backlinks }: Props) {
   const key = storageKey(topicData.topicId);
-  const all = topicData.sections;
-  const deepRe = /^\[sâu\]\s*/i;
-  const sections = all.filter((x) => !deepRe.test(x.title));
-  const deep = all.filter((x) => deepRe.test(x.title));
+  const sections = topicData.sections;
   const [done, setDone] = useState<string[]>([]);
   const [active, setActive] = useState(sections[0]?.id ?? "");
 
@@ -188,7 +185,7 @@ export default function TheoryLesson({ topicData, moduleId, moduleTitle, moduleO
     if (hash) window.setTimeout(() => document.getElementById(hash)?.scrollIntoView(), 50);
     const onScroll = () => {
       let cur = sections[0]?.id ?? "";
-      for (const s of all) {
+      for (const s of sections) {
         const el = document.getElementById(s.id);
         if (el && el.getBoundingClientRect().top <= 140) cur = s.id;
       }
@@ -197,7 +194,7 @@ export default function TheoryLesson({ topicData, moduleId, moduleTitle, moduleO
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
-  }, [all, sections]);
+  }, [sections]);
 
   const toggleDone = (id: string) =>
     setDone((d) => {
@@ -219,14 +216,6 @@ export default function TheoryLesson({ topicData, moduleId, moduleTitle, moduleO
                onClick={(e) => { e.preventDefault(); document.getElementById(s.id)?.scrollIntoView({ behavior: "smooth" }); }}>
               <span className="no">{done.includes(s.id) ? <span className="done">✓</span> : i + 1}</span>
               <span>{s.title}</span>
-            </a>
-          ))}
-          {deep.length > 0 && <div className="reader-label" style={{ padding: ".9rem 0 0 .75rem" }}>Đào sâu</div>}
-          {deep.map((s) => (
-            <a key={s.id} href={`#${s.id}`} aria-current={active === s.id ? "true" : undefined}
-               onClick={(e) => { e.preventDefault(); const el = document.getElementById(s.id) as HTMLDetailsElement | null; if (el) { el.open = true; el.scrollIntoView({ behavior: "smooth" }); } }}>
-              <span className="no">+</span>
-              <span>{s.title.replace(deepRe, "")}</span>
             </a>
           ))}
         </nav>
@@ -273,20 +262,6 @@ export default function TheoryLesson({ topicData, moduleId, moduleTitle, moduleO
               </div>
             </section>
           ))}
-
-          {deep.length > 0 && (
-            <section className="reader-step">
-              <div className="reader-step-no">Đào sâu</div>
-              <h2>Khi bạn muốn đi sâu hơn</h2>
-              <p style={{ color: "var(--r-muted)" }}>Phần lõi ở trên đủ để hiểu bài. Các mục dưới đây là chứng minh đầy đủ, ví dụ làm tay, code và các biến thể; bấm tên mục để mở.</p>
-              {deep.map((section) => (
-                <details key={section.id} id={section.id} className="reader-deep">
-                  <summary>{section.title.replace(deepRe, "")}</summary>
-                  <div>{section.blocks.map((b, i) => <BlockView key={i} block={b} storeKey={`${key}:check:${section.id}`} />)}</div>
-                </details>
-              ))}
-            </section>
-          )}
 
           <div className="reader-step">
             {backlinks.length > 0 && (

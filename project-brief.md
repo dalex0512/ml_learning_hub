@@ -404,3 +404,4 @@ không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-res
 - Công cụ tương tác đăng ký ở `components/widgets/index.tsx` (thêm `regex-tester`, `algo-filter` ở cuối đợt). Công cụ để tái soạn một bài: `scripts/lesson_recompose.py <file> <core.md> "<mô tả>"`.
 - Đã qua: các script kiểm số, không còn `[[bài:…]]` chết, `tsc`, `npm run build`. Chưa kiểm: màn hình điện thoại thật; thao tác tay trên một số công cụ mới.
 - Chưa push lên remote: nhiều commit sau `efd9730` còn nằm trên `main` cục bộ.
+- Cập nhật sau phản hồi: **không còn mục "Đào sâu" tách riêng** ở bất kỳ bài lý thuyết nào. Nội dung cũ đã gộp vào mạch chính của từng bài; mỗi bài chỉ còn một mạch đọc liên tục (lõi, tự kiểm tra, nối sang bài sau).
