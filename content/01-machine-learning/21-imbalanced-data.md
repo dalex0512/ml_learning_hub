@@ -1,7 +1,7 @@
 ---
 title: Step 3.5 — Cân bằng dữ liệu (Imbalanced data)
 order: 21
-description: "Accuracy cao nhưng bỏ sót lớp hiếm: thử class_weight và ngưỡng trước, rồi resampling, chỉ trên tập train."
+description: "Lớp hiếm làm model lệch: thử class_weight và ngưỡng trước, rồi resampling (slide 52 đến 54), và quy tắc vàng chỉ cân bằng trên train với số thật cho thấy cách sai thổi phồng điểm thế nào."
 slides: 52-54
 needs: [classification-metrics, stratified-k-fold]
 tags: [smote, oversampling, undersampling, class-weight, imbalanced, threshold]
@@ -10,66 +10,99 @@ tags: [smote, oversampling, undersampling, class-weight, imbalanced, threshold]
 ## Accuracy cao nhưng bỏ sót lớp ta cần tìm
 
 :::intro Mục tiêu bài này
-- Nhận ra khi nào mất cân bằng lớp làm model "lệch" và accuracy đánh lừa.
-- Biết thử cách **nhẹ** trước (đổi ngưỡng, `class_weight`) rồi mới đến resampling.
-- Hiểu **quy tắc vàng**: chỉ cân bằng trên tập train, bên trong Pipeline.
+- Hiểu vì sao lớp hiếm làm model "lệch" và vì sao accuracy đánh lừa.
+- Biết thử cách **nhẹ** trước (đổi ngưỡng, `class_weight`) rồi mới đến **resampling** (slide 52 đến 54): over-sampling (random, SMOTE, ADASYN) và under-sampling (ClusterCentroids).
+- Nắm **quy tắc vàng**: chỉ cân bằng trên tập train, và thấy bằng số điểm test bị thổi phồng thế nào nếu làm sai.
 :::
 
-Một bộ dữ liệu gian lận chỉ có 1 giao dịch gian lận trong 1000. Model luôn đoán "không gian lận" đạt accuracy **99.9%** mà không bắt được vụ nào ([[bài:classification-metrics]]). Khi một lớp hiếm, model được thưởng khi đoán lớp đông, nên nó **lệch** về phía đó. Diabetes lệch nhẹ (khoảng 65% và 35%) nên là ví dụ tốt để thấy hiệu ứng ở mức vừa phải.
+Một bộ dữ liệu gian lận chỉ có 1 giao dịch gian lận trong 1000. Model luôn đoán "không gian lận" đạt accuracy **99.9%** mà không bắt được vụ nào ([[bài:classification-metrics]]). Khi một lớp hiếm, model được "thưởng" khi đoán lớp đông, nên nó **lệch** về phía đó: ranh giới quyết định dịch vào vùng của lớp hiếm. Slide 52 vẽ đúng điều này: hình trái (*Without resampling*) cho vùng của lớp hiếm rất nhỏ; hình phải (*Using RandomOverSampler*) mở rộng vùng đó.
+
+Bộ Diabetes lệch **nhẹ**: train có 401 mẫu không bệnh và 213 mẫu bệnh (65% và 35%). Nhẹ nên hiệu ứng hiện rõ vừa phải, rất hợp để quan sát.
 
 ## Thử cách nhẹ trước: `class_weight` và ngưỡng
 
-`class_weight="balanced"` bảo model **phạt sai lớp hiếm nặng hơn** (theo tỉ lệ nghịch với số mẫu), không thêm hay bớt dữ liệu.
+`class_weight="balanced"` bảo model **phạt sai lớp hiếm nặng hơn** (theo tỉ lệ nghịch với số mẫu), không thêm hay bớt dữ liệu. Đổi ngưỡng ([[bài:classification-metrics]]) cho hiệu ứng tương tự mà bạn điều khiển tinh hơn.
 
 :::predict
 Trên bộ Diabetes (Logistic, cùng split của Project), bật `class_weight="balanced"` sẽ làm recall và precision của lớp bệnh đổi thế nào, và accuracy ra sao?
 @answer
-Recall **tăng nhẹ** (67.3% lên 70.9%), precision **giảm mạnh hơn** (64.9% xuống 55.7%), accuracy **giảm** (75.3% xuống 69.5%). Model báo "bệnh" nhiều hơn (từ 57 lên 70 người): bắt thêm người bệnh nhưng báo nhầm nhiều hơn. Đây là một **đánh đổi**, không phải cải thiện miễn phí. Hạ ngưỡng ([[bài:classification-metrics]]) cho hiệu ứng tương tự và cho bạn điều khiển tinh hơn.
+Recall **tăng nhẹ** (67.3% lên 70.9%), precision **giảm mạnh hơn** (64.9% xuống 55.7%), accuracy **giảm** (75.3% xuống 69.5%). Model báo "bệnh" nhiều hơn (từ 57 lên 70 người): bắt thêm người bệnh nhưng báo nhầm nhiều hơn. Đây là một **đánh đổi**, không phải cải thiện miễn phí.
 :::
 
-## Resampling: đổi dữ liệu thay vì đổi mô hình
+## Resampling: đổi dữ liệu thay vì đổi mô hình (slide 52 đến 54)
 
 Hãy tự thử: chọn từng kỹ thuật và xem số mẫu hai lớp.
 
 :::widget resample
 :::
 
-- **Nhân bản ngẫu nhiên (random oversampling):** sao chép mẫu lớp hiếm. Đơn giản nhưng không thêm thông tin; dễ học vẹt.
-- **SMOTE:** tạo mẫu **mới** nằm trên đoạn nối hai mẫu hiếm gần nhau (nội suy). Có điểm mới, nhưng chỉ nội suy trong vùng đã có.
-- **ADASYN:** giống SMOTE nhưng sinh nhiều điểm hơn ở vùng khó (gần biên lớp).
-- **Bỏ bớt lớp đông (undersampling, như ClusterCentroids):** hai lớp bằng nhau nhưng mất dữ liệu.
+- **Over-sampling** (tăng lớp hiếm), slide 52 và 53:
+  - **RandomOverSampler:** sao chép ngẫu nhiên mẫu lớp hiếm. Đơn giản, không thêm thông tin; dễ học vẹt.
+  - **SMOTE:** tạo mẫu **mới** nằm trên đoạn nối hai mẫu hiếm gần nhau (nội suy).
+  - **ADASYN:** giống SMOTE nhưng sinh nhiều điểm hơn ở vùng khó (gần biên lớp). Slide 53 so sánh ba cách trên một bộ ba lớp.
+- **Under-sampling** (giảm lớp đông), slide 54: **ClusterCentroids** thay nhiều mẫu lớp đông bằng tâm của các cụm; hai lớp bằng nhau nhưng mất dữ liệu.
+
+:::steps
+**SMOTE tay.** Hai mẫu hiếm gần nhau: a = (2, 3) và b = (4, 7). Chọn hệ số ngẫu nhiên λ trong [0, 1], ví dụ λ = 0.25.
+@step
+Mẫu mới = a + λ(b − a) = (2, 3) + 0.25 × (2, 4) = **(2.5, 4.0)**. Nó nằm trên đoạn nối a và b, cách a một phần tư đường.
+@step
+Lặp lại cho tới khi hai lớp bằng nhau: với Diabetes, tạo thêm 401 − 213 = **188** mẫu hiếm mới.
+:::
+
+**Kết quả trên Diabetes** (Logistic, cùng train/test của Project; SMOTE tự cài vì máy này không có thư viện `imbalanced-learn`):
+
+| Cách | Accuracy | Precision | Recall | F1 |
+|---|---|---|---|---|
+| Gốc | **0.753** | **0.649** | 0.673 | **0.661** |
+| `class_weight="balanced"` | 0.695 | 0.557 | 0.709 | 0.624 |
+| Random over-sampling | 0.695 | 0.557 | 0.709 | 0.624 |
+| SMOTE (tay, k = 5) | 0.708 | 0.571 | **0.727** | 0.640 |
+| Under-sampling | 0.695 | 0.557 | 0.709 | 0.624 |
+
+Bốn cách "cân bằng" cho kết quả **gần y hệt nhau**: recall tăng vài điểm, precision và accuracy giảm. (Random over-sampling trùng `class_weight` vì sao chép mẫu có tác dụng như gán trọng số lớn hơn.) Không cách nào làm F1 tăng; chúng chỉ **dịch** điểm làm việc trên đường precision-recall, giống như hạ ngưỡng.
 
 ## Quy tắc vàng: chỉ cân bằng trên train
 
 :::predict
-Bạn dùng SMOTE trên **toàn bộ dữ liệu**, rồi mới chia train/test. Điểm test có đáng tin không?
+Bạn dùng over-sampling trên **toàn bộ dữ liệu**, rồi mới chia train/test và huấn luyện một Random Forest. Điểm test có đáng tin không?
 @answer
-**Không.** SMOTE tạo mẫu mới từ mẫu thật; sau khi chia, một mẫu thật ở test có thể có "bản sao" hoặc "con cháu" ở train. Model gặp lại chính những thứ nó đã học nên điểm test **bị thổi phồng**. Phải chia trước, rồi chỉ resample trên train, tốt nhất bằng Pipeline của `imbalanced-learn`.
+**Không.** Sao chép mẫu hiếm trước khi chia khiến cùng một mẫu xuất hiện **cả ở train lẫn test**; model gặp lại chính những gì nó đã học. Trên Diabetes, Random Forest đạt **accuracy 0.925 và recall 0.952** theo cách sai (oversample rồi chia), trong khi cách đúng (chia trước, đánh giá trên test thật) chỉ cho **accuracy 0.721 và recall 0.618**. Điểm "tốt hơn" là ảo.
 :::
 
-Validation và test phải giữ **phân bố thật** của thế giới (lệch như thật), vì đó là tình huống model sẽ gặp. Đồng thời đổi metric: dùng precision, recall, F1 hoặc đường Precision-Recall thay vì accuracy.
+Cách đúng: **chia trước**, rồi resample **chỉ trên train**, tốt nhất bằng Pipeline của thư viện `imbalanced-learn` để mỗi fold của cross-validation tự resample đúng chỗ ([[bài:k-fold-cross-validation]]). **Validation và test giữ phân bố thật** của thế giới, vì đó là tình huống model sẽ gặp. Và đổi metric: dùng precision, recall, F1 hoặc đường Precision-Recall thay cho accuracy.
 
 | Cách | Khi dùng |
 |---|---|
 | Đổi ngưỡng, `class_weight` | Thử đầu tiên; ít rủi ro |
-| Oversampling (SMOTE) | Lớp hiếm quá ít, model không học được |
-| Undersampling | Dữ liệu rất lớn |
+| Over-sampling (SMOTE) | Lớp hiếm quá ít, model không học được |
+| Under-sampling | Dữ liệu rất lớn |
 | Thêm dữ liệu lớp hiếm | Nếu thu thập được, thường tốt nhất |
 
 :::ck
 Cân bằng dữ liệu áp dụng cho **mọi giá trị hiếm** (ví dụ một thành phố ít khách) hay chỉ cho **lớp nhãn**?
 @answer
-Chỉ cho **lớp nhãn** (target). Một giá trị hiếm của một feature (thành phố ít khách) không làm model lệch theo cách đó; xử lý nó là chuyện khác (gộp nhóm hiếm khi mã hóa).
+Chỉ cho **lớp nhãn** (target). Một giá trị hiếm của một feature (thành phố ít khách) không làm model lệch theo cách đó; xử lý nó là chuyện khác (gộp nhóm hiếm khi mã hóa, [[bài:categorical-encoding]]).
 :::
 
-:::slides 52-54 | Slide 52–54: RandomOverSampler, SMOTE, ADASYN, ClusterCentroids
+:::ck
+Sau khi dùng SMOTE trên train, bạn thấy accuracy trên **validation đã cân bằng** cũng cao. Có vấn đề gì?
+@answer
+Validation phải giữ **phân bố thật** (lệch). Nếu cũng cân bằng nó, bạn đang đo model trên một thế giới không có thật, nên precision và accuracy không phản ánh thực tế sử dụng. Chỉ train được resample.
 :::
+
+## Những hiểu sai thường gặp
+
+- **"Cân bằng dữ liệu làm model tốt hơn."** Trên Diabetes, F1 không tăng; chỉ điểm làm việc dịch chuyển (recall lên, precision xuống).
+- **"Cân bằng trước rồi chia cho tiện."** Đó là rò rỉ, thổi phồng điểm (recall 0.952 so với 0.618 thật).
+- **"Accuracy vẫn là metric chính."** Với dữ liệu lệch, dùng precision, recall, F1.
+- **"SMOTE tạo ra thông tin mới."** Nó chỉ nội suy trong vùng đã có; không thay thế dữ liệu thật.
 
 :::card Dữ liệu mất cân bằng
-- **Accuracy đánh lừa** khi một lớp hiếm; dùng precision, recall, F1.
+- **Accuracy đánh lừa** khi một lớp hiếm; ranh giới quyết định dịch vào vùng lớp hiếm (slide 52).
 - **Cách nhẹ trước:** đổi ngưỡng, `class_weight` (Diabetes: recall 67.3% lên 70.9%, precision 64.9% xuống 55.7%).
-- **Resampling:** nhân bản, SMOTE (nội suy), ADASYN, undersampling.
-- **Quy tắc vàng:** chia trước, chỉ cân bằng trên train, trong Pipeline; validation và test giữ phân bố thật.
+- **Resampling:** over-sampling (random, SMOTE: mẫu mới = a + λ(b − a), ADASYN), under-sampling (ClusterCentroids); trên Diabetes cả bốn cách cho F1 ≈ 0.62–0.64, thấp hơn gốc 0.661.
+- **Quy tắc vàng:** chia trước, chỉ cân bằng trên train, trong Pipeline; validation và test giữ phân bố thật (sai thì recall 0.952 ảo so với 0.618 thật).
 :::
 
 ## Câu hỏi tự kiểm tra
