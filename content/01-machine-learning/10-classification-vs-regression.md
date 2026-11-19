@@ -1,7 +1,7 @@
 ---
 title: Classification vs Regression
 order: 10
-description: "Phân loại đoán nhóm, hồi quy đoán số; dạng đầu ra quyết định loss, metric và cách đặt bài toán."
+description: "Phân loại đoán nhóm, hồi quy đoán số (slide 25), ba kiểu phân loại binary, multiclass, multilabel (slide 26), và dạng bài quyết định loss và metric."
 slides: 25-26
 needs: [learning-paradigms]
 tags: [classification, regression, multiclass, multilabel, ordinal]
@@ -10,50 +10,95 @@ tags: [classification, regression, multiclass, multilabel, ordinal]
 ## Ta cần dự đoán một nhãn hay một đại lượng?
 
 :::intro Mục tiêu bài này
-- Phân biệt **phân loại** (đầu ra là nhóm) và **hồi quy** (đầu ra là số đo).
-- Thấy rằng dạng đầu ra quyết định **loss và metric** phù hợp.
-- Tự phân loại một tình huống thật bằng một chuỗi câu hỏi ngắn.
+- Phân biệt **Classification** (đầu ra là nhóm) và **Regression** (đầu ra là số đo) theo slide 25.
+- Phân biệt ba kiểu phân loại ở slide 26: **binary, multiclass, multilabel**.
+- Thấy rằng dạng bài toán quyết định **loss và metric**, và một bảng dữ liệu có thể sinh ra nhiều bài toán khác nhau.
 :::
 
-Hai câu hỏi nghe giống nhau nhưng khác hẳn: "người này có bị tiểu đường **không**?" (một trong hai nhóm) và "đường huyết của người này sẽ là **bao nhiêu**?" (một con số). Câu đầu là **phân loại (classification)**; câu sau là **hồi quy (regression)**.
+Hai câu hỏi nghe giống nhau nhưng khác hẳn: "người này có bị tiểu đường **không**?" (một trong hai nhóm) và "đường huyết của người này sẽ là **bao nhiêu**?" (một con số). Câu đầu là **phân loại (Classification)**; câu sau là **hồi quy (Regression)**. Cả hai đều thuộc Supervised Learning ([[bài:learning-paradigms]]): có nhãn; khác nhau ở **loại nhãn**.
+
+## Bản đồ các bài toán trong Supervised Learning (slide 25)
+
+| Dạng | Loại nhỏ | Ví dụ trên slide |
+|---|---|---|
+| **Classification** (phân loại) | **Binary** (hai lớp) | fraud detection, email spam detection, diagnostics |
+| | **Multiclass** (nhiều lớp) | động vật (cat/dog/horse), trái cây (apple/orange/lemon), hoa (rose/daisy/sunflower) |
+| **Regression** (hồi quy) | | ước tính giá nhà, dự đoán chứng khoán, dự báo nhiệt độ |
+
+:::slides 25-26 | Slide 25–26: các bài toán trong Supervised Learning; ba kiểu classification
+:::
+
+## Ba kiểu phân loại (slide 26)
+
+Slide 26 phân biệt bằng **câu hỏi mà bài toán đặt ra**:
+
+- **Binary:** *"Email này là spam hay không phải spam?"*: một thứ **hoặc** thứ kia. Hai lớp, mỗi mẫu thuộc đúng một lớp.
+- **Multiclass:** *"Ảnh này là sushi, steak hay pizza?"*: nhiều hơn hai lớp, nhưng mỗi mẫu **vẫn thuộc đúng một** lớp.
+- **Multilabel:** *"Bài báo này nên gắn những thẻ nào?"*: **nhiều nhãn cho cùng một mẫu**; mỗi thẻ là một câu hỏi có/không riêng.
+
+:::predict
+Phân loại hay hồi quy: (1) đoán số sao (1 đến 5) khách chấm cho một quán; (2) đoán mức hài lòng "thấp, vừa, cao"; (3) đoán số lượt bấm vào quảng cáo?
+@answer
+Cả ba đều **không có đáp án duy nhất**, tùy cách đặt bài toán. (1) Nếu coi 1 đến 5 là năm **nhóm** thì phân loại có thứ tự; nếu coi là **số đo** và muốn đoán 3.7 thì hồi quy. (2) **Phân loại có thứ tự** (ordinal). (3) **Hồi quy** (số đếm), hoặc mô hình đếm chuyên biệt. Mấu chốt: **có thứ tự hay là số chưa đủ để gọi là hồi quy**; phải hỏi ta muốn đoán **nhóm** hay một số có **khoảng cách đều**.
+:::
+
+Hãy tự phân loại tám tình huống bên dưới, và đọc lý do cùng loss và metric tương ứng.
+
+:::widget scenario-cards
+:::
+
+## Dạng bài toán quyết định loss và metric
+
+Ngay khi chọn dạng bài toán, ta đã chọn luôn cách **học** (loss) và cách **đo** (metric):
 
 | | Phân loại | Hồi quy |
 |---|---|---|
 | **Đầu ra** | nhãn rời rạc (nhóm) | số liên tục, có ý nghĩa đo lường |
-| **Ví dụ** | spam hay không, loại bệnh | giá nhà, nhiệt độ |
-| **Loss thường dùng** | cross-entropy (log loss) | MSE, MAE |
+| **Loss thường dùng** | cross-entropy (log loss) | MSE, MAE ([[bài:loss-function]]) |
 | **Metric thường dùng** | accuracy, precision, recall, F1 ([[bài:classification-metrics]]) | MAE, RMSE, R² ([[bài:regression-metrics]]) |
+| **Dự đoán thường là** | một nhóm, hoặc xác suất của mỗi nhóm | một con số |
 
-Cách chọn dạng bài quyết định cả loss lẫn cách đo, nên là bước đầu tiên khi đặt bài toán.
+Dùng sai cặp là lỗi nghiêm trọng: accuracy vô nghĩa với giá nhà (không có "đoán đúng 100%" một con số liên tục), còn MAE vô nghĩa với nhãn spam.
 
-:::predict
-Phân loại hay hồi quy? (1) đoán số sao (1 đến 5) khách chấm; (2) đoán một email là spam hay không; (3) đoán doanh thu tháng sau; (4) đoán loại tin tức (thể thao, kinh tế, giải trí); (5) đoán số lượt bấm vào quảng cáo; (6) đoán mức độ hài lòng "thấp, vừa, cao".
-@answer
-(1) **Có thể cả hai**: tùy cách đặt. Nếu coi 1 đến 5 là năm nhóm thì phân loại (nhóm có thứ tự); nếu coi là số đo và muốn đoán 3.7 thì hồi quy. (2) **Phân loại nhị phân.** (3) **Hồi quy.** (4) **Phân loại nhiều lớp.** (5) **Hồi quy** (số đếm, hoặc mô hình đếm chuyên biệt). (6) **Phân loại** có thứ tự (ordinal). Mấu chốt: **có thứ tự hay là số không đủ để gọi là hồi quy**; phải hỏi ta muốn đoán **nhóm** hay **một số có khoảng cách đều**.
-:::
+## Một bảng dữ liệu, hai bài toán
 
-## Các dạng đầu ra cần phân biệt
+Bộ Diabetes có thể sinh ra **cả hai** loại bài toán:
 
-- **Nhị phân:** hai nhóm (có bệnh hay không).
-- **Nhiều lớp:** nhiều nhóm loại trừ nhau (một tin chỉ thuộc một chuyên mục).
-- **Nhiều nhãn:** một mẫu có thể có nhiều nhãn cùng lúc (một ảnh vừa có "chó" vừa có "bãi cỏ").
-- **Hồi quy:** số liên tục.
-- **Đếm và thứ tự:** nằm giữa hai bờ; chọn cách đặt phù hợp với việc cần dùng kết quả để làm gì.
+| | Bài toán A: phân loại | Bài toán B: hồi quy |
+|---|---|---|
+| Câu hỏi | Người này có tiểu đường không? | Đường huyết (Glucose) của người này là bao nhiêu? |
+| Nhãn | `Outcome` (0 hoặc 1) | `Glucose` (một số) |
+| Model ví dụ | Logistic Regression | Linear Regression |
+| Cách chấm | accuracy **75.3%** (mức sàn đoán toàn 0: 64.3%) | MAE **19.2** mg/dL, R² **0.36** (mức sàn đoán trung bình: MAE 24.4) |
+
+Cùng một bảng, hai câu hỏi, **hai loss và hai metric khác nhau**. (Bài toán B dùng các hàng có Glucose > 0 và các cột còn lại, kể cả `Outcome`; đây chỉ là ví dụ minh họa.)
 
 :::ck
 Công ty muốn đoán "khách hàng có rời đi trong tháng tới không" và cũng muốn đoán "khách sẽ chi bao nhiêu tiền trong tháng tới". Mỗi câu là dạng bài nào, và metric nào hợp lý?
 @answer
-Câu đầu **phân loại nhị phân** (metric: recall, precision, F1; có thể cần ngưỡng). Câu sau **hồi quy** (metric: MAE hoặc RMSE). Dùng cùng dữ liệu khách hàng nhưng **hai mô hình, hai loss, hai cách đo** khác nhau.
+Câu đầu là **phân loại nhị phân** (metric: recall, precision, F1; thường cần chọn ngưỡng). Câu sau là **hồi quy** (metric: MAE hoặc RMSE). Dùng cùng dữ liệu khách hàng nhưng **hai mô hình, hai loss, hai cách đo** khác nhau.
 :::
 
-:::slides 25-26 | Slide 25–26: classification và regression
-:::
+## Những vùng xám cần chú ý
+
+- **Nhãn có thứ tự** (số sao, mức độ): có thể đặt thành phân loại có thứ tự hoặc hồi quy; chọn theo việc dùng kết quả. Nếu cần "sai một bậc khác sai hai bậc" thì cách đo phải phản ánh thứ tự.
+- **Số đếm** (số lượt bấm): không âm và là số nguyên; hồi quy thường vẫn dùng được, nhưng có mô hình đếm chuyên biệt.
+- **Cổ phiếu:** "giá ngày mai là bao nhiêu" là hồi quy; "ngày mai tăng hay giảm" là phân loại nhị phân. Cùng dữ liệu, **khác bài toán**.
+- **Xác suất không phải hồi quy:** Logistic Regression cho ra xác suất nhưng đây vẫn là **phân loại** ([[bài:logistic-regression]]).
+
+## Những hiểu sai thường gặp
+
+- **"Nhãn là số thì là hồi quy."** Không: nhãn 0/1 là số nhưng là nhóm; mã loại hoa 1, 2, 3 cũng là nhóm.
+- **"Tên thuật toán nói lên dạng bài."** Logistic *Regression* là phân loại; một số thuật toán (cây, KNN, SVM) làm được cả hai.
+- **"Multiclass là nhiều bài binary."** Có thể xây như vậy, nhưng **dạng bài** khác: mỗi mẫu thuộc đúng một lớp.
+- **"Metric nào cũng dùng được."** Cặp loss và metric phải khớp dạng bài.
 
 :::card Classification và Regression
-- **Phân loại:** đoán nhóm. **Hồi quy:** đoán số có khoảng cách đều.
-- **Dạng bài quyết định loss và metric** (cross-entropy với accuracy, precision, recall; MSE với MAE, RMSE).
-- **Có thứ tự hay là số chưa đủ** để gọi là hồi quy; hỏi ta muốn đoán nhóm hay số.
-- **Một dữ liệu có thể sinh nhiều bài toán** (rời đi hay không là phân loại; chi bao nhiêu là hồi quy).
+- **Phân loại:** đoán nhóm (binary, multiclass, multilabel). **Hồi quy:** đoán số đo liên tục (giá nhà, nhiệt độ, chứng khoán).
+- **Slide 26:** binary là một thứ hoặc thứ kia; multiclass là nhiều hơn hai nhưng mỗi mẫu một lớp; multilabel là nhiều nhãn cho cùng một mẫu.
+- **Dạng bài quyết định loss và metric:** cross-entropy với accuracy, precision, recall, F1; MSE với MAE, RMSE, R².
+- **Một bảng, nhiều bài toán:** Diabetes phân loại `Outcome` (75.3%) hoặc hồi quy `Glucose` (MAE 19.2, R² 0.36).
+- **Có thứ tự hay là số chưa đủ để gọi là hồi quy:** hỏi ta muốn đoán nhóm hay số có khoảng cách đều.
 :::
 
 ## Câu hỏi tự kiểm tra

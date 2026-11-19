@@ -1,7 +1,7 @@
 ---
 title: Confusion Matrix (Ma trận nhầm lẫn)
 order: 11
-description: "Xếp từng mẫu vào bốn ô TP, FP, FN, TN, đọc đúng thứ tự hàng cột và phân biệt báo động giả với bỏ sót."
+description: "Xếp từng mẫu vào bốn ô TP, FP, FN, TN theo slide 27 đến 32, đọc đúng thứ tự hàng cột và phân biệt báo động giả với bỏ sót."
 slides: 27-32
 needs: [classification-vs-regression]
 tags: [confusion-matrix, TP, FP, FN, TN]
@@ -10,29 +10,31 @@ tags: [confusion-matrix, TP, FP, FN, TN]
 ## "Đúng 4 trên 7" che mất điều gì?
 
 :::intro Mục tiêu bài này
-- Đặt prediction cạnh label và xếp từng mẫu vào đúng **một trong bốn ô** (TP, FP, FN, TN).
-- Đọc tên ô bằng quy tắc hai chữ, không học thuộc; hiểu "lớp dương" là lớp ta muốn phát hiện.
-- Phân biệt **báo động giả** và **bỏ sót**, và biết vì sao hai lỗi này có giá khác nhau.
+- Đặt prediction cạnh label và xếp từng mẫu vào đúng **một trong bốn ô** (TP, FP, FN, TN) theo slide 27 đến 32.
+- Đọc tên ô bằng quy tắc hai chữ, không học thuộc; hiểu **lớp dương** là lớp ta muốn phát hiện, không phải lớp "tốt".
+- Phân biệt **báo động giả (lỗi loại I)** với **bỏ sót (lỗi loại II)** và biết vì sao hai lỗi có giá khác nhau.
 :::
 
-[[slide:27]] cho bảy bức ảnh chó và mèo đi qua một model. Model sinh ra một hàng **prediction**, và ta đặt nó ngay trên hàng **label** (sự thật) để so từng cặp:
+[[slide:27]] cho bảy bức ảnh chó và mèo đi qua một model. Model sinh ra một hàng **prediction** (khung đỏ), và ta đặt nó ngay trên hàng **label** (sự thật, khung xanh) để so từng cặp:
 
 ```
 prediction:  dog  cat  dog  dog  cat  cat  dog
 label:       dog  dog  cat  dog  cat  dog  dog
 ```
 
-Model đúng ở các cột 1, 4, 5, 7: tức **4 trên 7**. Nghe ổn, nhưng ba lần sai **không giống nhau**: có lần model gọi con mèo là chó, có hai lần nó bỏ sót con chó. Muốn phân biệt hai kiểu sai đó, ta cần một bảng đếm thay vì một con số duy nhất. Hãy thử tự xếp: chọn một ô cho từng ảnh, và đổi "lớp dương" để thấy tên ô đổi theo.
+Model đúng ở các cột 1, 4, 5, 7: tức **4 trên 7**. Nghe ổn, nhưng ba lần sai **không giống nhau**: ở cột 3 model gọi con mèo là chó; ở cột 2 và 6 nó gọi con chó là mèo. Hai kiểu sai này có hậu quả khác nhau, mà một con số "4/7" không phân biệt được. Muốn thấy, ta cần một bảng đếm. Hãy thử tự xếp: chọn một ô cho từng ảnh, rồi đổi "lớp dương" để thấy tên ô đổi theo.
 
 :::widget confusion-sorter
 :::
 
-:::slides 27-32 | Slide 27–32: dog vs cat, lớp dương, bốn ô của ma trận
+:::slides 27-32 | Slide 27–32: dog vs cat, lớp dương, bốn ô của ma trận, đếm TP, FP, FN, TN
 :::
 
-## Đọc tên bốn ô: chữ sau là model đoán gì, chữ trước là đúng hay sai
+## Chọn lớp dương và đọc tên bốn ô
 
-Một ô có tên gồm **hai chữ**, và mỗi chữ có một nghĩa riêng:
+Slide 28 quy ước: **Class +** là class ta quan tâm (ví dụ `dog`), **Class −** là các class còn lại (ví dụ `cat`). "Dương" **không** có nghĩa là "tốt": trong y tế lớp dương là "có bệnh", trong lọc thư rác là "spam". **Lớp dương là lớp ta muốn phát hiện.**
+
+Ma trận trong slide xếp **hàng là Actual class (sự thật)**, **cột là Predicted class (dự đoán)**. Mỗi ô có tên gồm **hai chữ** với hai nghĩa riêng:
 
 - **Chữ sau (Positive hoặc Negative):** model **đã đoán** gì.
 - **Chữ trước (True hoặc False):** lời đoán đó **đúng hay sai**.
@@ -44,7 +46,25 @@ Một ô có tên gồm **hai chữ**, và mỗi chữ có một nghĩa riêng:
 | **FN** (False Negative) | Âm | sai | ảnh chó, model nói mèo |
 | **TN** (True Negative) | Âm | đúng | ảnh mèo, model nói mèo |
 
-Ma trận xếp **hàng là sự thật**, **cột là dự đoán**:
+Hai ô đường chéo (TP, TN, màu xanh trên slide) là đoán đúng; hai ô còn lại (FP, FN, màu đỏ) là đoán sai.
+
+## Đếm từng ảnh
+
+Quy trình đếm chỉ có một quy tắc: với mỗi mẫu, nhìn cặp (label, prediction) và bỏ vào **đúng một ô**.
+
+:::steps
+**TP (slide 29):** label `dog` và prediction `dog`: các cột **1, 4, 7**. **TP = 3.**
+@step
+**FP (slide 30):** label `cat` nhưng prediction `dog` (báo nhầm là chó): cột **3**. **FP = 1.**
+@step
+**FN (slide 31):** label `dog` nhưng prediction `cat` (bỏ sót con chó): cột **2 và 6**. **FN = 2.**
+@step
+**TN (slide 32):** label `cat` và prediction `cat`: cột **5**. **TN = 1.**
+@step
+**Kiểm tra:** 3 + 1 + 2 + 1 = **7** = tổng số mẫu. Mỗi mẫu rơi vào đúng một ô nên bốn ô luôn cộng lại bằng tổng.
+:::
+
+Ma trận hoàn chỉnh:
 
 | | Đoán dog (+) | Đoán cat (−) | Tổng hàng |
 |---|---|---|---|
@@ -52,51 +72,56 @@ Ma trận xếp **hàng là sự thật**, **cột là dự đoán**:
 | **Thật cat (−)** | FP = 1 | TN = 1 | 2 mèo thật |
 | **Tổng cột** | 4 lần đoán chó | 3 lần đoán mèo | **7** |
 
-"Dương" **không** có nghĩa là "tốt". **Lớp dương là lớp ta muốn phát hiện**: trong y tế là "có bệnh", trong lọc thư rác là "spam". Với bài nhiều lớp, ta chọn một lớp làm dương và gộp mọi lớp còn lại thành âm.
-
 :::ck
-Nếu ta đổi lớp dương từ **dog** sang **cat**, dữ liệu và model không đổi. Ba con số TP, FP, FN, TN có đổi không? Ảnh số 3 (thật là cat, model nói dog) rơi vào ô nào?
+Nếu ta đổi lớp dương từ **dog** sang **cat**, dữ liệu và model không đổi. Bốn con số TP, FP, FN, TN có đổi không? Ảnh số 3 (thật là cat, model nói dog) rơi vào ô nào?
 @answer
-**Các con số đổi vai** dù dữ liệu y nguyên. Khi dương là cat: ảnh số 3 (thật cat, model nói dog) thành **FN** (thật Dương nhưng model đoán Âm), thay vì FP như lúc dương là dog. Đây là lý do luôn phải nói rõ lớp dương là lớp nào.
+**Các con số đổi vai** dù dữ liệu y nguyên: khi dương là cat thì TP = 1 (ảnh 5), FP = 2 (ảnh 2 và 6, model nói cat mà thật là dog), FN = 1 (ảnh 3), TN = 3. Ảnh số 3 (thật cat, model nói dog) thành **FN** (thật Dương nhưng model đoán Âm), thay vì FP như lúc dương là dog. Vì vậy luôn phải nói rõ lớp dương là lớp nào.
 :::
 
 ## Hai lỗi khác nhau: báo động giả và bỏ sót
 
-Hai ô đường chéo (TP, TN) là đoán đúng. Hai ô còn lại là hai loại sai mà thống kê gọi tên riêng:
+Slide 29 đến 32 gắn hai ô lỗi với hai tên từ thống kê:
 
-- **FP là lỗi loại I: báo động giả.** Hệ thống kêu lên nhưng không có gì.
-- **FN là lỗi loại II: bỏ sót.** Có chuyện thật nhưng hệ thống im lặng.
+- **FP = lỗi loại I (Type I error): báo động giả.** Hệ thống kêu lên nhưng không có gì.
+- **FN = lỗi loại II (Type II error): bỏ sót.** Có chuyện thật nhưng hệ thống im lặng.
 
-Mẹo nhớ qua chuyện cậu bé chăn cừu: lần đầu cậu hô "sói đến!" khi không có sói thì đó là lỗi loại I; lần sau sói đến thật mà dân làng không tin thì đó là lỗi loại II. Hai lỗi này **không đắt như nhau**: bỏ sót ung thư (FN) và báo nhầm ung thư (FP) có hậu quả rất khác. Vì vậy một con số accuracy không đủ; [[bài:classification-metrics]] sẽ dùng chính bốn ô này để trả lời "ta quan tâm lỗi nào".
+Mẹo nhớ qua chuyện cậu bé chăn cừu: lần đầu cậu hô "sói đến!" khi không có sói là lỗi loại I; lần sau sói đến thật mà dân làng không tin là lỗi loại II. Hai lỗi **không đắt như nhau**: bỏ sót ung thư (FN) và báo nhầm ung thư (FP) có hậu quả rất khác; thư công việc bị đẩy vào mục spam (FP) khác với một thư quảng cáo lọt vào hộp thư (FN). Vì vậy một con số accuracy không đủ; [[bài:classification-metrics]] dùng chính bốn ô này để trả lời "ta quan tâm lỗi nào".
 
 ## Bốn tổng là nền của mọi metric
 
-Mỗi mẫu rơi vào **đúng một** ô, nên TP + FP + FN + TN luôn bằng tổng số mẫu. Bốn **tổng hàng và tổng cột** sẽ là mẫu số của các metric sau:
+Từ ma trận, bốn **tổng hàng và tổng cột** sẽ là mẫu số của các metric sau:
 
-- **TP + FN** = số mẫu **thật sự** Dương (tổng hàng trên): 3 + 2 = 5 chó.
-- **FP + TN** = số mẫu **thật sự** Âm (tổng hàng dưới): 1 + 1 = 2 mèo.
-- **TP + FP** = số lần model **đoán** Dương (tổng cột trái): 3 + 1 = 4.
-- **FN + TN** = số lần model **đoán** Âm (tổng cột phải): 2 + 1 = 3.
+- **TP + FN** = số mẫu **thật sự** Dương (hàng trên): 3 + 2 = 5 chó.
+- **FP + TN** = số mẫu **thật sự** Âm (hàng dưới): 1 + 1 = 2 mèo.
+- **TP + FP** = số lần model **đoán** Dương (cột trái): 3 + 1 = 4.
+- **FN + TN** = số lần model **đoán** Âm (cột phải): 2 + 1 = 3.
 
 ## Bẫy: scikit-learn đặt TP ở góc dưới phải
 
-Slide xếp lớp dương lên **trước**. Nhưng `confusion_matrix` của scikit-learn sắp lớp theo thứ tự sắp xếp (0 trước 1). Với nhãn 0/1, kết quả là:
+Slide xếp lớp dương lên **trước** (góc trên trái). Nhưng `confusion_matrix` của scikit-learn sắp lớp theo thứ tự sắp xếp (0 trước 1). Với nhãn 0/1 (dog = 1), ví dụ trên cho `[[1, 1], [2, 3]]`, tức:
 
 ```
 [[TN, FP],
  [FN, TP]]
 ```
 
-tức TP nằm ở góc **dưới phải**, ngược với slide. Cách an toàn: tách đúng thứ tự bằng `tn, fp, fn, tp = cm.ravel()`. Bảng của Project, `[[79, 20], [18, 37]]`, đọc đúng là TN = 79, FP = 20, FN = 18, TP = 37.
+TP nằm ở góc **dưới phải**, ngược với slide. Cách an toàn: tách đúng thứ tự bằng `tn, fp, fn, tp = cm.ravel()`. Bảng của Project, `[[79, 20], [18, 37]]`, đọc đúng là TN = 79, FP = 20, FN = 18, TP = 37.
 
 :::ck
 Một đồng nghiệp in `confusion_matrix(y_test, y_pred)` ra `[[50, 5], [10, 35]]` với nhãn 0/1 (1 là bệnh). Có bao nhiêu người bệnh bị **bỏ sót**?
 @answer
-**10 người.** Theo thứ tự `[[TN, FP], [FN, TP]]`, FN là phần tử ở hàng 2, cột 1 = 10. Chỉ có 35 người bệnh được bắt đúng (TP). Nếu đọc nhầm theo thứ tự trong slide, bạn sẽ nhầm 50 thành TP.
+**10 người.** Theo thứ tự `[[TN, FP], [FN, TP]]`, FN là phần tử ở hàng 2, cột 1 = 10. Chỉ có 35 người bệnh được bắt đúng (TP). Nếu đọc nhầm theo thứ tự trong slide (TP ở góc trên trái), bạn sẽ nhầm 50 thành số người bệnh được bắt.
 :::
 
+## Những hiểu sai thường gặp
+
+- **"Dương là tốt."** Không: dương là lớp ta muốn phát hiện (bệnh, spam, gian lận).
+- **"FP và FN chỉ là hai cái tên."** Chúng là hai kiểu sai với **chi phí khác nhau**; chọn metric là chọn quan tâm kiểu nào.
+- **"Ma trận luôn có TP ở trên trái."** Chỉ trong slide; trong scikit-learn với nhãn 0/1 TP ở dưới phải.
+- **"Chỉ cần accuracy là đủ."** Accuracy chỉ nhìn đường chéo (TP + TN) và che mất hai ô lỗi.
+
 :::card Confusion Matrix
-- **Hàng = sự thật, cột = dự đoán.** Mỗi mẫu rơi vào đúng một ô; bốn ô cộng lại bằng tổng số mẫu.
+- **Hàng = sự thật, cột = dự đoán.** Mỗi mẫu rơi vào đúng một ô; bốn ô cộng lại bằng tổng số mẫu (ví dụ 3 + 1 + 2 + 1 = 7).
 - **Tên ô:** chữ sau = model đoán gì (Positive/Negative); chữ trước = đúng hay sai (True/False).
 - **Lớp dương** là lớp ta muốn phát hiện, không phải lớp "tốt"; đổi lớp dương thì các ô đổi vai.
 - **FP = báo động giả (lỗi loại I). FN = bỏ sót (lỗi loại II).** Hai lỗi có giá khác nhau.
