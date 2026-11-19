@@ -1,7 +1,7 @@
 ---
 title: Cây quyết định (Decision Tree)
 order: 7
-description: "Chọn câu hỏi làm các nhóm con thuần hơn bằng Gini có trọng số; cây sâu học thuộc, cây không cần scale."
+description: "Cây quyết định (slide 76-77): nút, nhánh, lá; chọn câu hỏi bằng Gini có trọng số; cây không giới hạn học thuộc, đo theo độ sâu trên Diabetes."
 slides: 76-77
 needs: [logistic-regression, k-fold-cross-validation, classification-metrics]
 tags: [decision-tree, gini, entropy, impurity, overfitting, pruning, tree-depth]
@@ -10,27 +10,40 @@ tags: [decision-tree, gini, entropy, impurity, overfitting, pruning, tree-depth]
 ## Câu hỏi nào nên hỏi trước?
 
 :::intro Mục tiêu bài này
-- Đọc một cây quyết định như một chuỗi câu hỏi và luật "nếu... thì...".
-- Hiểu cách chọn câu hỏi: làm hai nhóm con **thuần hơn**, đo bằng **Gini có trọng số**.
-- Hiểu vì sao cây không giới hạn **học thuộc**, và vì sao cây không cần scale.
+- Đọc một cây quyết định như chuỗi câu hỏi và luật "nếu... thì..." (slide 76).
+- Hiểu cách chọn câu hỏi: làm các nhóm con **thuần hơn**, đo bằng **Gini có trọng số** (slide 77).
+- Hiểu vì sao cây không giới hạn **học thuộc**, đo bằng độ sâu trên Diabetes, và vì sao cây không cần scale.
 :::
 
-Trò "20 câu hỏi": để đoán một vật, ta hỏi các câu có/không, mỗi câu thu hẹp khả năng. Cây quyết định làm vậy: mỗi **nút** hỏi một câu về một feature ("Student = Yes?"), mỗi **nhánh** là một câu trả lời, mỗi **lá** đưa ra dự đoán. Đi từ **gốc** xuống lá là đọc ra một luật. Câu hỏi quan trọng: **hỏi câu nào trước?**
+## Đọc slide 76: cây là chuỗi câu hỏi
 
-Ý tưởng: chọn câu hỏi làm hai (hay nhiều) nhóm con **thuần nhất nhất**, tức mỗi nhóm có phần lớn cùng nhãn. Đo độ không thuần bằng **Gini**:
+:::slides 76-77 | Slide 76–77: Decision Tree với ví dụ nhận việc, và công thức Gini cùng bốn cách chia
+:::
+
+Slide 76 vẽ cây trả lời "có nên nhận offer việc làm mới không?":
+
+- **Root node (gốc):** "salary at least $50,000?" Nếu **no** thì *decline offer* (lá).
+- Nếu yes, **decision node** tiếp: "commute more than 1 hour?" Nếu yes thì *decline*.
+- Nếu no, hỏi tiếp "offers free coffee?" Yes thì *accept offer*, no thì *decline offer*.
+
+Mỗi **nút** hỏi một câu về một feature, mỗi **nhánh** là một câu trả lời, mỗi **lá (leaf node)** đưa ra dự đoán. Đi từ gốc xuống lá là đọc ra một luật, ví dụ "lương ≥ 50k VÀ đi lại ≤ 1 giờ VÀ có cà phê miễn phí thì nhận". Câu hỏi quan trọng: **hỏi câu nào trước?**
+
+## Chọn câu hỏi bằng Gini (slide 77)
+
+Chọn câu hỏi làm các nhóm con **thuần nhất nhất**, tức mỗi nhóm có phần lớn cùng nhãn. Đo độ không thuần bằng **Gini** (công thức bên trái slide 77):
 
 > Gini = 1 − Σ pᵢ² (pᵢ là tỉ lệ lớp i trong nút)
 
 Nút toàn một lớp có Gini = 0 (thuần); nút 50/50 hai lớp có Gini = 0.5. Một cách chia được chấm bằng **Gini có trọng số** = tổng (số người trong nhánh / tổng) × Gini của nhánh. **Gini càng nhỏ càng tốt.**
 
 :::steps
-Bộ 14 người của slide 77: 9 người mua (Yes), 5 người không (No). Thử chia theo **Age** (Youth, Middle age, Senior).
+Bộ 14 người của slide 77: 9 người mua (Yes), 5 người không (No); Gini của gốc là 1 − (9/14)² − (5/14)² = 0.459. Thử chia theo **Age** (Youth, Middle age, Senior).
 @step
 **Youth:** 2 Yes, 3 No (5 người): Gini = 1 − (0.4² + 0.6²) = **0.48**. **Middle age:** 4 Yes, 0 No: Gini = **0** (thuần). **Senior:** 3 Yes, 2 No: Gini = **0.48**.
 @step
 **Gini có trọng số** = (5 × 0.48 + 4 × 0 + 5 × 0.48) / 14 = **0.343**.
 @step
-Làm tương tự cho các feature khác: **Income 0.440**, **Student 0.367**, **Credit Rating 0.429**. Age có Gini có trọng số **nhỏ nhất (0.343)**, nên chọn làm gốc. Nhánh Middle age đã thuần, thành lá.
+Làm tương tự cho các feature khác: **Income 0.440**, **Student 0.367**, **Credit Rating 0.429**. Age có Gini có trọng số **nhỏ nhất (0.343)**, nên mũi tên "Best" của slide chỉ vào Age và nó làm gốc. Nhánh Middle age đã thuần, thành lá.
 :::
 
 Hãy tự tính: chọn từng feature và xem Gini của nhánh và Gini có trọng số.
@@ -44,30 +57,50 @@ Một câu hỏi tạo ra một nhánh rất thuần nhưng chỉ có **1 mẫu*
 **Chưa chắc.** Gini **có trọng số** tính theo số mẫu của từng nhánh, nên nhánh nhỏ xíu rất thuần đóng góp rất ít, còn nhánh lớn lẫn lộn kéo Gini tổng lên. "Chia càng lệch càng tốt" nghĩa chính xác là: các nhóm con **thuần, tính theo trọng số số mẫu**, không chỉ một nhánh đẹp.
 :::
 
-## Cây sâu thuộc bài, không phải hiểu bài
+Với feature số (như Glucose), thuật toán thử nhiều **ngưỡng** ("Glucose ≤ 127.5?") và chọn ngưỡng làm Gini có trọng số nhỏ nhất. Học là **tham lam**: mỗi nút chọn cách chia tốt nhất tại thời điểm đó, không bảo đảm cây tối ưu toàn cục. Entropy là cách đo độ không thuần khác, cho cây tương tự.
 
-Cây tiếp tục chia đến khi mọi lá thuần thì có thể **thuộc lòng** dữ liệu train. Ở Project Bước 2, cây không giới hạn đạt **100% trên train** nhưng chỉ **74.7% trên test**. Kiểm soát bằng: giới hạn độ sâu (`max_depth`), số mẫu tối thiểu mỗi lá, hoặc cắt tỉa; chọn bằng cross-validation ([[bài:k-fold-cross-validation]]).
+## Cây sâu thuộc bài: đo trên Diabetes
 
-## Thực hành
+Trên Diabetes (chia 80/20, `random_state=42`; CV 5-fold có phân tầng), thay đổi `max_depth`:
 
-- **Không cần scale:** cây chỉ so một feature với một ngưỡng, scale không đổi thứ tự nên không đổi cách chia ([[bài:feature-scaling]]).
-- **Dễ đọc** (thành luật), xử lý được cả số lẫn nhóm; **nhược:** dễ học thuộc, **bất ổn** (đổi ít dữ liệu, cây đổi nhiều), ranh giới vuông góc trục, **không ngoại suy**.
-- **Cây hồi quy:** lá dự đoán **trung bình** target của các mẫu trong lá; dự đoán là hàm bậc thang.
-- Thuật toán học là **tham lam**: mỗi nút chọn cách chia tốt nhất lúc đó, không đảm bảo cây tối ưu toàn cục. Entropy là cách đo độ không thuần khác, cho cây tương tự.
+| max_depth | Số lá | Train | Test (1 lần chia) | CV |
+|---|---|---|---|---|
+| 1 | 2 | 0.735 | 0.740 | 0.730 |
+| **2** | 4 | 0.772 | 0.773 | **0.750** |
+| 3 | 8 | 0.777 | 0.760 | 0.746 |
+| 4 | 16 | 0.798 | 0.695 | 0.733 |
+| 5 | 27 | 0.842 | 0.799 | 0.732 |
+| 8 | 73 | 0.943 | 0.740 | 0.687 |
+| không giới hạn | 103 | **1.000** | 0.747 | 0.700 |
+
+Ba điều. **Một:** cây không giới hạn có train **1.000** nhưng CV 0.700: học thuộc bằng 103 lá. **Hai:** train tăng đều theo độ sâu, còn **CV đạt đỉnh ở độ sâu 2** rồi đi xuống. **Ba:** test một lần chia **nhảy lung tung** (độ sâu 4 là 0.695, độ sâu 5 lại 0.799): với 154 mẫu test, một lần chia quá nhiễu để chọn siêu tham số; đó là lý do dùng CV ([[bài:k-fold-cross-validation]]).
+
+Cây nông nhất đọc được ngay thành luật. Cây độ sâu 2: nếu **Glucose ≤ 127.5** thì đoán không bệnh; nếu Glucose > 127.5 và **BMI > 29.95** thì đoán bệnh, còn BMI ≤ 29.95 thì không bệnh. Vài câu hỏi đủ cho CV 0.750, ngang các mô hình phức tạp hơn trong [[bài:supervised-algorithms]].
 
 :::ck
 Một cây không giới hạn độ sâu đạt 99% trên train và 70% trên test. Bạn chỉnh gì?
 @answer
-Giới hạn độ sâu hoặc số mẫu tối thiểu mỗi lá (hoặc cắt tỉa), chọn bằng cross-validation. Hoặc dùng [[bài:random-forest]] (nhiều cây bỏ phiếu) để giảm học thuộc.
+Giới hạn độ sâu hoặc số mẫu tối thiểu mỗi lá (hoặc cắt tỉa), chọn bằng cross-validation (Diabetes: độ sâu 2 cho CV tốt nhất). Hoặc dùng [[bài:random-forest]] (nhiều cây bỏ phiếu) để giảm học thuộc.
 :::
 
-:::slides 76-77 | Slide 76–77: Decision Tree và Gini
-:::
+## Thực hành
+
+- **Không cần scale:** cây chỉ so một feature với một ngưỡng, scale không đổi thứ tự nên không đổi cách chia. Kiểm tra trên Diabetes: cây không giới hạn dự đoán **y hệt** trước và sau `StandardScaler` ([[bài:feature-scaling]]).
+- **Dễ đọc** (thành luật), xử lý được cả số lẫn nhóm; **nhược:** dễ học thuộc, **bất ổn** (đổi ít dữ liệu, cây đổi nhiều), ranh giới vuông góc trục, **không ngoại suy**.
+- **Cây hồi quy:** lá dự đoán **trung bình** target của các mẫu trong lá; dự đoán là hàm bậc thang.
+
+## Những hiểu sai thường gặp
+
+- **"Cây sâu hơn là mô hình tốt hơn."** Chỉ tốt hơn trên train; CV tốt nhất ở độ sâu 2.
+- **"Gini 0 là cây tốt."** Gini 0 ở một lá nhỏ có thể chỉ là học thuộc.
+- **"Một lần chia test đủ để chọn độ sâu."** Test nhảy 0.695 đến 0.799; dùng CV.
+- **"Cây cần scale như KNN."** Không; thứ tự giá trị không đổi.
+- **"Cây ổn định."** Đổi ít dữ liệu có thể đổi cả cấu trúc cây.
 
 :::card Decision Tree
-- **Nút, nhánh, lá**; đi từ gốc xuống lá đọc ra luật.
+- **Nút, nhánh, lá**; đi từ gốc xuống lá đọc ra luật (slide 76).
 - **Gini = 1 − Σ pᵢ²** (0 là thuần); chọn cách chia có **Gini có trọng số nhỏ nhất** (Age 0.343, Student 0.367, Credit 0.429, Income 0.440).
-- **Cây không giới hạn học thuộc** (100% train so với 74.7% test); kiểm soát bằng max_depth, CV.
+- **Cây không giới hạn học thuộc** (train 1.000, CV 0.700); độ sâu 2 cho CV tốt nhất 0.750; chọn bằng CV.
 - **Không cần scale**; dễ đọc nhưng bất ổn, không ngoại suy.
 :::
 
