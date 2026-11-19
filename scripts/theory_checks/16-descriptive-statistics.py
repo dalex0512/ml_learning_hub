@@ -1,0 +1,12 @@
+import pandas as pd, numpy as np
+d = pd.read_csv("dataset/diabetes.csv")
+print(d.dtypes.to_dict())
+print(d.groupby("Outcome").size().to_dict(), round(500/768, 4))
+g = d.Glucose.head(15); print(g.tolist())
+print("n", len(g), "mean", round(g.mean(), 3), "std(ddof=1)", round(g.std(), 3), "min", g.min(), "q1", g.quantile(.25), "median", g.median(), "q3", g.quantile(.75), "max", g.max())
+print(sorted(g.tolist()), "sum", g.sum())
+dev = (g - g.mean()); print("sum sq dev", round((dev**2).sum(), 3), "var(n-1)", round((dev**2).sum()/14, 3))
+print("zeros", (d.drop(columns="Outcome") == 0).sum().to_dict())
+print(d.groupby("Outcome")[["Glucose","BMI","Age"]].median().to_dict())
+x = d.drop(columns="Outcome"); desc = d.describe().T[["mean","std","min","25%","50%","75%","max"]].round(3)
+print(desc.loc["Insulin"].to_dict())

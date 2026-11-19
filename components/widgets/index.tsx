@@ -12,6 +12,7 @@ import XyTable from "./XyTable";
 import ParamKnob from "./ParamKnob";
 import FoldCompare from "./FoldCompare";
 import ScenarioCards from "./ScenarioCards";
+import DescribeTable from "./DescribeTable";
 import { KnnPlay, GiniCalc, BootstrapVote, SplitBar } from "./ModelWidgets";
 
 /** Đăng ký công cụ tương tác; dùng trong bài bằng  :::widget tên  */
@@ -39,4 +40,5 @@ export const WIDGETS: Record<string, React.ComponentType<{ props?: string }>> = 
   "param-knob": ParamKnob,
   "fold-compare": FoldCompare,
   "scenario-cards": ScenarioCards,
+  "describe-table": DescribeTable,
 };

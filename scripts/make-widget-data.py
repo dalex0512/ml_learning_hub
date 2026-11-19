@@ -100,3 +100,9 @@ aligned = float(((head["Glucose"] >= 140).astype(int) == head["Outcome"]).mean()
 shuffled = float(((head["Glucose"].to_numpy()[perm] >= 140).astype(int) == head["Outcome"].to_numpy()).mean())
 dump("rows.json", {"cols": cols + ["Outcome"], "rows": head.values.tolist(), "perm": perm, "aligned": aligned, "shuffled": shuffled})
 print("aligned", aligned, "shuffled", shuffled)
+
+# 5. describe() của Diabetes + số ô bằng 0 (bài 16)
+desc = data.describe().T.loc[cols, ["mean", "std", "min", "25%", "50%", "75%", "max"]]
+zeros = {c: int((data[c] == 0).sum()) for c in cols}
+dump("describe.json", {"cols": cols, "stats": ["mean", "std", "min", "25%", "50%", "75%", "max"],
+                       "values": [[round(float(v), 3) for v in desc.loc[c]] for c in cols], "zeros": zeros})

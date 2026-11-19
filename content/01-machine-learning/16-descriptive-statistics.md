@@ -1,68 +1,103 @@
 ---
 title: Step 2 — Thống kê mô tả để hiểu dữ liệu
 order: 16
-description: "Đọc describe() của Diabetes để thấy số 0 thiếu trá hình, độ lệch và outlier trước khi tiền xử lý."
+description: "Bốn việc của Step 2 (slide 40 đến 44) trên Diabetes: xem dữ liệu, dtypes, describe tính tay và đọc từng ô, phân bố lớp, số 0 thiếu trá hình, mean xa median."
 slides: 40-44
 needs: [ml-pipeline]
 tags: [describe, mean, median, std, dtypes, statistics]
 ---
 
-## `describe()` nói gì, và không nói gì?
+## Nhìn dữ liệu bằng số trước khi sửa gì
 
 :::intro Mục tiêu bài này
+- Làm đủ bốn việc của **Step 2 (Statistics)** trong slide 40 đến 44: xem dữ liệu, kiểm tra kiểu, tóm tắt thống kê, đếm phân bố lớp.
 - Đọc bảng `describe()`: mean, std, min, các phân vị, max, và biết mỗi con số gợi ý điều gì.
-- Phát hiện **dữ liệu thiếu trá hình** (số 0 vô lý) và độ lệch qua so mean với median.
-- Hiểu thống kê là **manh mối** để quyết định tiền xử lý, không phải kết luận.
+- Phát hiện **dữ liệu thiếu trá hình** (số 0 vô lý), độ lệch và outlier; hiểu thống kê là **manh mối**, không phải kết luận.
 :::
 
-Trước khi sửa hay huấn luyện, ta nhìn dữ liệu bằng vài con số. `data.describe()` cho mỗi cột: `count` (số ô có giá trị), `mean` (trung bình), `std` (độ trải), `min`, các phân vị `25%`, `50%` (trung vị), `75%`, và `max`. Với bộ Diabetes (768 hàng):
+Trước khi sửa hay huấn luyện, ta hiểu dữ liệu bằng vài con số. Slide 40 đến 44 đi qua bộ Diabetes bằng bốn thao tác pandas, mỗi thao tác trả lời một câu hỏi:
 
-| Cột | mean | std | min | 25% | 50% | 75% | max |
-|---|---|---|---|---|---|---|---|
-| Pregnancies | 3.85 | 3.37 | 0 | 1 | 3 | 6 | 17 |
-| Glucose | 120.89 | 31.97 | **0** | 99 | 117 | 140.25 | 199 |
-| BloodPressure | 69.11 | 19.36 | **0** | 62 | 72 | 80 | 122 |
-| SkinThickness | 20.54 | 15.95 | **0** | **0** | 23 | 32 | 99 |
-| Insulin | 79.80 | 115.24 | **0** | **0** | 30.5 | 127.25 | 846 |
-| BMI | 31.99 | 7.88 | **0** | 27.3 | 32 | 36.6 | 67.1 |
-| DiabetesPedigreeFunction | 0.47 | 0.33 | 0.08 | 0.24 | 0.37 | 0.63 | 2.42 |
-| Age | 33.24 | 11.76 | 21 | 24 | 29 | 41 | 81 |
+| Việc (slide) | Code | Câu hỏi |
+|---|---|---|
+| Xem dữ liệu, *How data looks like* (41) | `pd.read_csv(...)`, `head()` | Bảng trông thế nào? |
+| Kiểm tra kiểu, *data type* (42) | `data.dtypes` | Mỗi cột lưu bằng kiểu gì? |
+| Tóm tắt thống kê (43) | `data.describe()` | Giá trị mỗi cột trải thế nào? |
+| Phân bố lớp, *category distribution* (44) | `data.groupby("Outcome").size()` | Mỗi nhãn có bao nhiêu mẫu? |
+
+:::slides 40-44 | Slide 40–44: Step 2 Statistics trên Diabetes, xem dữ liệu, dtypes, describe, phân bố lớp
+:::
+
+## Kiểu dữ liệu và phân bố lớp
+
+**`data.dtypes`** (slide 42) cho thấy cả tám feature và nhãn đều là **numerical**: có **2 cột float** (BMI và DiabetesPedigreeFunction), 7 cột còn lại là `int64` (kể cả `Outcome`, vốn là nhãn). Nhớ rằng `dtype` chỉ cho biết cách **lưu**, không nói bản chất ([[bài:feature-and-data-types]]).
+
+**Phân bố lớp** (slide 44): `Outcome = 0` có **500** mẫu, `Outcome = 1` có **268** mẫu. Tức 65.1% và 34.9%. Đây chính là **mức sàn**: một model luôn đoán "không bệnh" đã đúng 65.1%. Mọi con số accuracy của dự án phải được so với mốc này.
+
+## `describe()` nói gì, và không nói gì?
+
+`data.describe()` (slide 43) cho mỗi cột số: `count` (số ô có giá trị), `mean` (trung bình), `std` (độ trải), `min`, các phân vị `25%`, `50%` (trung vị), `75%`, và `max`. Hãy bấm vào bảng của Diabetes để đọc ý nghĩa từng ô:
+
+:::widget describe-table
+:::
 
 :::predict
-Nhìn bảng: (1) `Glucose` có `min = 0`. Điều đó có nghĩa y học không? (2) `Insulin` có `mean = 79.8` nhưng `50% = 30.5`. Hai con số lệch nhau nói lên điều gì?
+Nhìn bảng: (1) `Glucose` có `min = 0`: điều đó có nghĩa y học không? (2) `Insulin` có `mean = 79.8` nhưng `50% = 30.5`: hai con số lệch nhau nói lên điều gì?
 @answer
-(1) **Không**: đường huyết bằng 0 là không thể ở người còn sống; đó là ô **chưa đo** bị ghi thành 0 ("dữ liệu thiếu trá hình"). (2) **Mean lớn hơn median nhiều** nghĩa là phân phối **lệch phải**: nhiều giá trị thấp (kể cả số 0 thiếu) và vài giá trị rất lớn (max 846) kéo trung bình lên. Insulin có `25% = 0`: ít nhất một phần tư ô là 0.
+(1) **Không**: đường huyết bằng 0 là không thể ở người còn sống; đó là ô **chưa đo** bị ghi thành 0 ("dữ liệu thiếu trá hình"). (2) **Mean lớn hơn median nhiều** nghĩa là phân phối **lệch phải**: nhiều giá trị thấp (kể cả số 0 thiếu) và vài giá trị rất lớn (max 846) kéo trung bình lên. Insulin có `25% = 0`: ít nhất một phần tư số ô là 0.
 :::
 
-## Đọc từng manh mối
+## Tính tay `describe()` trên 15 hàng
 
-- **`min = 0` ở cột không thể bằng 0** (Glucose, BloodPressure, SkinThickness, Insulin, BMI): dữ liệu thiếu trá hình. Số ô 0 thật: Glucose 5, BloodPressure 35, SkinThickness 227, Insulin 374, BMI 11. Riêng `Pregnancies = 0` (111 ô) hợp lệ. Xử lý ở [[bài:missing-values-outliers]].
-- **Mean và median lệch xa nhau** (Insulin): phân phối lệch hoặc có outlier; dùng median khi điền thiếu, cân nhắc scaler bền hơn.
-- **`max` quá xa `75%`** (Insulin: 127 so với 846; SkinThickness: 32 so với 99): đáng kiểm tra outlier.
+Slide 40 chỉ hiện 15 hàng đầu của bảng. Hãy tự tính tóm tắt của cột **Glucose** trên 15 giá trị đó để biết `describe()` làm gì:
+
+:::steps
+15 giá trị Glucose: 148, 85, 183, 89, 137, 116, 78, 115, 197, 125, 110, 168, 139, 189, 166. Xếp tăng dần: **78, 85, 89, 110, 115, 116, 125, 137, 139, 148, 166, 168, 183, 189, 197**.
+@step
+**min = 78, max = 197.** **Trung vị** (giá trị thứ 8 trong 15) = **137**.
+@step
+**Trung bình** = tổng / 15 = 2045 / 15 = **136.33**. (Mean và median gần nhau: dãy này khá cân đối.)
+@step
+**Phân vị 25% và 75%** (nội suy giữa hai giá trị kề nhau như pandas): 25% nằm giữa 110 và 115, được **112.5**; 75% nằm giữa 166 và 168, được **167**.
+@step
+**std** (pandas chia n − 1): tổng bình phương độ lệch so với trung bình = 20627.33; chia 14 được 1473.38; căn bậc hai: **38.39**.
+:::
+
+Kiểm tra bằng `data["Glucose"].head(15).describe()` sẽ cho đúng các số trên. Chú ý `describe()` của pandas dùng std **mẫu** (chia n − 1), còn `StandardScaler` dùng chia n ([[bài:feature-scaling]]).
+
+## Đọc từng manh mối của Diabetes
+
+- **`min = 0` ở cột không thể bằng 0** (Glucose, BloodPressure, SkinThickness, Insulin, BMI): dữ liệu thiếu trá hình. Số ô 0: Glucose **5**, BloodPressure **35**, SkinThickness **227**, Insulin **374**, BMI **11**. Riêng `Pregnancies = 0` (111 ô) hợp lệ. Xử lý ở [[bài:missing-values-outliers]].
+- **Mean xa median** (Insulin 79.8 so với 30.5): lệch hoặc có outlier; dùng median khi điền thiếu.
+- **`max` quá xa `75%`** (Insulin: 127 so với 846; SkinThickness: 32 so với 99): kiểm tra outlier.
 - **`std` rất khác giữa các cột** (Insulin 115, DPF 0.33): các cột khác thang đo, cần [[bài:feature-scaling]].
-- **Phân bố class:** 500 người không bệnh và 268 người bệnh: lệch nhẹ (65% và 35%), nên mức sàn là 65.1%.
-
-Đây là **manh mối**, không phải kết luận: cần nhìn thêm biểu đồ ([[bài:data-visualization]]) và hỏi người hiểu lĩnh vực.
+- **So theo lớp:** trung vị Glucose là **140** ở nhóm bệnh và **107** ở nhóm không bệnh; Age lần lượt **36** và **27**; BMI **34.25** và **30.05**. Glucose tách hai nhóm rõ nhất, khớp với những gì Project Bước 1 thấy bằng histogram.
 
 :::ck
-Cột `Age` có min 21 và max 81. Có cần nghi ngờ gì không? Còn `Pregnancies` max 17?
+Cột `Age` có min 21 và max 81, còn `Pregnancies` có max 17. Có cần nghi ngờ gì không?
 @answer
 **Không có dấu hiệu bất thường**: 21 đến 81 là khoảng tuổi hợp lý của bộ dữ liệu, và 17 lần mang thai tuy hiếm vẫn có thể. Thống kê chỉ gợi ý chỗ cần kiểm tra; ta đánh giá theo **ý nghĩa thực tế** của cột, không theo việc con số nghe lớn hay nhỏ.
 :::
 
-## So theo class
-
-Chia dữ liệu theo nhãn rồi so thống kê cho thấy cột nào có thể ích: trung vị Glucose ở nhóm bệnh là **140**, nhóm không bệnh là **107** (chênh khoảng 31%); BMI lần lượt **34.25** và **30.05** (chênh khoảng 14%). Glucose tách hai nhóm rõ hơn BMI. Đây là điều Project Bước 1 khám phá bằng histogram.
-
-:::slides 40-44 | Slide 40–44: Diabetes dataset, xem dữ liệu, dtypes, describe, phân bố class
+:::ck
+Bạn tính trung bình `Insulin` của cả bảng được 79.8 và đưa nó cho bác sĩ như "insulin điển hình". Có vấn đề gì?
+@answer
+Con số đó **không đại diện**: 374 trong 768 ô là số 0 thiếu (không phải insulin bằng 0), và vài giá trị lớn kéo mean lên; median (30.5) cũng bị số 0 kéo xuống. Phải xử lý số 0 trước rồi mới nói "điển hình" (sau khi bỏ số 0, median của Insulin là khoảng 125 trên 394 giá trị).
 :::
 
+## Những hiểu sai thường gặp
+
+- **"Không có NaN nghĩa là dữ liệu đầy đủ."** Sai: số 0 vô lý che đi dữ liệu thiếu (Diabetes không có ô `NaN` nào).
+- **"Mean là giá trị điển hình."** Chỉ khi phân phối cân đối; với dữ liệu lệch, median đại diện tốt hơn.
+- **"`std` của pandas và của StandardScaler là một."** Pandas chia n − 1, scaler chia n.
+- **"Thống kê đủ để quyết định."** Nó là manh mối; cần nhìn biểu đồ ([[bài:data-visualization]]) và hỏi người hiểu lĩnh vực.
+
 :::card Thống kê mô tả
-- **`describe()`:** count, mean, std, min, 25%, 50%, 75%, max cho mỗi cột số.
-- **`min = 0` ở cột không thể 0** là dữ liệu thiếu trá hình (Diabetes: Insulin 374 ô, SkinThickness 227 ô).
-- **Mean xa median** thì lệch hoặc có outlier; **max xa 75%** thì kiểm tra outlier.
-- **Std rất khác nhau giữa các cột** thì cần scale.
-- **Thống kê là manh mối**; hỏi ý nghĩa thực tế trước khi sửa.
+- **Bốn việc của Step 2 (slide 40–44):** xem dữ liệu, `dtypes`, `describe()`, phân bố lớp.
+- **Diabetes:** 2 cột float, 7 cột int; nhãn 500 và 268 (mức sàn 65.1%).
+- **`min = 0` ở cột không thể 0** là dữ liệu thiếu trá hình (Insulin 374 ô, SkinThickness 227 ô).
+- **Mean xa median** thì lệch hoặc có outlier; **max xa 75%** thì kiểm tra outlier; **std rất khác nhau** thì cần scale.
+- **Tính tay mẫu 15 hàng:** Glucose mean 136.33, median 137, Q1 112.5, Q3 167, std 38.39.
+- **Thống kê là manh mối**, không phải kết luận.
 :::
 
 ## Câu hỏi tự kiểm tra
