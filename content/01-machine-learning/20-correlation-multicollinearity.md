@@ -1,7 +1,7 @@
 ---
 title: Step 3.4 — Correlation và Multicollinearity
 order: 20
-description: "Hệ số tương quan Pearson chỉ đo quan hệ tuyến tính; feature trùng nhau (đa cộng tuyến) làm hệ số bất ổn."
+description: "Hệ số tương quan Pearson chỉ đo quan hệ tuyến tính (slide 50); đa cộng tuyến (slide 51) làm hệ số bất ổn dù dự đoán vẫn ổn, đo bằng VIF, và số thật trên Diabetes."
 slides: 50-51
 needs: [feature-scaling, categorical-encoding]
 tags: [correlation, multicollinearity, vif, pearson, causation, feature-importance]
@@ -10,61 +10,92 @@ tags: [correlation, multicollinearity, vif, pearson, causation, feature-importan
 ## Hai câu hỏi khác nhau về quan hệ giữa các cột
 
 :::intro Mục tiêu bài này
-- Tính và đọc **hệ số tương quan Pearson r**.
-- Hiểu r chỉ đo quan hệ **tuyến tính**: r gần 0 không có nghĩa là không có quan hệ.
-- Hiểu **đa cộng tuyến** (feature trùng lặp nhau) làm hệ số bất ổn thế nào.
+- Tính và đọc **hệ số tương quan Pearson r** (slide 50), và nhớ rằng nó chỉ đo quan hệ **tuyến tính**, không phải nhân quả.
+- Phân biệt hai câu hỏi: **feature với target** (có ích không?) và **feature với feature** (có trùng nhau không?).
+- Hiểu **đa cộng tuyến** (slide 51): quy tắc |r| > 0.7, vì sao nó làm hệ số bất ổn, và cách đo bằng VIF.
 :::
 
-Có hai câu hỏi hay bị trộn lẫn:
+Slide 50 và 51 là hai mặt của cùng một công cụ. Slide 50 hỏi về **variables (features, target)**: cột nào có liên quan tới đáp án. Slide 51 hỏi về **các features với nhau**: có cột nào đang nói **cùng một điều** không.
 
 1. **Feature với target:** cột này có liên quan tới đáp án không? (Có ích để dự đoán không?)
-2. **Feature với feature:** hai cột này có đang nói **cùng một điều** không? (Có trùng lặp không?)
+2. **Feature với feature:** hai cột này có đang trùng nhau không? (Có dư thừa không?)
 
-Công cụ chung là **hệ số tương quan Pearson r**, một số từ −1 đến 1: gần 1 là cùng tăng; gần −1 là một tăng một giảm; gần 0 là không có quan hệ **tuyến tính**.
+## Hệ số tương quan Pearson (slide 50)
+
+Slide 50 định nghĩa **correlation** là mức độ hai hay nhiều biến có quan hệ **tuyến tính** với nhau, hệ số nằm trong **[−1, 1]**, kèm lời nhắc: *correlation does not imply causation*. Công thức:
+
+> r = Σ(xᵢ − x̄)(yᵢ − ȳ) / √( Σ(xᵢ − x̄)² · Σ(yᵢ − ȳ)² )
 
 :::steps
-Năm điểm (x, y): (1, 2), (2, 4), (3, 5), (4, 4), (5, 5). Trung bình x = 3, y = 4.
+Năm điểm (x, y): (1, 2), (2, 4), (3, 5), (4, 4), (5, 5). Trung bình x̄ = 3, ȳ = 4.
 @step
 Độ lệch: dx = (−2, −1, 0, 1, 2), dy = (−2, 0, 1, 0, 1).
 @step
-Tổng tích chéo Σ dx·dy = 4 + 0 + 0 + 0 + 2 = **6**. Σ dx² = 10, Σ dy² = 6.
+Tổng tích chéo Σ dx·dy = 4 + 0 + 0 + 0 + 2 = **6**. Σ dx² = **10**, Σ dy² = **6**.
 @step
 **r = 6 / √(10 × 6) = 6 / 7.746 ≈ 0.775**: quan hệ tuyến tính khá mạnh, cùng chiều.
 :::
 
+:::slides 50 | Slide 50: correlation, công thức Pearson, các scatter plot với r khác nhau và quan hệ Sales với Temperature
+:::
+
+## r chỉ đo quan hệ tuyến tính
+
+Slide 50 vẽ hai thứ: sáu biểu đồ phân tán với r từ −1 đến 1 (cho thấy r càng gần ±1 thì điểm càng nằm sát một đường thẳng), và một đồ thị **Sales theo Temperature** có dạng **vòm cong** (doanh số cao ở nhiệt độ vừa phải, thấp ở quá lạnh hoặc quá nóng). Với dạng vòm đó, doanh số phụ thuộc rất rõ vào nhiệt độ, nhưng nửa tăng và nửa giảm triệt tiêu nhau nên r gần 0.
+
 :::predict
-Một cột y phụ thuộc **rất rõ** vào x theo dạng parabol (y = (x − 4.5)², tức đường cong chữ U). Hệ số r giữa x và y sẽ khoảng bao nhiêu?
+Một cột y phụ thuộc **rất rõ** vào x theo dạng parabol (đường cong chữ U hoặc vòm). Hệ số r giữa x và y sẽ khoảng bao nhiêu?
 @answer
-**Gần 0.** Nửa trái đường cong đi xuống, nửa phải đi lên, nên hai nửa triệt tiêu nhau. Y phụ thuộc hoàn toàn vào x mà r vẫn ≈ 0: **r chỉ đo quan hệ tuyến tính**. Hãy thử ngay bên dưới.
+**Gần 0.** Nửa trái đường cong đi xuống, nửa phải đi lên (hoặc ngược lại), nên hai nửa triệt tiêu nhau. Y phụ thuộc hoàn toàn vào x mà r vẫn ≈ 0: **r chỉ đo quan hệ tuyến tính**. Hãy thử ngay bên dưới.
 :::
 
 :::widget corr-drag
 :::
 
-## Tương quan không phải nhân quả, và bảng của Diabetes
+## Tương quan trên Diabetes
 
-r cao chỉ cho biết hai cột **đi cùng nhau**, không cho biết cột nào gây ra cột nào (có thể có yếu tố thứ ba). Tương quan của từng cột Diabetes với `Outcome`: Glucose **0.467**, BMI 0.293, Age 0.238, Pregnancies 0.222, DPF 0.174, Insulin 0.131, SkinThickness 0.075, BloodPressure 0.065. Glucose mạnh nhất, nhưng không cột nào đủ để quyết định một mình; hệ số thấp cũng **không** chứng minh cần mô hình phi tuyến (Project Bước 8). Lưu ý các số 0 thiếu trá hình ([[bài:missing-values-outliers]]) làm sai các hệ số này.
+Tương quan của từng cột Diabetes với `Outcome` (feature với target): Glucose **0.467**, BMI 0.293, Age 0.238, Pregnancies 0.222, DPF 0.174, Insulin 0.131, SkinThickness 0.075, BloodPressure 0.065. Glucose mạnh nhất, nhưng không cột nào đủ để quyết định một mình, và hệ số thấp **không** chứng minh cần mô hình phi tuyến (Project Bước 8).
 
-## Đa cộng tuyến
+Còn **feature với feature**: cặp mạnh nhất là Pregnancies và Age với r = **0.544**; tiếp theo SkinThickness với Insulin (0.437). **Không cặp nào vượt 0.7**, nên theo quy tắc của slide 51, bộ Diabetes **không có đa cộng tuyến** đáng lo.
 
-Khi **hai feature gần như trùng nhau** (ví dụ cân nặng tính bằng kg và bằng lb, r gần 1), model tuyến tính không biết chia công cho cột nào: hệ số của chúng **bất ổn**, đổi mạnh khi dữ liệu đổi nhẹ, dù dự đoán tổng thể vẫn ổn. Công cụ đo là **VIF** = 1 / (1 − R²), trong đó R² là mức một feature được giải thích bởi các feature còn lại; VIF trên khoảng 5 đến 10 là **tín hiệu để điều tra** (không phải án quyết).
+Một chi tiết thú vị liên kết với [[bài:missing-values-outliers]]: các số 0 thiếu trá hình làm sai hệ số. Khi bỏ các hàng có Glucose = 0, r giữa Glucose và Outcome tăng từ 0.467 lên **0.495**; với BMI từ 0.293 lên **0.314**. Số 0 giả làm tương quan **bị kéo xuống**.
 
-Cách xử lý: bỏ một trong hai cột, gộp chúng, dùng regularization, hoặc PCA. Cây quyết định và Random Forest ít bị ảnh hưởng.
+## Đa cộng tuyến (slide 51)
+
+Slide 51 định nghĩa **(multi)collinearity**: mức độ hai hay nhiều **features** có quan hệ tuyến tính với nhau. Quy tắc thường dùng: hệ số tương quan **> 0.7 hoặc < −0.7** cho thấy hiện tượng (đa) cộng tuyến. Hình Venn của slide cho thấy ý nghĩa: khi các biến độc lập **chồng lấn** nhau (multicollinearity), phần "giải thích" của chúng không còn tách bạch.
+
+Hậu quả với model tuyến tính là **hệ số bất ổn**. Mô phỏng hai feature gần như trùng nhau: cân nặng tính bằng kg và bằng lb (r = 0.9997), với dự đoán thật phụ thuộc 0.3 × kg. Lấy ba mẫu con khác nhau, hệ số của (kg, lb) lần lượt là (−0.15, 0.21), (−1.63, 0.89), (−0.06, 0.18): **đổi mạnh cả dấu lẫn độ lớn**. Nhưng **tác động tổng** (hệ số kg + 2.2046 × hệ số lb) lại ổn định, khoảng 0.31 đến 0.34. Vì vậy **dự đoán vẫn tốt, nhưng việc đọc hệ số hỏng**.
 
 :::ck
 Hai feature `Weight_kg` và `Weight_lb` có r = 0.999. Dự đoán của model tuyến tính có hỏng không? Còn việc đọc hệ số?
 @answer
-**Dự đoán thường vẫn tốt**, vì hai cột chứa cùng thông tin. Nhưng **việc đọc hệ số hỏng**: model có thể gán +50 cho cột này và −49 cho cột kia, nên không thể nói "cân nặng ảnh hưởng thế nào". Cần bỏ một cột nếu muốn giải thích.
+**Dự đoán thường vẫn tốt**, vì hai cột chứa cùng thông tin. Nhưng **việc đọc hệ số hỏng**: model có thể gán +0.89 cho cột này và −1.63 cho cột kia, nên không thể nói "cân nặng ảnh hưởng thế nào". Cần bỏ một cột (hoặc gộp) nếu muốn giải thích.
 :::
 
-:::slides 50-51 | Slide 50–51: correlation và multicollinearity
+**VIF** (variance inflation factor) đo mức một feature bị giải thích bởi **các feature còn lại**: VIF = 1 / (1 − R²). VIF = 1 là không trùng; VIF trên khoảng 5 đến 10 là tín hiệu để điều tra (không phải án quyết). VIF của các feature Diabetes chỉ từ **1.07 đến 1.59**: rất thấp, khớp với kết luận "không đa cộng tuyến".
+
+Cách xử lý khi có đa cộng tuyến: bỏ một trong hai cột, gộp chúng (trung bình, hiệu), dùng regularization, hoặc PCA. Cây quyết định và Random Forest ít bị ảnh hưởng.
+
+:::ck
+Slide 50 nhắc "correlation does not imply causation". Glucose có r = 0.467 với Outcome. Bạn kết luận "đường huyết cao gây tiểu đường" được không?
+@answer
+**Không.** r cao chỉ nói hai cột **đi cùng nhau**; nó không nói cột nào là nguyên nhân, và có thể có yếu tố thứ ba. Trong y học, đường huyết cao vừa là triệu chứng vừa liên quan tới nhiều yếu tố khác. Tương quan là **manh mối để điều tra**, không phải bằng chứng nhân quả.
 :::
+
+## Những hiểu sai thường gặp
+
+- **"r = 0 thì không có quan hệ."** Chỉ không có quan hệ **tuyến tính**; parabol vẫn có quan hệ rõ.
+- **"r cao là nguyên nhân."** Tương quan không phải nhân quả.
+- **"Đa cộng tuyến làm model dự đoán kém."** Chủ yếu làm **hệ số bất ổn và khó đọc**; dự đoán thường vẫn ổn.
+- **"Tương quan thấp với target nghĩa là bỏ cột."** Một cột tương quan thấp một mình vẫn có thể có ích khi kết hợp với cột khác.
+- **"Tính r trên dữ liệu thô là đủ."** Số 0 thiếu trá hình và outlier làm r sai; dọn dữ liệu trước.
 
 :::card Correlation và Multicollinearity
 - **Hai câu hỏi:** feature với target (có ích?) và feature với feature (trùng lặp?).
-- **Pearson r** từ −1 đến 1, chỉ đo quan hệ **tuyến tính**; parabol rõ ràng vẫn có r ≈ 0.
-- **Tương quan không phải nhân quả.**
-- **Đa cộng tuyến:** feature gần trùng làm hệ số bất ổn; đo bằng VIF; xử lý bằng bỏ, gộp, regularization.
+- **Pearson r** trong [−1, 1], chỉ đo **tuyến tính**; parabol rõ ràng vẫn có r ≈ 0; tương quan không phải nhân quả (slide 50).
+- **Diabetes:** Glucose với Outcome r = 0.467 (0.495 sau khi bỏ số 0); cặp feature mạnh nhất Pregnancies–Age 0.544 < 0.7.
+- **Đa cộng tuyến (slide 51):** |r| > 0.7 giữa các features; hệ số bất ổn (kg và lb), dự đoán vẫn ổn; đo bằng VIF (Diabetes 1.07–1.59).
+- **Xử lý:** bỏ hoặc gộp cột, regularization, PCA; cây ít bị ảnh hưởng.
 :::
 
 ## Câu hỏi tự kiểm tra
