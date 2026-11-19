@@ -1,7 +1,7 @@
 ---
 title: Polynomial Regression — uốn đường cong bằng feature đa thức
 order: 3
-description: "Thêm feature x², x³ để uốn đường thẳng; bậc cao luôn giảm sai số train nhưng test giảm rồi tăng, nên chọn bậc bằng validation."
+description: "Hồi quy đa thức (slide 67): thêm feature x², x³ để uốn đường thẳng; bậc cao giảm train nhưng test giảm rồi tăng, nên chọn bậc bằng validation."
 slides: 67
 needs: [linear-regression, loss-function, train-test-split, feature-scaling]
 tags: [polynomial-regression, polynomial-features, overfitting, underfitting, degree, bias-variance, cross-validation]
@@ -10,12 +10,34 @@ tags: [polynomial-regression, polynomial-features, overfitting, underfitting, de
 ## Khi đường thẳng bỏ sót hình dạng của dữ liệu
 
 :::intro Mục tiêu bài này
-- Hiểu cách **thêm feature** x², x³… để đường thẳng uốn thành đường cong mà vẫn dùng cách học cũ.
+- Hiểu cách **thêm feature** x², x³… để đường thẳng uốn thành đường cong mà vẫn dùng cách học cũ (slide 67).
 - Thấy bằng số rằng bậc cao hơn luôn giảm sai số train nhưng **không** luôn giảm sai số test.
 - Chọn bậc bằng sai số trên dữ liệu chưa thấy (validation hoặc CV), không bằng train.
 :::
 
-Dữ liệu có dạng sóng nhưng ta chỉ có đường thẳng: nó bỏ sót hình dạng. Mẹo của Polynomial Regression: **thêm cột mới x², x³… vào bảng feature**, rồi vẫn dùng hồi quy tuyến tính. Model là tuyến tính theo **các cột** (x, x², x³…) nhưng cong theo x. Bậc `d` là lũy thừa cao nhất; d = 1 là đường thẳng.
+## Đọc slide 67
+
+:::slides 67 | Slide 67: Polynomial Regression, đường cong qua các điểm và so sánh simple linear model với polynomial model
+:::
+
+Bên trái là dữ liệu có dạng "lõm xuống rồi đi lên": một đường thẳng không thể bám theo, còn một đường cong thì có. Bên phải so hai mô hình trên cùng đám điểm:
+
+- **Simple linear model:** `y = b0 + b1·x`, một đường thẳng, lệch khỏi các điểm cong.
+- **Polynomial model:** `y = b0 + b1·x + b2·x²`, một đường cong bám sát hơn.
+
+Mẹo chỉ có một: **thêm cột mới x², x³… vào bảng feature**, rồi vẫn dùng hồi quy tuyến tính ([[bài:linear-regression]]). Mô hình vẫn **tuyến tính theo các hệ số** b, nhưng cong theo x. Bậc `d` là lũy thừa cao nhất; d = 1 là đường thẳng.
+
+:::steps
+Dữ liệu tự soạn đúng theo ŷ = 1 + 2x + x². Với bậc 2, sklearn tạo thêm cột x² cạnh cột x; cột 1 là intercept.
+@step
+Dự đoán tại x = 1.5: 1 + 2×1.5 + 1.5² = 1 + 3 + 2.25 = **6.25**.
+@step
+Mức tăng **không** cố định: từ x = 1 đến 2, ŷ đi từ 4 lên 9, tăng **5**, không phải tăng 2 như hệ số b1. Đó chính là điểm khác đường thẳng: độ dốc đổi theo vị trí.
+@step
+Số cột sinh ra: hai input với bậc 2 cho 5 cột (x1, x2, x1², x1x2, x2²); mười input với bậc 3 cho **285** cột. Vì vậy với nhiều biến chỉ nên dùng bậc thấp.
+:::
+
+## Tự thử: kéo bậc đa thức
 
 :::predict
 Ta có 10 điểm train (dạng sóng có nhiễu) và 9 điểm test chưa thấy. Khi tăng bậc từ 1 lên 9, sai số trên train sẽ thế nào? Sai số trên test có luôn giảm theo không?
@@ -23,35 +45,55 @@ Ta có 10 điểm train (dạng sóng có nhiễu) và 9 điểm test chưa th�
 Sai số **train luôn giảm** (đến 0 ở bậc 9, đường cong đi qua đúng 10 điểm). Nhưng sai số **test giảm rồi tăng vọt**: ở bậc 5 là thấp nhất, còn bậc 9 sai số test lên tới 0.79. Bậc cao uốn theo cả nhiễu ("học thuộc"), nên điểm train đẹp không có nghĩa là model tốt.
 :::
 
-Hãy tự thử với thanh trượt bậc và nhìn hai con số.
-
 :::widget poly-degree
 :::
 
-Với dữ liệu trong công cụ, sai số RMSE (train / test) là: bậc 1: 0.496 / 0.414; bậc 3: 0.199 / 0.081; bậc 5: 0.128 / **0.069**; bậc 7: 0.112 / 0.124; bậc 9: **0.000** / 0.790. Bậc tốt nhất theo test là **5**, không phải bậc có sai số train nhỏ nhất.
+Với dữ liệu trong công cụ, RMSE (train / test) là:
+
+| Bậc | Train | Test |
+|---|---|---|
+| 1 | 0.496 | 0.414 |
+| 3 | 0.199 | 0.081 |
+| 5 | 0.128 | **0.069** |
+| 7 | 0.112 | 0.124 |
+| 9 | **0.000** | 0.790 |
+
+Train chỉ đi xuống; test chạm đáy ở **bậc 5** rồi tăng. Hai đầu mút là hai lỗi quen thuộc: bậc 1 **thiếu linh hoạt** (underfit, bỏ sót hình sóng) và bậc 9 **quá linh hoạt** (overfit, uốn theo cả nhiễu). Một chi tiết thú vị: bậc 2 cho kết quả y hệt bậc 1 và bậc 4 y hệt bậc 3, vì đường sin đối xứng nên các số hạng chẵn gần như không đóng góp; đừng giả định "tăng bậc đều đặn thì sai số giảm đều đặn".
 
 ## Chọn bậc cho đúng
 
-- **Chọn bằng dữ liệu chưa thấy:** validation hoặc cross-validation ([[bài:k-fold-cross-validation]]), chọn bậc có sai số validation nhỏ nhất.
+- **Chọn bằng dữ liệu chưa thấy:** validation hoặc cross-validation ([[bài:k-fold-cross-validation]]), chọn bậc có sai số validation nhỏ nhất; test chỉ dùng một lần sau cùng.
 - **Nội suy mọi điểm không chứng minh đã học đúng:** bậc 9 đi qua mọi điểm train nhưng dao động dữ dội giữa các điểm.
-- **Scale và hệ số bất ổn:** x, x², x³… có thang rất khác nhau và tương quan mạnh với nhau, nên nên **scale** (và có thể center) trước khi fit; hệ số bậc cao rất nhạy ([[bài:feature-scaling]]).
-- **Nhiều biến:** số cột tăng rất nhanh theo bậc (hai biến bậc 3 đã sinh nhiều cột chéo), nên chỉ dùng bậc thấp.
-- Gói trong Pipeline: `PolynomialFeatures`, `StandardScaler`, `LinearRegression`.
+- **Scale:** x, x², x³… có thang rất khác nhau và tương quan mạnh với nhau, nên nên **scale** trước khi fit ([[bài:feature-scaling]]).
+- **Gói trong Pipeline** để cả `PolynomialFeatures` và scaler chỉ fit trên train của mỗi fold:
+
+```python
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import PolynomialFeatures, StandardScaler
+from sklearn.linear_model import LinearRegression
+model = make_pipeline(PolynomialFeatures(degree=3, include_bias=False),
+                      StandardScaler(), LinearRegression())
+```
 
 :::ck
 Model bậc 9 có sai số train bằng 0. Đồng nghiệp bảo "model hoàn hảo". Bạn trả lời thế nào?
 @answer
-Sai số train bằng 0 chỉ chứng tỏ đường cong **đi qua mọi điểm đã thấy**, không chứng tỏ nó đúng với điểm mới. Hãy xem sai số trên dữ liệu chưa thấy: ở ví dụ này nó lên tới 0.79, tệ hơn cả đường thẳng. Đó là overfitting.
+Sai số train bằng 0 chỉ chứng tỏ đường cong **đi qua mọi điểm đã thấy**, không chứng tỏ nó đúng với điểm mới. Hãy xem sai số trên dữ liệu chưa thấy: ở ví dụ này nó lên tới 0.79, tệ hơn cả đường thẳng (0.414). Đó là overfitting.
 :::
 
-:::slides 67 | Slide 67: Polynomial Regression
-:::
+## Những hiểu sai thường gặp
+
+- **"Polynomial Regression là mô hình phi tuyến hoàn toàn khác."** Nó vẫn là hồi quy tuyến tính, trên các cột đã biến đổi.
+- **"Bậc càng cao càng tốt."** Chỉ đúng trên train; test giảm rồi tăng.
+- **"Train error bằng 0 là hoàn hảo."** Đó thường là dấu hiệu học thuộc.
+- **"Đa thức ngoại suy tốt."** Ngoài miền dữ liệu, đường cong bậc cao thường vọt rất nhanh.
+- **"Chọn bậc theo test cho nhanh."** Làm vậy test hết là dữ liệu chưa thấy; dùng validation/CV.
 
 :::card Polynomial Regression
-- **Thêm feature** x², x³… để uốn đường thẳng; vẫn là hồi quy tuyến tính trên các cột mới.
-- **Bậc cao** luôn giảm sai số train; sai số test giảm rồi tăng (bậc 5 tốt nhất, bậc 9 test 0.79).
+- **Thêm feature** x², x³… để uốn đường thẳng; vẫn là hồi quy tuyến tính trên các cột mới (slide 67: b0 + b1x + b2x²).
+- **Bậc cao** luôn giảm sai số train; sai số test giảm rồi tăng (bậc 5 tốt nhất 0.069, bậc 9 test 0.79).
 - **Chọn bậc bằng validation hoặc CV**, không bằng train.
-- **Scale** các cột lũy thừa; nhiều biến thì chỉ dùng bậc thấp.
+- **Scale** các cột lũy thừa; nhiều biến thì số cột bùng nổ (10 input, bậc 3: 285 cột), chỉ dùng bậc thấp.
 :::
 
 ## Câu hỏi tự kiểm tra
