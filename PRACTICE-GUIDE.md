@@ -94,10 +94,21 @@ Bước phải **đọc được độc lập sau vài ngày**: người học �
 | Kết quả chạy | `:::out` chứa khối ```` ```text ```` | In đúng output thật (tự điền bằng script, mục 8) |
 | Bài tự làm | `:::ex Tiêu đề` ... `@answer` ... `:::` | Đề rồi đáp án gấp |
 | Biết thêm | `:::more Tiêu đề` | Ý phụ, gấp lại |
+| Nút giải thích chi tiết (pop up) | `:::pop Tiêu đề` | Giải thích sâu một khái niệm (đặt cạnh đoạn gốc) hoặc **giải thích code** (xem mục 5b) |
 | Nhớ lại | `:::recap` | Cuối bước, 3 dòng |
 | Checklist | `:::check` | Cuối phần, người học tick |
 | Quiz | `:::quiz` với `@tier A/B/C` | Giữ định dạng cũ để vào ngân hàng phỏng vấn |
 | Ảnh | hai dòng ảnh `-light.png` và `-dark.png` liền nhau | Chế độ đọc tự chọn bản đúng |
+
+### 5b. Mỗi khối code chính có một nút "Giải thích code"
+
+Ngay sau khối code (và khối `:::out` của nó), thêm `:::pop Giải thích code: <việc khối đó làm>`. Nội dung là **bảng ba cột: Thành phần | Loại | Chức năng**, đi qua từng import, hàm, phương thức, thuộc tính, tham số và biến mới xuất hiện, theo thứ tự trong code. Quy tắc:
+
+- "Loại" dùng một trong: import, hàm, phương thức, thuộc tính, tham số, biến, lớp, tạo đối tượng, vòng lặp, định nghĩa hàm, phép tính, chọn cột/hàng.
+- Giải thích **tên** (viết tắt của gì, ví dụ `_s` là scaled, dấu `_` cuối của `coef_` nghĩa là "có sau khi fit") và **chức năng** bằng lời thường. Nêu cả thứ tự tham số khi dễ nhầm (ví dụ nhãn thật trước, dự đoán sau).
+- Không viết lại khối code trong pop (không có ```python bên trong) để `practice_verify.py` không chạy trùng. Chỉ trích dòng ngắn trong dấu backtick.
+- Đã giải thích một hàm ở bài trước thì chỉ trỏ lại ("đã giải thích ở nút Phần A"), không lặp nguyên văn.
+- Bỏ qua khối code trong đáp án bài tập và khối bash cài đặt.
 
 **Không dùng:** `:::goal`, `:::learn`, `:::see`, `:::pitfall`, `:::worked`, `:::compare`, `:::en` rải rác, nhãn in hoa, emoji, hộp màu. (Bẫy hay gặp hãy viết thành một đoạn văn trong bước đúng chỗ; câu EN chỉ nằm trong quiz tầng B.)
 
@@ -149,6 +160,7 @@ Quy tắc quiz: tầng A (≥3, tính toán/đọc kết quả bằng số thậ
 - [ ] `practice_verify.py` ra `XONG`; mọi số trong văn bản khớp output.
 - [ ] Kết quả xấu hoặc đảo ngược được ghi trung thực và có lời giải thích.
 - [ ] Chỉ dùng thành phần ở mục 5; không hộp màu thừa.
+- [ ] Mọi khối code chính có nút "Giải thích code" (mục 5b).
 - [ ] Hình có bản sáng và tối; xem được ở chế độ đọc.
 - [ ] `tsc` và `build` pass; đã mở trang xem thật.
 - [ ] Đã qua bài kiểm "đọc lại sau vài ngày".

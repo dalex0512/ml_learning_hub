@@ -32,6 +32,22 @@ model = LogisticRegression().fit(x_train_s, y_train)
 y_predict = model.predict(x_test_s)
 ```
 
+:::pop Giải thích code: đoạn khởi động lại
+Đoạn này lặp lại đường ống của Phần A để Phần B có đủ biến.
+
+| Biến | Là gì |
+|---|---|
+| `data` | Bảng gốc 768 hàng. |
+| `x`, `y` | Tám cột đặc trưng và cột đáp án. |
+| `x_train`, `x_test`, `y_train`, `y_test` | Bốn phần chia 80/20, **chưa scale**. |
+| `scaler` | Bộ chuẩn hoá đã `fit` trên `x_train`. |
+| `x_train_s`, `x_test_s` | Hai phần đã scale. Hậu tố `_s` là "scaled". |
+| `model` | Logistic Regression đã học trên `x_train_s`. |
+| `y_predict` | Nhãn mô hình đoán cho bộ test. |
+
+Từng hàm đã giải thích ở nút "Giải thích code" của Phần A.
+:::
+
 ## Bước 5 — Đọc kết quả
 
 :::ask
@@ -52,6 +68,14 @@ print(cm)
 [[79 20]
  [18 37]]
 ```
+:::
+
+:::pop Giải thích code: confusion matrix
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `from sklearn.metrics import confusion_matrix` | import | Nạp hàm đếm bốn loại kết quả. |
+| `confusion_matrix(y_test, y_predict)` | hàm | Trả bảng 2×2 đếm. Thứ tự bắt buộc: **thật trước, dự đoán sau**. **Hàng là sự thật, cột là dự đoán.** |
+| `cm` | biến | Mảng 2×2: `[[TN, FP], [FN, TP]]`, ở đây `[[79, 20], [18, 37]]`. |
 :::
 
 ![Confusion matrix](/plots/practice/confusion-light.png)
@@ -82,6 +106,17 @@ recall   : 0.673
 ```
 :::
 
+:::pop Giải thích code: tính precision và recall từ bốn số
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `cm.ravel()` | phương thức | Trải mảng 2×2 thành một dãy 4 số theo thứ tự `TN, FP, FN, TP`. |
+| `tn, fp, fn, tp = ...` | gán 4 biến | Mỗi số vào một biến: tn đúng-khoẻ, fp báo-nhầm, fn bỏ-sót, tp đúng-bệnh. |
+| `tp / (tp + fp)` | công thức | **Precision**: trong số bị báo bệnh, bao nhiêu thật sự bệnh. |
+| `tp / (tp + fn)` | công thức | **Recall**: trong số người bệnh thật, bắt được bao nhiêu. |
+| `round(..., 3)` | hàm | Làm tròn. |
+| `print("precision:", ...)` | hàm | In. Các dấu cách trong chuỗi `"recall   :"` chỉ để hai dòng thẳng hàng. |
+:::
+
 Hãy nhớ mức sàn ở Bước 1. Mô hình "đoán toàn 0" có accuracy 64.3% trên bộ test, nhưng recall bằng **0**: nó không bắt được người bệnh nào. Đó là lý do accuracy một mình dễ đánh lừa, nhất là khi một lớp đông hơn hẳn.
 
 Trong bối cảnh y tế, bỏ sót người bệnh (FN) thường tệ hơn báo nhầm (FP), vì báo nhầm còn có thể xét nghiệm lại. Nên ta quan tâm tới **recall**. Đó là lựa chọn theo bối cảnh, không phải luật chung.
@@ -102,6 +137,21 @@ ngưỡng 0.3: FP=35 FN=13 precision=0.545 recall=0.764
 ngưỡng 0.5: FP=20 FN=18 precision=0.649 recall=0.673
 ngưỡng 0.7: FP= 6 FN=28 precision=0.818 recall=0.491
 ```
+:::
+
+:::pop Giải thích code: đổi ngưỡng bằng predict_proba
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `model.predict_proba(x_test_s)` | phương thức | Trả bảng xác suất 2 cột: `[P(0), P(1)]` cho từng người. |
+| `[:, 1]` | cắt lát | `:` là mọi hàng, `1` là cột thứ hai: xác suất **bị bệnh**. |
+| `proba` | biến | Xác suất bệnh của 154 người test. |
+| `for t in [0.3, 0.5, 0.7]:` | vòng lặp | Thử ba ngưỡng, `t` là ngưỡng hiện tại. |
+| `proba >= t` | phép so sánh | Dãy True/False: True nếu xác suất đạt ngưỡng (đoán bệnh). |
+| `.astype(int)` | phương thức | Đổi True/False thành 1/0 để thành nhãn dự đoán `pred`. |
+| `confusion_matrix(y_test, pred).ravel()` | hàm | Đếm bốn loại kết quả ở ngưỡng này rồi trải thành 4 số. |
+| `f"..."` | chuỗi định dạng | Chuỗi f: chữ nằm trong `{}` được thay bằng giá trị biến. |
+| `{fp:2d}` | định dạng | In số nguyên `fp` rộng tối thiểu 2 ký tự (canh thẳng cột). |
+| `{tp/(tp+fp):.3f}` | định dạng | Tính trực tiếp trong ngoặc, in số thực 3 chữ số thập phân. |
 :::
 
 ![Precision và recall theo ngưỡng](/plots/practice/thresholds-light.png)
@@ -168,6 +218,23 @@ for seed in [7, 42, 123]:
 ```
 :::
 
+:::pop Giải thích code: so sánh năm mô hình trên ba cách chia
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `KNeighborsClassifier` | lớp | Mô hình **K láng giềng gần nhất**. |
+| `SVC` | lớp | **Support Vector Classifier**, máy vector hỗ trợ. |
+| `DecisionTreeClassifier` | lớp | Cây quyết định. |
+| `RandomForestClassifier` | lớp | Rừng ngẫu nhiên (nhiều cây bỏ phiếu). |
+| `models = {...}` | biến (từ điển) | Mỗi mục là `tên: mô hình`. Từ điển giúp lặp qua cả năm mô hình gọn. |
+| `for seed in [7, 42, 123]:` | vòng lặp | Ba cách chia khác nhau. |
+| `a, b, c, d = train_test_split(...)` | gán 4 biến | x_train, x_test, y_train, y_test của lần chia này. |
+| `s = StandardScaler().fit(a)` | tạo và học | Scaler **đo trên train của lần chia này**. |
+| `s.transform(a)` | phương thức | Cắt train theo số đo đó; `s.transform(b)` cắt test. |
+| `models.items()` | phương thức | Cho từng cặp (tên, mô hình) của từ điển. |
+| `m.fit(...).score(s.transform(b), d)` | chuỗi lệnh | Học rồi chấm accuracy ngay trên test. |
+| `{n: ... for n, m in models.items()}` | dict comprehension | Một dòng dựng từ điển mới: khoá là tên mô hình, giá trị là điểm. |
+:::
+
 Người dẫn đầu **đổi theo cách chia**: Forest ở seed 7 (0.805), Logistic ở seed 42 (0.753), Logistic và Tree hoà ở seed 123 (0.799). Chênh lệch giữa các mô hình chỉ vài điểm, nhỏ hơn mức dao động do may rủi của lần chia (Bước 2 đã thấy dao động 11 điểm). Vậy một lần chia không đủ để chọn mô hình.
 
 Cách sửa là **K-fold cross-validation**. Chia dữ liệu train thành 5 phần (fold); lần lượt lấy mỗi phần làm đề thi, 4 phần còn lại để học. Sau 5 lần, **mọi bệnh nhân đều được chấm đúng một lần** và ta có 5 điểm thay vì 1: trung bình cho biết mức, độ lệch chuẩn cho biết độ dao động.
@@ -194,6 +261,21 @@ SVM       acc 0.756 ± 0.030   f1 0.611   recall 0.554
 Tree      acc 0.704 ± 0.030   f1 0.570   recall 0.568
 Forest    acc 0.770 ± 0.025   f1 0.635   recall 0.583
 ```
+:::
+
+:::pop Giải thích code: Pipeline và cross-validation
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `Pipeline([("scaler", ...), ("model", m)])` | hàm | Xâu các bước thành một mô hình duy nhất. Mỗi bước là cặp (tên, đối tượng). Khi `fit`, từng bước được `fit` đúng thứ tự trên dữ liệu train. |
+| `StratifiedKFold(n_splits=5, shuffle=True, random_state=42)` | lớp | Cách chia 5 phần (fold). `shuffle=True` xáo trước khi chia; `random_state=42` cố định cách xáo; "Stratified" giữ **tỉ lệ nhãn** gần bằng nhau ở mỗi fold. |
+| `cross_validate(pipe, x_train, y_train, cv=skf, scoring=[...])` | hàm | Với mỗi fold: học trên 4 phần, chấm trên 1 phần, rồi trả mọi điểm. Mỗi fold Pipeline tự `fit` lại scaler trên phần học của nó. |
+| `cv=skf` | tham số | Cách chia fold đã tạo. |
+| `scoring=["accuracy", "f1", "recall"]` | tham số | Danh sách metric cần tính. |
+| `r` | biến (từ điển) | Có các khoá `test_accuracy`, `test_f1`, `test_recall`; mỗi khoá là 5 điểm (mỗi fold một). |
+| `.mean()`, `.std()` | phương thức | Trung bình và độ lệch chuẩn của 5 điểm. |
+| `{name:9s}` | định dạng | In chuỗi rộng tối thiểu 9 ký tự, canh trái (để thẳng cột). |
+| `{...:.3f}` | định dạng | Số thực 3 chữ số thập phân. |
+| `±` | ký tự | Chỉ là chữ trong chuỗi, đọc là "cộng trừ". |
 :::
 
 ![Accuracy từng fold của năm mô hình](/plots/practice/folds-light.png)
@@ -252,6 +334,21 @@ Insulin: median 120.0 mean 154.3
 ```
 :::
 
+:::pop Giải thích code: thay số 0 bằng NaN và lấy đúng hàng
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `zero_cols = [...]` | biến (danh sách) | Tên năm cột có số 0 vô lý. |
+| `x.copy()` | phương thức | Tạo bản sao độc lập để sửa mà không đụng `x` gốc. |
+| `x_clean[zero_cols]` | chọn nhiều cột | Đưa danh sách tên vào ngoặc vuông để chọn **một nhóm cột**. |
+| `.replace(0, np.nan)` | phương thức | Thay mọi số 0 bằng `np.nan`. |
+| `np.nan` | giá trị | "Not a Number": ký hiệu ô **thiếu**. |
+| `x_clean.loc[x_train.index]` | chọn hàng | `.loc` chọn theo **nhãn index**. Lấy đúng những hàng đã thuộc `x_train`, để bản sạch có cùng cách chia với bản gốc. |
+| `.isna().sum()` | phương thức | `isna()` đánh dấu ô thiếu; `sum()` đếm theo cột. |
+| `[zero_cols]` | chọn cột | Chỉ giữ năm cột cần xem. |
+| `.to_dict()` | phương thức | Đổi kết quả thành từ điển `{tên cột: số ô thiếu}` cho gọn. |
+| `col.median()`, `col.mean()` | phương thức | Trung vị và trung bình của cột Insulin: 120.0 và 154.3. |
+:::
+
 Vì sao median? Insulin có những giá trị rất lớn (tới 846) kéo trung bình (154) lên cao hơn trung vị (120). Điền bằng trung bình sẽ gán cho người chưa đo một giá trị lớn hơn phần đông người thật sự được đo.
 
 Việc điền cũng là một bước "học từ dữ liệu", nên **cùng luật thợ may**: median chỉ được tính từ phần train (từng fold). Cho `SimpleImputer` vào đầu Pipeline là đủ. Để so sánh đáng tin hơn, ta lặp 5-fold 5 lần (25 điểm):
@@ -280,6 +377,22 @@ Logistic điền median {'accuracy': 0.762, 'f1': 0.614, 'recall': 0.55}
 Forest giữ số 0    {'accuracy': 0.764, 'f1': 0.629, 'recall': 0.582}
 Forest điền median {'accuracy': 0.759, 'f1': 0.63, 'recall': 0.595}
 ```
+:::
+
+:::pop Giải thích code: hàm cv_report và RepeatedStratifiedKFold
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `SimpleImputer(strategy="median")` | lớp | Bộ điền ô thiếu. `strategy="median"` điền bằng **trung vị của cột**. Cũng có `fit` (tính trung vị trên train) và `transform` (điền). |
+| `RepeatedStratifiedKFold(n_splits=5, n_repeats=5, random_state=42)` | lớp | Lặp 5-fold **5 lần** với cách xáo khác nhau: tổng 25 điểm. |
+| `def cv_report(model, X, y, impute=False):` | định nghĩa hàm | Hàm nhận mô hình, dữ liệu, nhãn và cờ `impute` (mặc định không điền). |
+| `steps = [...] if impute else []` | biểu thức điều kiện | Nếu `impute` là True thì `steps` có bước điền; ngược lại là danh sách rỗng. |
+| `steps += [...]` | phép gán thêm | Nối thêm hai bước scaler và mô hình vào cuối danh sách. |
+| `Pipeline(steps)` | hàm | Xâu các bước đã chọn. |
+| `r[f"test_{k}"]` | khoá từ điển | Chuỗi f ghép tên khoá, ví dụ `test_f1`. |
+| `float(...)` | hàm | Đổi số NumPy sang số Python thường (để in gọn). |
+| `{k: ... for k in [...]}` | dict comprehension | Dựng từ điển kết quả cho ba metric. |
+| `for name in [...]` | vòng lặp | Lặp qua Logistic và Forest. |
+| `models[name]` | chọn theo tên | Lấy mô hình từ từ điển ở Bước 6. |
 :::
 
 **Điểm gần như không đổi.** Chênh lệch nhiều nhất chỉ khoảng 0.013 và hướng thì lúc lên lúc xuống: dọn số 0 **không** làm điểm tăng rõ rệt ở bộ dữ liệu này. Đừng coi đây là thất bại; nó dạy ba điều:
@@ -336,6 +449,16 @@ Name: Outcome, dtype: float64
 ```
 :::
 
+:::pop Giải thích code: tương quan với Outcome
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `data.corr()` | phương thức | Bảng **hệ số tương quan Pearson** giữa mọi cặp cột số. Mỗi số từ −1 đến 1 đo mức quan hệ **tuyến tính**. |
+| `["Outcome"]` | chọn cột | Chỉ lấy cột tương quan của mọi cột với `Outcome`. |
+| `.drop("Outcome")` | phương thức | Bỏ dòng `Outcome` (tương quan với chính nó luôn bằng 1). |
+| `.sort_values(ascending=False)` | phương thức | Xếp giảm dần. |
+| `.round(3)` | phương thức | Làm tròn 3 chữ số. |
+:::
+
 Hệ số tương quan Pearson chỉ đo quan hệ **tuyến tính** giữa hai cột. Hệ số thấp cho ta **gợi ý** (không cột nào một mình quyết định, Glucose mạnh nhất với 0.467), nhưng không chứng minh cần phi tuyến. Gợi ý chỉ là giả thuyết để thử. Bạn đã thử trên một lần chia và thấy Logistic hơn Forest (0.753 so với 0.721), nhưng một lần chia là chưa đủ. Với cross-validation (Bước 6 và 7), Forest nhỉnh hơn nhẹ ở F1 và recall, tức **ngược chiều** với một lần chia. Đó chính là lý do ta không chọn mô hình bằng một lần chia.
 
 Một thí nghiệm nữa, về quy tắc "cây và forest không cần scale":
@@ -355,6 +478,15 @@ print("Logistic: dự đoán giống hệt nhau?", np.array_equal(lr_raw, lr_sca
 Forest: dự đoán giống hệt nhau? True
 Logistic: dự đoán giống hệt nhau? False
 ```
+:::
+
+:::pop Giải thích code: forest và logistic có cần scale không
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `RandomForestClassifier(random_state=42)` | tạo đối tượng | Rừng ngẫu nhiên; `random_state` cố định phần ngẫu nhiên của rừng. |
+| `.fit(x_train, y_train).predict(x_test)` | chuỗi lệnh | Học rồi dự đoán ngay. Nhánh `rf_raw` dùng dữ liệu **chưa scale**, `rf_scaled` dùng dữ liệu **đã scale**. |
+| `np.array_equal(a, b)` | hàm | `True` nếu hai mảng giống hệt từng phần tử. |
+| `LogisticRegression(max_iter=1000)` | tạo đối tượng | `max_iter` là số vòng lặp tối đa khi tối ưu (mặc định 100). Dữ liệu **chưa scale** cần nhiều vòng hơn để hội tụ, nên ta nâng lên 1000. |
 :::
 
 Forest cho dự đoán **y hệt** dù có scale hay không; Logistic thì khác. Lý do: cây chỉ **so sánh** giá trị với một ngưỡng ("Glucose ≤ 127?"), và scale không làm đổi thứ tự các giá trị. Mô hình tuyến tính thì cộng và nhân giá trị thật, nên thang đo ảnh hưởng trực tiếp.
@@ -387,6 +519,19 @@ f1       : 0.655
 [[76 23]
  [17 38]]
 ```
+:::
+
+:::pop Giải thích code: mô hình cuối và chấm test một lần
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `accuracy_score`, `precision_score`, `recall_score`, `f1_score` | hàm (import) | Bốn metric; đều nhận **(thật, dự đoán)**. |
+| `Pipeline([("imputer", ...), ("model", ...)])` | hàm | Hai bước: điền số thiếu bằng median, rồi Random Forest. Không có scaler vì cây không cần. |
+| `final` | biến | Pipeline hoàn chỉnh. |
+| `final.fit(x_clean_train, y_train)` | phương thức | Điền median **chỉ từ train**, rồi học. |
+| `final.predict(x_clean_test)` | phương thức | Tự điền ô thiếu của test bằng median **của train**, rồi dự đoán. |
+| `pred` | biến | Nhãn dự đoán của bộ test. |
+| `round(..., 3)` | hàm | Làm tròn. |
+| `print(confusion_matrix(y_test, pred))` | hàm | In bảng 2×2: `[[76, 23], [17, 38]]`. |
 :::
 
 Đọc kết quả trung thực: mô hình vượt mức sàn (khoảng 74% so với 64%), nhưng recall chỉ khoảng 0.69, tức vẫn bỏ sót gần ba trong mười người bệnh. Đây là bài học và cũng là giới hạn của một mô hình trên 768 người, chưa đủ cho sàng lọc thật. **Không quay lại đổi mô hình rồi chấm test lần nữa**: mỗi lần như vậy bộ test lại trở thành một phần của việc chọn, và điểm mất giá trị.
@@ -471,6 +616,23 @@ recall: 0.691
 [[76 23]
  [17 38]]
 ```
+:::
+
+:::pop Giải thích code: bản đồ của đường ống hoàn chỉnh
+| Nhóm dòng | Chức năng |
+|---|---|
+| `zero_cols`, `data[zero_cols] = ...replace(0, np.nan)` | Biến số 0 vô lý thành ô thiếu, ngay trên bảng gốc. |
+| `x`, `y` | Tách đề và đáp án. |
+| `train_test_split(...)` | Chia 80/20 với `random_state=42`. |
+| `def make_pipe(model)` | Hàm dựng một Pipeline (điền median, scale, mô hình) quanh bất kỳ mô hình nào. Tránh lặp code. |
+| `candidates = {...}` | Hai ứng viên: Logistic và Forest. |
+| `skf = StratifiedKFold(...)` | Cách chia 5 fold. |
+| `for name, m in candidates.items():` | Chấm từng ứng viên bằng cross-validation **chỉ trên bộ train**. |
+| `final = make_pipe(...).fit(x_train, y_train)` | Chốt mô hình, học trên toàn bộ train. |
+| `pred = final.predict(x_test)` | Chấm bộ test **đúng một lần**. |
+| `recall_score`, `confusion_matrix` | In recall và bảng nhầm lẫn cuối cùng. |
+
+Thứ tự: **dọn dữ liệu, chia, chọn mô hình bằng CV trên train, chốt, chấm test một lần.**
 :::
 
 :::check

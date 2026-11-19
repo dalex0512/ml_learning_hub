@@ -49,6 +49,23 @@ print(data.head(3).to_string())
 ```
 :::
 
+:::pop Giải thích code: đọc CSV và xem bảng
+Bốn dòng này nạp thư viện, đọc file, rồi in kích thước và vài hàng đầu.
+
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `import pandas as pd` | lệnh import | Nạp thư viện **pandas** (xử lý bảng dữ liệu) và đặt tên ngắn `pd` để gõ cho nhanh. |
+| `pd.read_csv(...)` | hàm | Đọc một file CSV và trả về một bảng. |
+| `"dataset/diabetes.csv"` | tham số (chuỗi) | Đường dẫn file. Là đường dẫn **tương đối**, tính từ thư mục làm việc (working directory) của Python. |
+| `data` | biến | Tên ta đặt cho bảng vừa đọc. Kiểu `DataFrame`: 768 hàng, 9 cột. |
+| `data.shape` | thuộc tính | Cặp (số hàng, số cột), ở đây `(768, 9)`. Không có dấu ngoặc `()` vì là thuộc tính, không phải hàm. |
+| `print(...)` | hàm | In giá trị ra Console. |
+| `data.head(3)` | phương thức | Lấy 3 hàng đầu của bảng (mặc định là 5 nếu không ghi số). |
+| `.to_string()` | phương thức | Đổi bảng thành chuỗi hiển thị **đủ mọi cột**. Không có nó, pandas rút gọn bảng rộng bằng dấu `...`. |
+
+Phân biệt: **thuộc tính** (`data.shape`) là thông tin có sẵn, **phương thức** (`data.head(3)`) là hành động nên có ngoặc.
+:::
+
 Việc thứ hai là đếm đáp án.
 
 ```python
@@ -64,6 +81,17 @@ Outcome
 Name: count, dtype: int64
 Đoán toàn 0 thì đúng: 0.651
 ```
+:::
+
+:::pop Giải thích code: đếm nhãn và mức sàn
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `data["Outcome"]` | chọn cột | Lấy một cột theo tên, kết quả là một dãy (`Series`). |
+| `.value_counts()` | phương thức | Đếm mỗi giá trị xuất hiện bao nhiêu lần, xếp từ nhiều đến ít. Ra 500 cho nhãn 0 và 268 cho nhãn 1. |
+| `data["Outcome"] == 0` | phép so sánh | So từng phần tử với 0, ra dãy True/False cùng độ dài. |
+| `.mean()` | phương thức | Trung bình. Python coi True là 1, False là 0, nên trung bình của dãy True/False chính là **tỉ lệ** True. |
+| `round(giá_trị, 3)` | hàm | Làm tròn tới 3 chữ số thập phân. |
+| `print("chữ", giá_trị)` | hàm | In nhiều thứ trên một dòng, cách nhau một dấu cách. |
 :::
 
 500 người không bệnh, 268 người bệnh. Nếu bạn nhắm mắt đoán "không bệnh" cho tất cả, bạn đúng 65.1%. Đó là **mức sàn**: một mô hình chỉ đáng giá khi vượt hẳn mức này. Hãy nhớ con số 65.1%, ta sẽ quay lại nó ở Bước 4 và Bước 5.
@@ -86,6 +114,14 @@ DiabetesPedigreeFunction      0
 Age                           0
 dtype: int64
 ```
+:::
+
+:::pop Giải thích code: đếm số 0 trong từng cột
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `data.drop(columns="Outcome")` | phương thức | Tạo một bảng **mới** không có cột `Outcome`. Bảng `data` gốc không đổi. Ta bỏ cột này vì 500 số 0 trong nó là nhãn hợp lệ, không phải dữ liệu thiếu. |
+| `== 0` | phép so sánh | Ra một bảng True/False: ô nào bằng 0 thì True. |
+| `.sum()` | phương thức | Cộng theo từng cột. True tính là 1, nên kết quả là **số ô bằng 0 của mỗi cột**. |
 :::
 
 Năm cột (Glucose, BloodPressure, SkinThickness, Insulin, BMI) có số 0 không thể có thật. Đó là ô **chưa đo** nhưng bị ghi thành 0. Riêng `Pregnancies = 0` thì hợp lệ (chưa mang thai). Ta chỉ ghi nhớ điều này; Bước 7 sẽ xử lý.
@@ -132,6 +168,20 @@ print(x.shape, y.shape)
 ```
 :::
 
+:::pop Giải thích code: tách x và y
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `data.drop(...)` | phương thức | Bỏ một phần của bảng, trả về bảng mới. |
+| `labels="Outcome"` | tham số | Tên thứ cần bỏ. |
+| `axis=1` | tham số | Chọn **trục**: `1` là cột, `0` là hàng. Viết `axis=0` thì pandas đi tìm hàng tên "Outcome", không thấy và báo `KeyError`. |
+| `x` | biến | Bảng 8 cột đặc trưng (feature), là "đề bài" mô hình được xem. |
+| `data["Outcome"]` | chọn cột | Lấy riêng cột đáp án. |
+| `y` | biến | Dãy nhãn 0/1, là "đáp án". |
+| `x.shape, y.shape` | thuộc tính | `(768, 8)` và `(768,)`. Dấu phẩy ở cuối `(768,)` là cách Python viết bộ có đúng một phần tử: `y` chỉ có một chiều. |
+
+Quy ước đặt tên: `x` (đề) và `y` (đáp án), cùng độ dài, hàng thứ i của `x` ứng với phần tử thứ i của `y`.
+:::
+
 `axis=1` nghĩa là bỏ **cột**. Nếu viết `axis=0`, pandas đi tìm *hàng* tên "Outcome", không thấy và báo `KeyError`. Đừng quên bỏ cột `Outcome` khỏi `x`: nếu để lọt, mô hình nhìn thẳng đáp án và đạt điểm cao giả tạo. Đó là **rò rỉ dữ liệu** (data leakage).
 
 Giờ là thí nghiệm. Cây quyết định (Decision Tree) có thể học thuộc từng bệnh nhân bằng cách hỏi thật nhiều câu hỏi. Cho nó học cả 768 người, rồi chấm lại đúng 768 người đó:
@@ -147,6 +197,16 @@ print("Chấm trên chính dữ liệu đã học:", tree.score(x, y))
 ```text
 Chấm trên chính dữ liệu đã học: 1.0
 ```
+:::
+
+:::pop Giải thích code: cây quyết định học và tự chấm
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `from sklearn.tree import DecisionTreeClassifier` | import | Nạp lớp mô hình **cây quyết định phân loại** từ thư viện scikit-learn. |
+| `DecisionTreeClassifier(random_state=0)` | tạo đối tượng | Tạo một mô hình **chưa học gì**. `random_state=0` cố định phần ngẫu nhiên (khi nhiều cách chia hoà điểm, cây chọn ngẫu nhiên), để lần nào chạy cũng ra cùng một cây. |
+| `.fit(x, y)` | phương thức | **Học**: nhìn bảng `x` và đáp án `y` để dựng cây. Trả về chính mô hình, nên nối được ngay sau dòng tạo. |
+| `tree` | biến | Mô hình đã học xong. |
+| `tree.score(x, y)` | phương thức | Cho mô hình dự đoán `x`, so với `y`, trả về **accuracy** (tỉ lệ đoán đúng). Ở đây chấm đúng dữ liệu đã học nên ra 1.0. |
 :::
 
 100%. Nhưng điểm này chỉ chứng minh cây **thuộc bài**, chưa chứng minh nó **hiểu bài**. Muốn biết, phải cho làm một đề chưa từng thấy. Vì vậy ta cất 20% bệnh nhân đi làm **bộ test**; 80% còn lại là **bộ train** để học.
@@ -171,6 +231,22 @@ test : 0.747
 ```
 :::
 
+:::pop Giải thích code: chia train/test rồi chấm cây
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `train_test_split(x, y, ...)` | hàm | Xáo ngẫu nhiên rồi chia các mảng thành hai phần. Nhận nhiều mảng cùng độ dài và chia chúng **cùng một cách**, nên hàng của `x` và `y` vẫn khớp nhau. |
+| `test_size=0.2` | tham số | 20% dành cho bộ test, 80% còn lại cho bộ train. |
+| `random_state=42` | tham số | Cố định cách xáo để lần nào chạy cũng ra cùng bộ test. |
+| `x_train, x_test, y_train, y_test` | 4 biến | Hàm trả về **đúng thứ tự này**: đặc trưng train, đặc trưng test, nhãn train, nhãn test. Đổi thứ tự khi viết là lỗi hay gặp. |
+| `.shape` | thuộc tính | `(614, 8)` cho train và `(154, 8)` cho test. |
+| `.fit(x_train, y_train)` | phương thức | Cây học **chỉ trên bộ train**. |
+| `tree.score(x_train, y_train)` | phương thức | Accuracy trên bộ **đã học**: 1.0. |
+| `tree.score(x_test, y_test)` | phương thức | Accuracy trên bộ **chưa thấy**: 0.747. |
+| `round(..., 3)` | hàm | Làm tròn 3 chữ số. |
+
+Việc ghi `train_test_split(` rồi xuống dòng được vì Python cho phép ngắt dòng bên trong cặp ngoặc.
+:::
+
 Cùng một cây: 100% trên đề đã học, 74.7% trên đề mới. Khoảng cách 25 điểm đó là **overfitting** (học vẹt). Từ đây có luật số một của học máy: **không bao giờ chấm mô hình trên dữ liệu nó đã học.** (20% của 768 là 153.6, sklearn làm tròn thành 154 hàng test.)
 
 Còn `random_state=42` để làm gì? `train_test_split` xáo ngẫu nhiên trước khi chia, nên chạy lại sẽ ra bộ test khác. Hãy xem cùng một cây được chấm qua 30 cách chia khác nhau:
@@ -187,6 +263,19 @@ print(round(min(scores), 3), round(max(scores), 3))
 ```text
 0.656 0.766
 ```
+:::
+
+:::pop Giải thích code: vòng lặp 30 cách chia
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `scores = []` | biến (danh sách) | Một danh sách rỗng để dồn điểm của mỗi lần thử. |
+| `for seed in range(30):` | vòng lặp | Lặp 30 lần; `seed` lần lượt là 0, 1, …, 29. Các dòng thụt vào bên dưới là thân vòng lặp. |
+| `a, b, c, d = train_test_split(...)` | gán 4 biến | Giống Bước trước nhưng đặt tên ngắn vì chỉ dùng tạm: `a` = x_train, `b` = x_test, `c` = y_train, `d` = y_test. |
+| `random_state=seed` | tham số | Mỗi vòng dùng một cách xáo khác nhau. |
+| `DecisionTreeClassifier(random_state=0).fit(a, c)` | tạo và học | Tạo cây mới và học trên train của lần chia này. |
+| `.score(b, d)` | phương thức | Chấm trên test của lần chia này. |
+| `scores.append(...)` | phương thức | Thêm điểm vừa tính vào cuối danh sách. |
+| `min(scores)`, `max(scores)` | hàm | Giá trị nhỏ nhất và lớn nhất trong danh sách: 0.656 và 0.766. |
 :::
 
 ![Điểm của cùng một cây qua 30 cách chia](/plots/practice/seeds-light.png)
@@ -245,6 +334,18 @@ dtype: float64
 ```
 :::
 
+:::pop Giải thích code: khoảng cách giữa hai bệnh nhân cụ thể
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `import numpy as np` | import | Nạp thư viện **NumPy** (tính toán trên mảng số), tên ngắn `np`. |
+| `x.iloc[3]` | chọn hàng | Lấy hàng theo **vị trí** (đếm từ 0), nên đây là bệnh nhân thứ tư. Kết quả là một dãy gồm 8 số. (`iloc` theo vị trí, `loc` theo nhãn index.) |
+| `a, b` | 2 biến | Hai bệnh nhân. |
+| `(a - b) ** 2` | phép tính | Trừ từng cột của hai người rồi **bình phương** (`**` là luỹ thừa). Kết quả `sq` là chênh lệch bình phương theo cột. |
+| `sq.sum()` | phương thức | Tổng 8 số: đây chính là bình phương của "khoảng cách". |
+| `sq / sq.sum()` | phép chia | Mỗi cột chiếm **bao nhiêu phần** của tổng. |
+| `.round(2)` | phương thức | Làm tròn 2 chữ số: Insulin ra 0.61, nghĩa là 61%. |
+:::
+
 Trong khoảng cách giữa hai người này, Glucose chiếm 26% còn Insulin chiếm tới 61%, chỉ vì Insulin được đo bằng thước lớn. Với 5000 cặp bệnh nhân ngẫu nhiên thì sao?
 
 ```python
@@ -271,6 +372,24 @@ DiabetesPedigreeFunction    0.000
 Age                         0.047
 dtype: float64
 ```
+:::
+
+:::pop Giải thích code: hàm distance_share
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `def distance_share(X, n_pairs=5000, seed=0):` | định nghĩa hàm | Tạo hàm mới. `X` là mảng dữ liệu; `n_pairs` là số cặp bệnh nhân (mặc định 5000); `seed` cố định ngẫu nhiên (mặc định 0). Tham số có `=` là tham số có giá trị mặc định. |
+| `rng = np.random.default_rng(seed)` | tạo đối tượng | Bộ sinh số ngẫu nhiên, có seed nên lần nào cũng ra cùng kết quả. |
+| `rng.integers(0, len(X), (2, n_pairs))` | phương thức | Sinh số nguyên ngẫu nhiên từ 0 đến `len(X)-1`, xếp thành bảng 2 hàng, mỗi hàng `n_pairs` số. |
+| `i, j = ...` | gán 2 biến | `i` và `j` là hai dãy chỉ số; `i[k]` và `j[k]` là một cặp bệnh nhân. |
+| `X[i] - X[j]` | phép tính | Lấy các hàng theo chỉ số rồi trừ nhau: chênh lệch của từng cặp. |
+| `** 2` | phép tính | Bình phương. Kết quả gán vào `sq`. |
+| `sq[sq.sum(axis=1) > 0]` | lọc | Giữ lại cặp có tổng chênh lệch lớn hơn 0, bỏ cặp hai người trùng hệt (tránh chia cho 0). `axis=1` là cộng ngang theo hàng. |
+| `sq.sum(axis=1, keepdims=True)` | phương thức | Tổng từng hàng; `keepdims=True` giữ dạng cột để phép chia sau khớp kích thước. |
+| `.mean(axis=0)` | phương thức | Trung bình theo cột qua các cặp: ra **phần trăm đóng góp trung bình** của mỗi cột. |
+| `return` | từ khoá | Trả kết quả ra khỏi hàm. |
+| `x_train.to_numpy()` | phương thức | Đổi bảng pandas thành mảng NumPy (hàm cần chọn hàng theo chỉ số số học). |
+| `raw` | biến | Kết quả khi gọi hàm trên dữ liệu gốc. |
+| `pd.Series(raw, index=x.columns)` | hàm | Gắn tên cột vào mảng để in cho dễ đọc. |
 :::
 
 Trung bình, Insulin tạo ra 56.6% khoảng cách, còn DPF gần như 0%. Trong mắt mô hình, DPF gần như vô hình, không phải vì nó vô dụng mà vì nó được đo bằng thước nhỏ.
@@ -356,6 +475,22 @@ print(x_test_s.mean(axis=0).round(2))
 [1. 1. 1. 1. 1. 1. 1. 1.]
 [ 0.15  0.01 -0.08  0.04 -0.07  0.01  0.04  0.14]
 ```
+:::
+
+:::pop Giải thích code: StandardScaler: fit và transform
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `from sklearn.preprocessing import StandardScaler` | import | Nạp lớp chuẩn hoá. |
+| `scaler = StandardScaler()` | tạo đối tượng | Tạo scaler **chưa biết gì**. |
+| `scaler.fit(x_train)` | phương thức | **Đo**: tính trung bình và độ lệch chuẩn của từng cột `x_train`, cất vào `scaler.mean_` và `scaler.scale_`. Không đổi dữ liệu. |
+| `scaler.transform(x_train)` | phương thức | **Cắt**: áp `(x − mean) / std` cho từng ô. Trả về mảng NumPy. |
+| `x_train_s`, `x_test_s` | biến | Dữ liệu đã chuẩn hoá. Hậu tố `_s` là "scaled". Đặt tên mới để không ghi đè `x_train` gốc. |
+| `.mean(axis=0)` | phương thức | Trung bình của từng cột. `axis=0` nghĩa là tính **dọc theo các hàng**, nên ra mỗi cột một số. |
+| `.std(axis=0)` | phương thức | Độ lệch chuẩn của từng cột. |
+| `.round(2)` | phương thức | Làm tròn 2 chữ số. |
+| `+ 0.0` | phép cộng | Chỉ để số `-0.` hiển thị thành `0.`. |
+
+Lưu ý `axis` ở đây khác ngữ cảnh với `drop(axis=1)`: ở `drop`, `axis=1` chọn cột để bỏ; ở `mean`, `axis=0` là tính trên các hàng để ra một giá trị cho mỗi cột.
 :::
 
 Train có trung bình 0 và độ lệch chuẩn 1 cho mọi cột, đúng như thiết kế. Test thì **không** có trung bình đúng 0 (ví dụ 0.15 ở cột đầu), và đó là điều đúng: test được cắt theo số đo của train.
@@ -465,6 +600,15 @@ Age                       0.047      0.123
 ```
 :::
 
+:::pop Giải thích code: so sánh khoảng cách trước và sau scale
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `distance_share(x_train_s)` | gọi hàm | Dùng lại hàm ở trên, lần này trên dữ liệu đã scale. Không cần `.to_numpy()` vì `x_train_s` đã là mảng NumPy. |
+| `scaled` | biến | Phần trăm đóng góp trung bình sau khi scale. |
+| `pd.DataFrame({...}, index=x.columns)` | hàm | Tạo bảng từ một từ điển: khoá (`"gốc"`, `"sau scale"`) là tên cột, giá trị là dãy số. `index=x.columns` đặt tên cho các dòng. |
+| `.round(3)` | phương thức | Làm tròn 3 chữ số. |
+:::
+
 ![Mỗi cột đóng góp bao nhiêu vào khoảng cách](/plots/practice/distance-light.png)
 ![Mỗi cột đóng góp bao nhiêu vào khoảng cách](/plots/practice/distance-dark.png)
 
@@ -526,6 +670,19 @@ Accuracy: 0.7532
 ```
 :::
 
+:::pop Giải thích code: Logistic Regression học và dự đoán
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `LogisticRegression` | lớp (import) | Mô hình tuyến tính cho **phân loại** (dù tên có chữ "regression"). |
+| `accuracy_score` | hàm (import) | Tính tỉ lệ đoán đúng. |
+| `model = LogisticRegression()` | tạo đối tượng | Mô hình chưa học. |
+| `model.fit(x_train_s, y_train)` | phương thức | **Học** trọng số từ train đã scale. `fit` của mô hình khác `fit` của scaler: scaler học số đo, mô hình học mối quan hệ cột và đáp án. |
+| `model.predict(x_test_s)` | phương thức | Dự đoán nhãn 0/1 cho từng người của bộ test. |
+| `y_predict` | biến | Mảng nhãn dự đoán. |
+| `accuracy_score(y_test, y_predict)` | hàm | Thứ tự bắt buộc: **nhãn thật trước, nhãn dự đoán sau**. |
+| `(y_test == 0).mean()` | biểu thức | Tỉ lệ nhãn 0 trong test: mức sàn nếu đoán toàn 0. |
+:::
+
 Lưu ý `fit` của mô hình khác `fit` của scaler: scaler học "số đo", mô hình học "mối quan hệ giữa các cột và đáp án". Kết quả 75.3% so với mức sàn 64.3% trên bộ test (đoán toàn 0): hơn khoảng 11 điểm. Khá, chưa đáng kinh ngạc.
 
 Mô hình giữ lại gì? Logistic Regression giữ một **trọng số cho mỗi cột**:
@@ -549,6 +706,17 @@ BloodPressure              -0.248
 dtype: float64
 intercept: [-0.886]
 ```
+:::
+
+:::pop Giải thích code: đọc trọng số của mô hình
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `model.coef_` | thuộc tính | Các **trọng số** mô hình học được. Dấu `_` cuối là quy ước sklearn: "có sau khi `fit`". Là mảng 2 chiều `(1, 8)` nên cần `[0]`. |
+| `model.coef_[0]` | chọn phần tử | Hàng đầu tiên: 8 trọng số, mỗi cột một số. |
+| `pd.Series(..., index=x.columns)` | hàm | Gắn tên cột vào 8 số. |
+| `.sort_values(ascending=False)` | phương thức | Xếp giảm dần (`ascending=False`), cột nặng nhất lên đầu. |
+| `weights` | biến | Dãy trọng số có tên. |
+| `model.intercept_` | thuộc tính | **Hệ số chặn** `b`: số cộng thêm, không gắn với cột nào. |
 :::
 
 ![Trọng số của mô hình](/plots/practice/weights-light.png)
@@ -575,6 +743,21 @@ print(model.predict_proba(x_test_s[:1])[0].round(3), "nhãn thật:", y_test.ilo
 -0.958 0.277
 [0.723 0.277] nhãn thật: 0
 ```
+:::
+
+:::pop Giải thích code: tự tính xác suất bằng tay
+| Thành phần | Loại | Chức năng |
+|---|---|---|
+| `x_test_s[0]` | chọn hàng | Bệnh nhân đầu tiên của bộ test (đã scale): 8 số. |
+| `row @ model.coef_[0]` | phép tính | `@` là **tích vô hướng**: nhân từng cặp số ở hai dãy rồi cộng lại. |
+| `+ model.intercept_[0]` | phép cộng | Cộng hệ số chặn. |
+| `z` | biến | Tổng có trọng số, còn gọi là điểm thô: `-0.958`. |
+| `np.exp(-z)` | hàm | Tính `e` mũ `-z`. |
+| `1 / (1 + np.exp(-z))` | công thức | Hàm **sigmoid**: ép `z` bất kỳ về khoảng 0 đến 1, đọc là xác suất bị bệnh `p`. |
+| `model.predict_proba(...)` | phương thức | Sklearn tính sẵn xác suất: trả `[P(nhãn 0), P(nhãn 1)]`. |
+| `x_test_s[:1]` | cắt lát | Lấy 1 hàng nhưng **giữ dạng 2 chiều** (sklearn đòi dữ liệu 2 chiều). |
+| `[0]` | chọn phần tử | Lấy hàng kết quả đầu tiên. |
+| `y_test.iloc[0]` | chọn phần tử | Nhãn thật của người đó. Dùng `iloc` vì chỉ số của `y_test` bị xáo, `y_test[0]` sẽ tìm nhãn có tên 0. |
 :::
 
 Xác suất bị bệnh là 0.277. Dưới ngưỡng 0.5 nên mô hình đoán 0, và đáp án thật đúng là 0. Vậy `predict` chỉ là "tính p, rồi so với 0.5". Điều này quan trọng: ở Bước 5 ta sẽ thay ngưỡng 0.5 bằng ngưỡng khác.
@@ -638,6 +821,22 @@ print("Accuracy:", round(accuracy_score(y_test, y_predict), 4))
 ```text
 Accuracy: 0.7532
 ```
+:::
+
+:::pop Giải thích code: bản đồ của cả đoạn code hoàn chỉnh
+| Nhóm dòng | Chức năng |
+|---|---|
+| Các dòng `import` | Nạp NumPy, pandas, hàm chia dữ liệu, scaler, mô hình, hàm chấm điểm. |
+| `data = pd.read_csv(...)` | Đọc bảng. |
+| `x = ...`, `y = ...` | Tách đề (8 cột) và đáp án (`Outcome`). |
+| `train_test_split(...)` | Chia 80% train, 20% test, cố định bằng `random_state=42`. |
+| `scaler = StandardScaler().fit(x_train)` | **Đo** số đo trên train. Viết gọn: tạo và `fit` trong một dòng (vì `fit` trả về chính scaler). |
+| `x_train_s`, `x_test_s` | **Cắt** train và test bằng số đo của train. |
+| `model = LogisticRegression().fit(x_train_s, y_train)` | Tạo mô hình và học trên train đã scale. |
+| `y_predict = model.predict(x_test_s)` | Dự đoán bộ test. |
+| `accuracy_score(...)` | Chấm điểm: thứ tự (thật, dự đoán). |
+
+Thứ tự bắt buộc: **chia trước, đo trên train, cắt cả hai, học trên train, dự đoán trên test.**
 :::
 
 :::check
