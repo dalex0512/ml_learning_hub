@@ -1,7 +1,7 @@
 ---
 title: Stratified K-fold
 order: 9
-description: "Chia ngẫu nhiên có thể tạo fold thiếu lớp hiếm; Stratified K-fold giữ đúng tỉ lệ nhãn ở mọi fold."
+description: "Chia ngẫu nhiên có thể tạo fold thiếu lớp hiếm (slide 24: 90 Cat và 10 Dog); Stratified K-fold giữ đúng tỉ lệ nhãn ở mọi fold, chỉ cho Classification."
 slides: 24
 needs: [k-fold-cross-validation]
 tags: [stratified, imbalanced, cross-validation]
@@ -10,22 +10,30 @@ tags: [stratified, imbalanced, cross-validation]
 ## Nếu một fold không có lớp hiếm thì sao?
 
 :::intro Mục tiêu bài này
-- Thấy vì sao K-fold thường có thể tạo ra fold **thiếu hẳn lớp hiếm**.
-- Hiểu **Stratified K-fold**: giữ tỉ lệ nhãn ở mọi fold.
-- Biết khi nào dùng và nhớ truyền cả `y` khi chia.
+- Thấy bằng số vì sao K-fold thường có thể tạo ra fold **thiếu hẳn lớp hiếm** (slide 24: fold không có Dog nào thì validation "sai hoàn toàn").
+- Hiểu **Stratified K-fold**: giữ tỉ lệ nhãn của dữ liệu gốc ở **mọi** fold.
+- Biết khi nào dùng (chỉ cho **Classification**), phải truyền cả `y`, và giới hạn của lời hứa giữ tỉ lệ.
 :::
 
-Bộ dữ liệu có **90 ảnh Cat và 10 ảnh Dog**. Ta chia K = 5 fold, mỗi fold 20 ảnh, bằng cách xáo ngẫu nhiên. Mỗi fold *kỳ vọng* có 2 ảnh Dog, nhưng ngẫu nhiên có thể cho kết quả khác hẳn.
+Slide 24 dùng một bài toán Classification: bộ dữ liệu có **Cat 90 mẫu (90%)** và **Dog 10 mẫu (10%)**. Ta chia K = 4 fold, mỗi fold 25 mẫu, bằng cách xáo ngẫu nhiên rồi cắt. Mỗi fold *kỳ vọng* có 2.5 mẫu Dog, nhưng ngẫu nhiên có thể cho kết quả khác hẳn: có fold gần như đầy Dog, có fold **không có con Dog nào**. Slide ghi: *"có fold 0 con Dog, model validation sai hoàn toàn"*.
 
 :::predict
-Với cách xáo ngẫu nhiên, xác suất để **một fold cụ thể** (20 ảnh) **không có ảnh Dog nào** là bao nhiêu? Và xác suất nó có **tối đa 1** ảnh Dog?
+Với cách xáo ngẫu nhiên ở K = 4 (mỗi fold 25 mẫu), xác suất để **một fold cụ thể không có Dog nào** là bao nhiêu? Còn xác suất để **ít nhất một trong bốn fold** không có Dog?
 @answer
-Khoảng **9.5%** không có Dog nào, và khoảng **36.3%** có tối đa 1 Dog (so với kỳ vọng 2). Gần **một phần ba** số fold có tỉ lệ Dog lệch hẳn kỳ vọng. Trên fold không có Dog, ta không đo được model nhận ra Dog tốt đến đâu: recall của lớp Dog là không xác định.
+Một fold cụ thể: khoảng **4.8%** (nhỏ). Nhưng ít nhất một trong bốn fold: khoảng **18.8%**: cứ khoảng năm lần chia thì có một lần hỏng. Với K = 5 (mỗi fold 20 mẫu), xác suất một fold không có Dog là 9.5% và xác suất **ít nhất một fold hỏng** lên tới khoảng **43.2%**. Fold hỏng không đo được recall của lớp Dog (không có mẫu Dog nào để bắt).
 :::
 
-## Giữ tỉ lệ thay vì chia đều số mẫu
+Hãy tự thử: bấm "Xáo lại và chia" ở chế độ K-fold thường rồi so với Stratified.
 
-**Stratified K-fold** chia **theo từng lớp**: lấy 90 Cat chia đều 5 phần (18 mỗi phần), lấy 10 Dog chia đều 5 phần (2 mỗi phần), rồi ghép lại. Kết quả: **mỗi fold có đúng 18 Cat và 2 Dog**, tỉ lệ 90/10 như toàn bộ dữ liệu.
+:::widget fold-compare
+:::
+
+## Stratified K-fold: giữ tỉ lệ thay vì chia đều số mẫu
+
+**Stratified K-fold** chia **theo từng lớp**: lấy 90 Cat chia đều ra K phần, lấy 10 Dog chia đều ra K phần, rồi ghép lại. Ở K = 4 (slide 24): Cat chia thành 22, 22, 23, 23 và Dog chia thành 3, 3, 2, 2, nên **mọi fold đều có Dog** và tỉ lệ ở mỗi fold gần đúng 90% / 10% như dữ liệu gốc. Ở K = 5: mỗi fold đúng 18 Cat và 2 Dog.
+
+:::slides 24 | Slide 24: Stratified K-fold với 90 Cat và 10 Dog
+:::
 
 Để làm được việc đó, hàm chia **phải biết nhãn**: truyền cả `y`.
 
@@ -36,22 +44,34 @@ for train_idx, val_idx in skf.split(x, y):   # phải đưa y vào
     ...
 ```
 
-Project Bước 6 dùng `StratifiedKFold` cho bộ Diabetes (65% và 35%), và `cross_val_score` với bài phân loại tự dùng stratified khi `cv` là số nguyên.
+Project Bước 6 dùng `StratifiedKFold` cho bộ Diabetes (500 và 268, tức 65% và 35%); và `cross_val_score` với bài phân loại tự dùng stratified khi `cv` là một số nguyên.
+
+## Khi nào dùng và giới hạn
+
+- **Chỉ dùng cho Classification** (slide ghi rõ): với hồi quy không có nhãn nhóm để phân tầng.
+- **Càng cần khi lớp hiếm hoặc dữ liệu ít:** với lớp 50/50 và dữ liệu lớn, K-fold thường đã đủ cân.
+- **Giới hạn:** mỗi lớp cần ít nhất **K mẫu** thì mới chia đủ vào K fold. Lớp chỉ có 3 mẫu mà K = 5 thì ít nhất hai fold không có mẫu của lớp đó dù đã Stratified.
+- **Stratified chỉ giữ tỉ lệ nhãn**, không giải quyết rò rỉ: scaler, imputer vẫn phải nằm trong Pipeline ([[bài:k-fold-cross-validation]]).
+- **Test set cũng nên phân tầng** khi chia ban đầu (`stratify=y` trong `train_test_split`, Project Bước 4 bài tập 3).
 
 :::ck
-Có một lớp rất hiếm: chỉ 3 mẫu trong cả bộ dữ liệu. Bạn dùng Stratified 5-fold. Có đủ chỗ cho lớp đó ở mọi fold không?
+Có một lớp rất hiếm: chỉ 3 mẫu trong cả bộ dữ liệu 1000 mẫu. Bạn dùng Stratified 5-fold. Có đủ chỗ cho lớp đó ở mọi fold không? Bạn làm gì?
 @answer
-**Không.** Chỉ có 3 mẫu mà 5 fold: ít nhất 2 fold không có mẫu nào của lớp đó, dù đã Stratified. Lời hứa giữ tỉ lệ có giới hạn: cần **ít nhất K mẫu** cho mỗi lớp. Giải pháp: giảm K, gom thêm dữ liệu, hoặc dùng cách khác (leave-one-out).
+**Không.** 3 mẫu không thể chia vào 5 fold: ít nhất hai fold không có mẫu nào của lớp đó, dù đã Stratified (sklearn sẽ cảnh báo). Cách xử lý: **giảm K** xuống tối đa 3, gom thêm dữ liệu cho lớp hiếm, hoặc dùng cách đánh giá khác (ví dụ leave-one-out). Stratified giữ tỉ lệ **nếu có đủ mẫu**.
 :::
 
-:::slides 24 | Slide 24: Stratified K-fold
-:::
+## Những hiểu sai thường gặp
+
+- **"Stratified làm model tốt hơn."** Không: nó làm **phép đo** đáng tin hơn (mọi fold đều có lớp hiếm), không đổi cách model học.
+- **"Quên truyền `y` cũng được."** Không: `split(x)` mà không có `y` thì không có gì để phân tầng (sklearn báo lỗi hoặc dùng phân tầng sai).
+- **"Dùng được cho hồi quy."** Không trực tiếp; có thể phân tầng theo khoảng giá trị, nhưng đó là kỹ thuật khác.
+- **"Stratified chữa mất cân bằng."** Không: dữ liệu vẫn lệch; để model học tốt lớp hiếm cần cách khác ([[bài:imbalanced-data]]).
 
 :::card Stratified K-fold
-- **Vấn đề:** chia ngẫu nhiên có thể tạo fold thiếu lớp hiếm (90 Cat và 10 Dog, K = 5: khoảng 9.5% fold không có Dog).
-- **Stratified:** chia từng lớp riêng rồi ghép, mỗi fold giữ đúng tỉ lệ (18 Cat và 2 Dog).
-- **Phải truyền `y`** cho `split`.
-- **Giới hạn:** mỗi lớp cần ít nhất K mẫu; vẫn phải đặt scaler trong Pipeline.
+- **Vấn đề:** chia ngẫu nhiên có thể tạo fold không có lớp hiếm (90 Cat và 10 Dog: K = 4 hỏng ~18.8%, K = 5 hỏng ~43.2%).
+- **Stratified:** chia từng lớp riêng rồi ghép; K = 4 cho Cat 22/22/23/23 và Dog 3/3/2/2; mọi fold giữ tỉ lệ 90/10.
+- **Phải truyền `y`**; chỉ dùng cho **Classification**.
+- **Giới hạn:** mỗi lớp cần ít nhất K mẫu; vẫn cần Pipeline để không rò rỉ; nó làm phép đo đáng tin, không làm model tốt hơn.
 :::
 
 ## Câu hỏi tự kiểm tra

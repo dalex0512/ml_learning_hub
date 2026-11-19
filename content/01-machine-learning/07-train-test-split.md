@@ -1,7 +1,7 @@
 ---
 title: Phân chia Dataset (Train / Validation / Test Split)
 order: 7
-description: "Vì sao không chấm trên dữ liệu đã học: train học, validation chọn, test chấm cuối đúng một lần."
+description: "Vì sao không chấm trên dữ liệu đã học: ba tập của slide 22 và vai của từng tập, mô phỏng chọn model bằng bộ test làm điểm lạc quan, và thứ tự chia đúng."
 slides: 22
 needs: [loss-function]
 tags: [split, validation, test, leakage]
@@ -11,58 +11,89 @@ tags: [split, validation, test, leakage]
 
 :::intro Mục tiêu bài này
 - Hiểu vì sao điểm trên dữ liệu đã học **không chứng minh gì** (học thuộc khác hiểu bài).
-- Phân biệt vai của **train**, **validation** và **test**.
-- Chia dữ liệu đúng thứ tự: tách test trước, chọn model bằng validation.
+- Phân biệt vai của **training set**, **validation set** và **test set** (slide 22) bằng ví dụ bài tập, thi thử và thi thật.
+- Thấy bằng mô phỏng vì sao **chọn model bằng bộ test** làm điểm test mất giá trị, và biết thứ tự chia đúng.
 :::
 
-Một cây quyết định không giới hạn đạt **100%** khi chấm lại trên chính dữ liệu nó đã học, nhưng chỉ **74.7%** trên 154 bệnh nhân chưa từng thấy (số thật từ Project Bước 2). Nó **thuộc bài** chứ chưa **hiểu bài**. Một học sinh làm đi làm lại đề cũ rồi được 10 điểm không chứng tỏ gì về đề mới. Vì vậy ta phải chấm bằng dữ liệu model **chưa từng nhìn**.
+Một cây quyết định không giới hạn đạt **100%** khi chấm lại trên chính dữ liệu nó đã học, nhưng chỉ **74.7%** trên 154 bệnh nhân chưa từng thấy (số thật từ Project Bước 2). Nó **thuộc bài** chứ chưa **hiểu bài**. Một học sinh làm đi làm lại đề cũ rồi được 10 điểm không chứng tỏ gì về đề mới. Vì vậy ta chấm bằng dữ liệu model **chưa từng nhìn**. Đây là lý do slide 22 nói: làm việc với dữ liệu thì phải **chia nhỏ** bộ dữ liệu.
 
-:::predict
-Bạn chia dữ liệu 80/20, huấn luyện, thấy test chỉ được 70%. Bạn chỉnh model, chạy lại, test được 72%; chỉnh nữa, 74%... Sau 20 lần chỉnh, test đạt 80%. Con số 80% đó còn là phép chấm trung thực không?
-@answer
-**Không còn nữa.** Mỗi lần chỉnh theo điểm test, bộ test đã tham gia **lựa chọn** model, nên điểm 80% là lạc quan (ta đã vô tình "học" bộ test). Cần một tập thứ ba, **validation**, để chỉnh model; test chỉ dùng **một lần cuối**.
+## Ba tập, ba vai (slide 22)
+
+Slide 22 chia bảng Diabetes thành ba phần và gán vai cho từng phần:
+
+| Tập | Ví von | Vai | Dùng khi nào |
+|---|---|---|---|
+| **Training set** | bài tập về nhà | để model **học** (cập nhật tham số) | mọi lần huấn luyện |
+| **Validation set** | thi thử | để **đánh giá quá trình training và điều chỉnh**: chọn model, tham số, tiền xử lý | trong lúc phát triển, dùng nhiều lần |
+| **Test set** | thi thật | để **đánh giá cuối cùng**, báo cáo điểm thật | **một lần**, sau khi đã chốt mọi thứ |
+
+Slide cũng ghi tỉ lệ thường gặp (80-10-10, 70-15-15) và nói rõ **tùy dữ liệu**. Với 768 bệnh nhân: 80/10/10 cho 614 / 77 / 77 mẫu; 70/15/15 cho 538 / 115 / 115 mẫu.
+
+:::slides 22 | Slide 22: phân chia dataset thành training set, validation set và test set
 :::
 
-## Ba tập, ba vai
-
-| Tập | Vai | Dùng khi nào |
-|---|---|---|
-| **Train** | để model **học** (cập nhật tham số) | mọi lần huấn luyện |
-| **Validation** | để **chọn**: model nào, tham số nào, tiền xử lý nào | trong lúc phát triển, dùng nhiều lần |
-| **Test** | để **chấm cuối**, báo cáo điểm thật | **một lần**, sau khi đã chốt mọi thứ |
-
-Hãy tự chia để thấy: kéo tỉ lệ, đọc vai của mỗi phần.
+Hãy tự chia: kéo tỉ lệ và đọc vai của từng phần.
 
 :::widget split-bar
 :::
 
-Một chi tiết hay nhầm: **loss** trên train dùng để cập nhật tham số; điểm trên **validation** dùng để lựa chọn cấu hình. Hai việc khác nhau, nên cần hai tập khác nhau.
+Một chi tiết hay nhầm: **loss** trên train dùng để **cập nhật** tham số ([[bài:model-training-pipeline]]); điểm trên **validation** dùng để **lựa chọn** cấu hình. Hai việc khác nhau, nên cần hai tập khác nhau.
+
+## Vì sao không chọn model bằng bộ test?
+
+Giả sử bạn thử nhiều model, chọn cái có điểm test cao nhất, rồi báo cáo điểm đó. Nghe hợp lý, nhưng điểm đó **lạc quan**, và có thể đo được mức lạc quan bằng mô phỏng.
+
+:::steps
+**Thiết lập:** một bộ test 154 mẫu (như Project) và các "model" **hoàn toàn không có kỹ năng**: mỗi model chỉ đoán mò, đúng 50% kỳ vọng. Điểm test của mỗi model dao động quanh 50% chỉ vì may rủi.
+@step
+**Chọn 1 model:** điểm trung bình **49.9%**. Đúng như đoán mò: không có gì để khoe.
+@step
+**Thử 5 model rồi chọn điểm test cao nhất:** điểm trung bình của "model tốt nhất" là **54.7%**. Thử **20 model**: **57.5%**. Thử **100 model**: **60.0%**.
+@step
+Cả ba con số đều **sai**: không model nào có kỹ năng. Điểm cao chỉ là kết quả của việc **chọn người may mắn nhất** trên bộ test. Mỗi lần ta chỉnh model theo điểm test, bộ test lại tham gia vào việc **lựa chọn**.
+:::
+
+:::predict
+Bạn thử 100 cấu hình khác nhau, chọn cái tốt nhất theo bộ test và thấy 60%. Con số 60% đó nói gì về chất lượng thật của model?
+@answer
+**Gần như không nói gì**: mô phỏng trên cho thấy 100 model đoán mò cũng đạt trung bình 60% khi chọn theo bộ test. Điểm 60% có thể hoàn toàn là sản phẩm của việc chọn lọc. Muốn điểm có ý nghĩa, việc chọn phải dựa vào **validation**, còn test chỉ dùng **một lần** sau khi đã chốt.
+:::
 
 ## Chia theo thứ tự đúng
 
 1. **Tách test trước**, cất đi, không động tới.
-2. Từ phần còn lại, tách validation (hoặc thay bằng cross-validation, xem [[bài:k-fold-cross-validation]]).
-3. Mọi bước **học từ dữ liệu** (scaler, imputer) chỉ `fit` trên train.
+2. Từ phần còn lại, tách validation (hoặc thay bằng cross-validation, xem [[bài:k-fold-cross-validation]]: ít khi người ta chia cứng như slide mà dùng K-fold trên phần train).
+3. Mọi bước **học từ dữ liệu** (scaler, imputer, encoder) chỉ `fit` trên train, rồi áp cho validation và test ([[bài:feature-scaling]]).
 
-Ví dụ 100 mẫu chia 80/10/10: lấy 10 mẫu test trước; còn 90 mẫu, lấy 10 mẫu validation (khoảng 11% của 90) và 80 mẫu train. Với 614 + 154 của Diabetes, ta chia hai lần: `test_size=0.2`, rồi `test_size=0.25` trên phần train để ra 60/20/20 ([[từ:validation]] là phần giữa).
+60/20/20 làm bằng **hai lần chia**: lần một lấy 20% làm test; lần hai lấy từ phần 80% còn lại một phần `test_size=0.25` làm validation (vì 0.25 × 80% = 20% tổng). Ở Project Bước 2, bài tập 60/20/20 cho đúng 460 / 154 / 154 mẫu.
 
-Chia **theo cách sẽ dùng model**: dữ liệu theo thời gian thì tập test phải ở **sau** train, không xáo ngẫu nhiên (xáo là nhìn trộm tương lai); dữ liệu nhiều mẫu của cùng một người thì giữ cùng người ở cùng tập.
+## Chia theo cách sẽ dùng model
+
+Tập test phải **giống tình huống thật** mà model sẽ gặp:
+
+- **Dữ liệu theo thời gian** (doanh thu theo ngày): test phải ở **sau** train, không xáo ngẫu nhiên (xáo là cho model nhìn trộm tương lai).
+- **Nhiều mẫu của cùng một người** (nhiều lần khám của một bệnh nhân): giữ cùng một người ở cùng một tập, nếu không model "nhận ra người" thay vì học bệnh.
+- **Lớp hiếm:** chia có phân tầng (stratify) để mỗi tập đều có đủ lớp hiếm ([[bài:stratified-k-fold]]).
 
 :::ck
 Bạn có chuỗi doanh thu theo ngày trong 3 năm và muốn dự đoán tuần sau. Bạn dùng `train_test_split` xáo ngẫu nhiên 80/20. Sai ở đâu?
 @answer
-Xáo ngẫu nhiên đưa các ngày **sau** vào train và các ngày **trước** vào test: model "nhìn thấy tương lai". Cách đúng: chia **theo thời gian** (train là các ngày đầu, test là các ngày cuối).
+Xáo ngẫu nhiên đưa các ngày **sau** vào train và các ngày **trước** vào test: model "nhìn thấy tương lai", nên điểm test lạc quan. Cách đúng: chia **theo thời gian** (train là các ngày đầu, test là các ngày cuối), giống đúng cách model sẽ được dùng.
 :::
 
-:::slides 22 | Slide 22: train, validation và test
-:::
+## Những hiểu sai thường gặp
+
+- **"Validation và test là một."** Không: validation để **chọn** (dùng nhiều lần), test để **chấm cuối** (một lần). Gộp chúng là nguyên nhân của mô phỏng ở trên.
+- **"Test set giúp tôi chỉnh model."** Không: nếu dùng điểm test để chỉnh, test đã thành validation, và bạn cần một bộ test mới.
+- **"Tỉ lệ 80-10-10 là luật."** Slide ghi rõ **tùy dữ liệu**: dữ liệu ít thì dùng cross-validation; dữ liệu rất lớn thì test vài phần trăm cũng đủ.
+- **"Xáo ngẫu nhiên luôn đúng."** Chỉ đúng khi các mẫu độc lập và cùng phân phối; với thời gian hoặc nhóm thì sai.
 
 :::card Train / Validation / Test
-- **Điểm trên dữ liệu đã học không đáng tin** (cây: 100% so với 74.7%).
-- **Train học, validation chọn, test chấm cuối đúng một lần.**
-- **Thứ tự:** tách test trước; scaler, imputer chỉ `fit` trên train.
-- **60/20/20** = chia hai lần (20% test, rồi 25% của phần còn lại làm validation).
-- **Dữ liệu theo thời gian:** test phải nằm sau train; không xáo.
+- **Điểm trên dữ liệu đã học không đáng tin** (cây: 100% trên train so với 74.7% trên test).
+- **Training set học; validation set chọn và điều chỉnh; test set chấm cuối đúng một lần** (slide 22).
+- **Chọn model bằng bộ test làm điểm lạc quan:** 100 model đoán mò cũng đạt trung bình 60.0% khi chọn theo test.
+- **Thứ tự:** tách test trước; scaler, imputer chỉ `fit` trên train; 60/20/20 = hai lần chia (0.2 rồi 0.25).
+- **Chia theo cách dùng model:** thời gian thì test ở sau; cùng người thì cùng tập; lớp hiếm thì stratify.
 :::
 
 ## Câu hỏi tự kiểm tra

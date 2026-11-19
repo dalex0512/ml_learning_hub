@@ -10,6 +10,7 @@ import ColumnPeel from "./ColumnPeel";
 import ParadigmChooser from "./ParadigmChooser";
 import XyTable from "./XyTable";
 import ParamKnob from "./ParamKnob";
+import FoldCompare from "./FoldCompare";
 import { KnnPlay, GiniCalc, BootstrapVote, SplitBar } from "./ModelWidgets";
 
 /** Đăng ký công cụ tương tác; dùng trong bài bằng  :::widget tên  */
@@ -35,4 +36,5 @@ export const WIDGETS: Record<string, React.ComponentType<{ props?: string }>> = 
   "paradigm-chooser": ParadigmChooser,
   "xy-table": XyTable,
   "param-knob": ParamKnob,
+  "fold-compare": FoldCompare,
 };
