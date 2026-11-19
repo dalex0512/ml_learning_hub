@@ -1,13 +1,121 @@
 ---
 title: Step 4 — Data Visualization với matplotlib và pandas
 order: 22
-description: "Chọn và đọc histogram, density, box plot, correlation matrix và scatter matrix; hiểu Figure/Axes, nhãn trục, grid và legend qua slide 55–63."
+description: "Chọn biểu đồ theo câu hỏi: histogram, density, box plot, correlation matrix, scatter matrix và các phần của hình matplotlib."
 slides: 55-63
 needs: [descriptive-statistics, correlation-multicollinearity]
 tags: [visualization, matplotlib, pandas, histogram, density, boxplot, heatmap, scatter, kde]
 ---
 
-## Bảng số chưa trả lời được điều gì?
+## Hỏi gì thì chọn hình đó
+
+:::intro Mục tiêu bài này
+- Chọn biểu đồ theo **câu hỏi** muốn trả lời, không theo thói quen.
+- Đọc đúng histogram, density, box plot, correlation matrix và scatter matrix.
+- Gọi đúng tên các phần của một hình trong matplotlib (Figure, Axes, Axis).
+:::
+
+Bảng số cho ta con số, nhưng không cho thấy **hình dạng**. Biểu đồ trả lời những câu hỏi mà `describe()` không trả lời được. Quy tắc: **bắt đầu từ câu hỏi**, rồi chọn hình.
+
+| Câu hỏi | Hình |
+|---|---|
+| Giá trị của **một biến** phân bố thế nào? | Histogram, density |
+| Phần giữa nằm đâu, có điểm ngoài lạ không? **So sánh các nhóm** | Box plot |
+| Hai biến liên hệ với nhau thế nào? | Scatter |
+| Cột nào liên hệ tuyến tính với cột nào? | Correlation matrix |
+| Nhìn **mọi cặp** biến một lượt | Scatter matrix |
+
+:::predict
+Bạn muốn biết **Glucose của người bệnh có khác người không bệnh** không. Chọn hình nào, và bạn mong thấy gì?
+@answer
+**Histogram chồng (hoặc box plot) của Glucose theo `Outcome`.** Mong thấy nhóm bệnh lệch sang phải (trung vị 140 so với 107) nhưng hai nhóm **chồng lấn nhiều**: không một cột nào đủ để tách hẳn hai nhóm. Đây chính là hình ở Project Bước 1.
+:::
+
+## Histogram và density
+
+**Histogram** chia trục giá trị thành các khoảng (bin) và đếm mỗi khoảng. Số bin ảnh hưởng hình dạng: quá ít thì che chi tiết, quá nhiều thì nhiễu. **Density plot** làm trơn histogram thành một đường cong: đẹp, nhưng đó là **ước lượng**, không phải mật độ thật, và độ trơn cũng là lựa chọn.
+
+## Box plot
+
+Một hộp trải từ **Q1 đến Q3** (nửa giữa của dữ liệu), vạch trong hộp là **trung vị**. Hai "ria" kéo tới giá trị xa nhất còn nằm trong **1.5 × IQR** tính từ hộp; điểm nằm ngoài ria được vẽ riêng là **outlier tiềm năng**. Với Insulin có 24 điểm vượt hàng rào ([[bài:missing-values-outliers]]), box plot cho thấy ngay phần đuôi dài bên phải.
+
+## Correlation matrix và scatter matrix
+
+**Correlation matrix** là bảng r của mọi cặp cột, tô màu. Hãy đọc **con số** trong ô, đừng chỉ nhìn màu (màu dễ đánh lừa độ mạnh), và nhớ r chỉ đo quan hệ **tuyến tính** ([[bài:correlation-multicollinearity]]). **Scatter matrix** vẽ scatter cho từng cặp: chậm hơn nhưng cho thấy quan hệ phi tuyến hay nhóm tách rời mà r không thấy.
+
+:::ck
+Correlation matrix cho thấy r giữa hai cột là 0.02. Có thể kết luận hai cột không liên quan không? Hình nào giúp kiểm tra?
+@answer
+**Chưa kết luận được.** r gần 0 chỉ nói không có quan hệ **tuyến tính**; có thể có quan hệ cong (chữ U). Vẽ **scatter** của hai cột để kiểm tra.
+:::
+
+## Figure, Axes và Axis trong matplotlib
+
+Gọi đúng tên giúp sửa đúng chỗ: **Figure** là cả tờ giấy; **Axes** là một khung vẽ trên tờ giấy đó (có thể có nhiều); **Axis** là một trục (x hoặc y) của Axes. Cách viết nên dùng:
+
+```python
+fig, ax = plt.subplots()       # một Figure, một Axes
+ax.hist(data["Glucose"], bins=20)
+ax.set_xlabel("Glucose")
+```
+
+:::slides 55-63 | Slide 55–63: trực quan hóa dữ liệu
+:::
+
+:::card Data Visualization
+- **Bắt đầu từ câu hỏi**: một biến (histogram, density), so nhóm và outlier (box plot), hai biến (scatter), mọi cặp (correlation, scatter matrix).
+- **Histogram** phụ thuộc số bin; **density** là ước lượng trơn.
+- **Box plot:** hộp Q1–Q3, vạch trung vị, ria 1.5 × IQR, điểm ngoài là outlier tiềm năng.
+- **Correlation matrix:** đọc số, không chỉ màu; chỉ đo tuyến tính.
+- **Figure, Axes, Axis:** tờ giấy, khung vẽ, trục.
+:::
+
+## Câu hỏi tự kiểm tra
+
+:::quiz
+@tier A | Hiểu bài
+Q: Với dữ liệu và biên bin trong ví dụ tay, số 2 và số 8 thuộc bin nào?
+A: 2 vào [2,4), không vào [0,2). 8 vào bin cuối [6,8] vì bin cuối gồm biên phải. Counts là [1,3,1,1].
+Q: Density histogram có bốn bin rộng 2 với density 1/12, 1/4, 1/12, 1/12. Tổng xác suất là bao nhiêu?
+A: Tổng diện tích = 2 × (1/12 + 1/4 + 1/12 + 1/12) = 1. Không cộng riêng chiều cao rồi gọi đó là xác suất.
+Q: Dãy [4,5,5,6,7,8,30] có râu box plot tới 1.25 và 11.25 không?
+A: Không. Đó là cận 1.5 IQR; râu tới điểm quan sát trong cận là 4 và 8. 30 được vẽ ngoài râu.
+Q: Ma trận correlation có r gần 0 thì có thể bỏ scatter plot không?
+A: Không. Quan hệ có thể phi tuyến như y=x² trên x đối xứng; scatter giúp thấy hình dạng mà Pearson không phản ánh.
+Q: Bốn feature tạo bao nhiêu ô scatter matrix và bao nhiêu cặp phân biệt?
+A: 4² = 16 ô. Có 4 ô đường chéo và 4 × 3 / 2 = 6 cặp phân biệt, mỗi cặp xuất hiện ở hai ô đổi trục.
+@tier B | Phỏng vấn lý thuyết
+Q: Histogram khác KDE ở giả định và cách đọc thế nào?
+A: Histogram đếm hoặc tính density theo bin, nhạy với biên/số bin. KDE dùng kernel và bandwidth để tạo đường trơn, có thể đi ngoài miền hợp lệ. Cả hai là góc nhìn từ mẫu dữ liệu, không phải phân phối thật đã biết.
+EN: Histograms depend on bins; KDE depends on bandwidth and may extend beyond valid support. Neither reveals the true population distribution without assumptions.
+Q: Vì sao một điểm ngoài râu không đủ để xóa hàng?
+A: Đó là nhãn theo quy ước thống kê, chưa chứng minh lỗi nhập liệu. Cần kiểm đơn vị, nguồn đo và ý nghĩa nghiệp vụ; ca hiếm có thật có thể là mục tiêu cần phát hiện.
+EN: A box-plot flier is a statistical flag, not proof of a data error; context determines whether to correct, retain or investigate it.
+Q: Dữ liệu đều là số thì correlation heatmap có luôn có nghĩa?
+A: Không. Mã nominal không có khoảng cách định lượng; cột hằng cho correlation không xác định. Cần định nghĩa cột, missing handling và kiểm tra leakage trước khi diễn giải.
+EN: Numeric storage does not guarantee meaningful Pearson correlations; identifiers, constant columns and missingness need special care.
+Q: Phân biệt Figure, Axes và Axis trong matplotlib?
+A: Figure là canvas chứa toàn hình; Axes là một vùng vẽ với dữ liệu/title/labels; Axis quản lý trục và ticks. plt.subplots tạo Figure và một hoặc nhiều Axes, rồi gọi ax.set để đặt nhãn vùng vẽ.
+EN: A Figure is the canvas, an Axes is a plotting region, and an Axis controls coordinate ticks and scale.
+@tier C | Tình huống doanh nghiệp
+Q: Marketing thấy hai đỉnh trên KDE rồi muốn chia khách thành hai phân khúc ngay. Bạn làm gì?
+A: Kiểm tra cỡ mẫu, bandwidth, histogram và thay đổi theo thời gian/nguồn. So nhóm bằng đặc điểm có ý nghĩa, chưa coi đỉnh là class thật. Thử chiến dịch nhỏ nếu cần phân khúc; làm trơn hoặc nhiễu có thể tạo/che đỉnh, còn phân khúc chỉ có ích khi hỗ trợ hành động.
+WANT: Không biến hình trơn thành bằng chứng phân khúc chắc chắn; biết kiểm tra độ nhạy và giá trị nghiệp vụ.
+Q: Báo cáo doanh thu dùng hai heatmap tự động đổi thang màu. Một nhóm trông tương quan mạnh hơn. Có kết luận được không?
+A: Đọc các giá trị r, giữ vmin/vmax chung, kiểm cỡ mẫu/missing và cùng định nghĩa cột. Màu đậm có thể chỉ do thang màu khác. Báo cả số và giới hạn, không suy nhân quả hoặc ưu tiên đầu tư từ cảm giác màu.
+WANT: Kiểm soát điều kiện so sánh trước khi suy diễn kinh doanh.
+Q: Vận hành yêu cầu xóa mọi điểm ngoài râu để dashboard đẹp hơn. Bạn xử lý sao?
+A: Kiểm lỗi dữ liệu và tách khỏi ca hiếm thật, giữ bảng gốc để truy vết. Có thể dùng trục log hoặc hình bổ sung để nhìn phần đông nhưng phải ghi rõ; không loại điểm khỏi đánh giá chỉ để hình gọn. Cân nhắc tính dễ đọc với việc không che rủi ro quan trọng.
+WANT: Phân biệt trình bày dễ đọc với thay đổi dữ liệu và tiêu chí đánh giá.
+:::
+
+## Nối sang bài sau
+
+:::next
+Biểu đồ giúp phát hiện giá trị đáng nghi; dữ liệu dạng chuỗi còn cần quy tắc tìm và chuẩn hóa. [[bài:regular-expressions]] là phần công cụ bổ sung từ ghi chú, không thuộc slide 55–63. Để ghép visualization vào dự án, quay lại [[bài:ml-pipeline]].
+:::
+
+## [sâu] Phần mở đầu gốc
 
 :::intro Đọc xong bài này bạn làm được
 - Chọn biểu đồ theo câu hỏi về phân bố, cực trị hoặc quan hệ giữa các biến.
@@ -23,7 +131,7 @@ tags: [visualization, matplotlib, pandas, histogram, density, boxplot, heatmap, 
 :::slides 55-61 | Step 4 và năm loại biểu đồ: histogram, density, box, correlation, scatter matrix
 :::
 
-## Hỏi gì thì chọn hình đó
+## [sâu] Hỏi gì thì chọn hình đó
 
 :::compare Câu hỏi → biểu đồ
 | Câu hỏi | Biểu đồ đầu tiên | Đọc gì | Điều phải kiểm tra |
@@ -39,7 +147,7 @@ Ghi chú của chủ repo gọi histogram “dễ, hay dùng”, correlation mat
 
 > **EN:** Usage frequency is contextual. Choose a plot for the question, rather than treating a classroom preference as a universal ranking.
 
-## Histogram: gom giá trị vào khoảng rồi đếm
+## [sâu] Histogram: gom giá trị vào khoảng rồi đếm
 
 [[slide:56]] dùng `data.hist()` và `plt.show()` để nhìn nhiều cột của Pima Diabetes cùng lúc. Mỗi cột có một histogram riêng: trục ngang là giá trị, trục dọc mặc định là **số mẫu** trong bin. Đuôi dài của Insulin hoặc nhiều giá trị 0 là tín hiệu cần tìm nguyên nhân ở [[bài:missing-values-outliers]]. Histogram không biết 0 là thiếu hay là số đo thật.
 
@@ -60,7 +168,7 @@ Dữ liệu: `[1, 2, 2, 3, 4, 8]`. Biên bin `[0, 2, 4, 6, 8]`.
 Theo quy ước NumPy/matplotlib, bin cuối bao gồm biên phải 8. Tổng count = 6. Diện tích = 2 × (1/12 + 1/4 + 1/12 + 1/12) = **1**. Nếu gộp còn hai bin `[0,4), [4,8]`, count thành **4 và 2**: cùng dữ liệu, cảm giác về hình khác đi.
 :::
 
-## Density plot: ước lượng trơn, không phải biết mật độ thật
+## [sâu] Density plot: ước lượng trơn, không phải biết mật độ thật
 
 [[slide:57]] dùng `data.plot(kind="density", subplots=True, layout=(3,3), sharex=False)`. Dạng này thường là **kernel density estimation (KDE)**: đặt một “gò” trơn quanh mỗi mẫu rồi cộng lại, thay cho cột đếm. Ghi chú “liên tục hóa” nói về cách biểu diễn/ước lượng, không chứng minh biến gốc liên tục hay biến đổi nó thành Gaussian.
 
@@ -68,7 +176,7 @@ Theo quy ước NumPy/matplotlib, bin cuối bao gồm biên phải 8. Tổng co
 
 > **EN:** KDE estimates a smooth density; bandwidth controls the smoothness. The curve can extend beyond valid bounds and should not be read as pointwise probability or evidence that discrete data are continuous.
 
-## Box plot: phần giữa nằm đâu, điểm nào cần xem lại?
+## [sâu] Box plot: phần giữa nằm đâu, điểm nào cần xem lại?
 
 [[slide:58]] dùng `data.plot(kind="box", subplots=True, layout=(3,3), sharex=False, sharey=False)`. Hộp trải Q1→Q3; đường trong hộp là median. Với quy ước phổ biến `whis=1.5`, râu kéo tới **điểm quan sát xa nhất còn trong** `[Q1−1.5 IQR, Q3+1.5 IQR]`, không nhất thiết tới đúng hai cận. Điểm ngoài râu được vẽ riêng, không tự là lỗi hay lệnh xóa.
 
@@ -82,7 +190,7 @@ Với `[4,5,5,6,7,8,30]`: Q1 = 5, median = 6, Q3 = 7.5, IQR = 2.5. Hai cận là
 Box plot không cho thấy đầy đủ hình dạng/đa đỉnh và thường không cho biết cỡ mẫu. So nhóm nhỏ với nhóm lớn cần xem số quan sát, histogram hoặc các điểm. “Outlier trên hình” và “class thiểu số” ở [[bài:imbalanced-data]] là hai khái niệm khác nhau.
 :::
 
-## Correlation matrix: số trong ô quan trọng hơn cảm giác màu
+## [sâu] Correlation matrix: số trong ô quan trọng hơn cảm giác màu
 
 [[slide:59]] tính `data.corr()` rồi xem bảng số; [[slide:60]] vẽ bằng seaborn `heatmap(..., annot=True)`. Mỗi ô là Pearson r giữa hai cột; ma trận đối xứng, đường chéo bằng 1 với cột không hằng. Nối với [[bài:correlation-multicollinearity]]: r đo quan hệ tuyến tính, không đo độ dốc và không chứng minh nhân quả.
 
@@ -90,7 +198,7 @@ Box plot không cho thấy đầy đủ hình dạng/đa đỉnh và thường k
 
 > **EN:** A correlation heatmap needs semantically meaningful numeric variables, not merely numeric storage types. Fix the color scale when comparing plots and inspect missingness, constant columns and possible target leakage.
 
-## Scatter matrix: nhìn quan hệ từng cặp trước khi kết luận
+## [sâu] Scatter matrix: nhìn quan hệ từng cặp trước khi kết luận
 
 [[slide:61]] dùng `scatter_matrix(data)`. Mỗi ô ngoài đường chéo là scatter của một cặp feature: đọc **tên cột ngang cho x**, **tên hàng dọc cho y**. Đường chéo thường là histogram của chính biến đó. Các ô đối xứng mang cùng quan hệ đổi trục; không cần đọc cả hai như bằng chứng độc lập.
 
@@ -98,7 +206,7 @@ Box plot không cho thấy đầy đủ hình dạng/đa đỉnh và thường k
 
 > **EN:** A scatter matrix shows pairwise shapes, clusters and outliers. Its quadratic size and overplotting limit readability; mirrored panels are not independent evidence.
 
-## Code: năm biểu đồ trên dữ liệu có sẵn (bổ sung)
+## [sâu] Code: năm biểu đồ trên dữ liệu có sẵn (bổ sung)
 
 Trong repo không có `diabetes.csv`. Ảnh slide dùng **Pima classification** với `Outcome`; code dưới dùng **Diabetes regression có sẵn trong scikit-learn**, với các feature đã scale và target định lượng. Không chép số 500/268 hoặc cách diễn giải trục gốc của Pima sang dữ liệu này. Chỉ chọn `age`, `bmi`, `bp`, `s5` để hình gọn; không dùng KDE cho cột `sex` được mã hóa hai mức.
 
@@ -187,7 +295,7 @@ Nếu dùng Pima CSV thật để chạy `data.hist()` như slide, cần đọc 
 
 > **EN:** These runnable examples use scikit-learn's regression dataset, not Pima. Data provenance, units, preprocessing and development/test separation are part of interpreting a plot correctly.
 
-## Figure, Axes, Axis: gọi đúng để sửa đúng hình
+## [sâu] Figure, Axes, Axis: gọi đúng để sửa đúng hình
 
 :::slides 62-63 | Cấu tạo biểu đồ matplotlib; ảnh so sánh grid và legend
 :::
@@ -214,60 +322,3 @@ plt.close(fig)
 ```
 
 Ví dụ sin/cos là phần bổ sung để thao tác API, không phải khẳng định đường trong slide dùng đúng hai hàm này. Tham khảo [hướng dẫn matplotlib](https://matplotlib.org/stable/users/explain/quick_start.html).
-
-## Tóm tắt 1 phút
-
-:::recap
-- Histogram nhìn phân bố qua các bin; thử biên/số bin trước khi kết luận.
-- KDE làm trơn ước lượng; bandwidth và miền hợp lệ quan trọng.
-- Box plot tóm tắt tứ phân vị; điểm ngoài râu cần điều tra.
-- Heatmap r chỉ nhìn tuyến tính, cần ý nghĩa cột số và không suy nhân quả.
-- Scatter matrix giúp thấy quan hệ cong/cụm nhưng số ô tăng theo p².
-- Figure chứa Axes; Axis là hệ trục/ticks; title, đơn vị, grid và legend giúp đọc đúng.
-- Xem nguồn dữ liệu và tập dùng để khám phá trước khi tin hình đẹp.
-:::
-
-## Câu hỏi tự kiểm tra
-
-:::quiz
-@tier A | Hiểu bài
-Q: Với dữ liệu và biên bin trong ví dụ tay, số 2 và số 8 thuộc bin nào?
-A: 2 vào [2,4), không vào [0,2). 8 vào bin cuối [6,8] vì bin cuối gồm biên phải. Counts là [1,3,1,1].
-Q: Density histogram có bốn bin rộng 2 với density 1/12, 1/4, 1/12, 1/12. Tổng xác suất là bao nhiêu?
-A: Tổng diện tích = 2 × (1/12 + 1/4 + 1/12 + 1/12) = 1. Không cộng riêng chiều cao rồi gọi đó là xác suất.
-Q: Dãy [4,5,5,6,7,8,30] có râu box plot tới 1.25 và 11.25 không?
-A: Không. Đó là cận 1.5 IQR; râu tới điểm quan sát trong cận là 4 và 8. 30 được vẽ ngoài râu.
-Q: Ma trận correlation có r gần 0 thì có thể bỏ scatter plot không?
-A: Không. Quan hệ có thể phi tuyến như y=x² trên x đối xứng; scatter giúp thấy hình dạng mà Pearson không phản ánh.
-Q: Bốn feature tạo bao nhiêu ô scatter matrix và bao nhiêu cặp phân biệt?
-A: 4² = 16 ô. Có 4 ô đường chéo và 4 × 3 / 2 = 6 cặp phân biệt, mỗi cặp xuất hiện ở hai ô đổi trục.
-@tier B | Phỏng vấn lý thuyết
-Q: Histogram khác KDE ở giả định và cách đọc thế nào?
-A: Histogram đếm hoặc tính density theo bin, nhạy với biên/số bin. KDE dùng kernel và bandwidth để tạo đường trơn, có thể đi ngoài miền hợp lệ. Cả hai là góc nhìn từ mẫu dữ liệu, không phải phân phối thật đã biết.
-EN: Histograms depend on bins; KDE depends on bandwidth and may extend beyond valid support. Neither reveals the true population distribution without assumptions.
-Q: Vì sao một điểm ngoài râu không đủ để xóa hàng?
-A: Đó là nhãn theo quy ước thống kê, chưa chứng minh lỗi nhập liệu. Cần kiểm đơn vị, nguồn đo và ý nghĩa nghiệp vụ; ca hiếm có thật có thể là mục tiêu cần phát hiện.
-EN: A box-plot flier is a statistical flag, not proof of a data error; context determines whether to correct, retain or investigate it.
-Q: Dữ liệu đều là số thì correlation heatmap có luôn có nghĩa?
-A: Không. Mã nominal không có khoảng cách định lượng; cột hằng cho correlation không xác định. Cần định nghĩa cột, missing handling và kiểm tra leakage trước khi diễn giải.
-EN: Numeric storage does not guarantee meaningful Pearson correlations; identifiers, constant columns and missingness need special care.
-Q: Phân biệt Figure, Axes và Axis trong matplotlib?
-A: Figure là canvas chứa toàn hình; Axes là một vùng vẽ với dữ liệu/title/labels; Axis quản lý trục và ticks. plt.subplots tạo Figure và một hoặc nhiều Axes, rồi gọi ax.set để đặt nhãn vùng vẽ.
-EN: A Figure is the canvas, an Axes is a plotting region, and an Axis controls coordinate ticks and scale.
-@tier C | Tình huống doanh nghiệp
-Q: Marketing thấy hai đỉnh trên KDE rồi muốn chia khách thành hai phân khúc ngay. Bạn làm gì?
-A: Kiểm tra cỡ mẫu, bandwidth, histogram và thay đổi theo thời gian/nguồn. So nhóm bằng đặc điểm có ý nghĩa, chưa coi đỉnh là class thật. Thử chiến dịch nhỏ nếu cần phân khúc; làm trơn hoặc nhiễu có thể tạo/che đỉnh, còn phân khúc chỉ có ích khi hỗ trợ hành động.
-WANT: Không biến hình trơn thành bằng chứng phân khúc chắc chắn; biết kiểm tra độ nhạy và giá trị nghiệp vụ.
-Q: Báo cáo doanh thu dùng hai heatmap tự động đổi thang màu. Một nhóm trông tương quan mạnh hơn. Có kết luận được không?
-A: Đọc các giá trị r, giữ vmin/vmax chung, kiểm cỡ mẫu/missing và cùng định nghĩa cột. Màu đậm có thể chỉ do thang màu khác. Báo cả số và giới hạn, không suy nhân quả hoặc ưu tiên đầu tư từ cảm giác màu.
-WANT: Kiểm soát điều kiện so sánh trước khi suy diễn kinh doanh.
-Q: Vận hành yêu cầu xóa mọi điểm ngoài râu để dashboard đẹp hơn. Bạn xử lý sao?
-A: Kiểm lỗi dữ liệu và tách khỏi ca hiếm thật, giữ bảng gốc để truy vết. Có thể dùng trục log hoặc hình bổ sung để nhìn phần đông nhưng phải ghi rõ; không loại điểm khỏi đánh giá chỉ để hình gọn. Cân nhắc tính dễ đọc với việc không che rủi ro quan trọng.
-WANT: Phân biệt trình bày dễ đọc với thay đổi dữ liệu và tiêu chí đánh giá.
-:::
-
-## Nối sang bài sau
-
-:::next
-Biểu đồ giúp phát hiện giá trị đáng nghi; dữ liệu dạng chuỗi còn cần quy tắc tìm và chuẩn hóa. [[bài:regular-expressions]] là phần công cụ bổ sung từ ghi chú, không thuộc slide 55–63. Để ghép visualization vào dự án, quay lại [[bài:ml-pipeline]].
-:::

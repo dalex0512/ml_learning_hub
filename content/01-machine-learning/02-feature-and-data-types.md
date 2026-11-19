@@ -1,135 +1,63 @@
 ---
 title: Dataset, Feature và các loại dữ liệu
 order: 2
-description: "Đọc bảng dữ liệu theo sample và feature, phân biệt numerical với categorical theo ý nghĩa thay vì chỉ nhìn dtype."
+description: "Mỗi cột là loại thông tin gì: số đo, nhóm hay mã định danh, và vì sao dtype không nói hết bản chất."
 slides: 7-8
 needs: [what-is-ml]
 tags: [dataset, feature, numerical, categorical, ordinal, nominal]
 ---
 
-## Một bảng dữ liệu nói gì với model?
+## Mỗi cột trong bảng là loại thông tin gì?
 
-:::intro Đọc xong bài này bạn làm được
-- Chỉ đúng sample và feature trong Adult dataset.
-- Phân biệt nominal, ordinal, boolean và numerical.
-- Giải thích vì sao mã số không nhất thiết là đại lượng số.
+:::intro Mục tiêu bài này
+- Đọc một bảng dữ liệu như model đọc: hàng là **mẫu**, cột là **feature**.
+- Phân biệt **số đo**, **mã định danh** và **nhóm (categorical)**, kể cả khi kiểu lưu trữ đánh lừa.
+- Biết loại cột quyết định ta được làm gì với nó (tính trung bình, scale, mã hóa).
 :::
 
-Nền để đọc bài này: [[bài:what-is-ml]].
+Một **dataset** là một bảng: mỗi **hàng** là một mẫu (một bệnh nhân, một email), mỗi **cột** là một **feature** (một thông tin mô tả mẫu đó). Với bộ Diabetes: 768 hàng, 8 cột feature và 1 cột nhãn. Model không "hiểu" chữ nghĩa của tên cột; nó chỉ thấy các con số. Vì vậy **ta** phải biết mỗi cột thật sự là gì trước khi quyết định xử lý.
 
-:::slides 7-8 | Slide gốc — Dataset, Feature và các loại dữ liệu
+:::predict
+Bảng có hai cột kiểu số nguyên: `Age` (tuổi) và `PatientID` (mã bệnh nhân, từ 1 đến 768). Tính trung bình của từng cột có ý nghĩa không?
+@answer
+**Trung bình `Age` có ý nghĩa** (tuổi trung bình của nhóm). **Trung bình `PatientID` vô nghĩa**: mã chỉ để phân biệt người này với người kia, số 400 không "lớn gấp đôi" số 200. Cả hai đều là số nguyên, nhưng một cái là **số đo**, một cái là **mã định danh**.
 :::
 
-Dataset (bộ dữ liệu) trong ML thường ở dạng bảng — gọi là **tabular
-data**/**structured data**. Mỗi dòng trong bảng là 1 **sample** (mẫu), mỗi
-cột là 1 **feature** (thuộc tính) — thông tin mô tả sample đó, dùng làm đầu
-vào cho model.
+## Ba loại cột quan trọng nhất
 
-> **EN:** A dataset in ML is usually shaped like a table — called
-> **tabular data**/**structured data**. Each row is a **sample**, and each
-> column is a **feature** — a piece of information describing that sample,
-> used as input to the model.
+| Loại | Ví dụ | Phép tính có nghĩa | Cách xử lý thường gặp |
+|---|---|---|---|
+| **Số đo** (numerical) | Age, Glucose, BMI | cộng, trừ, trung bình, so lớn nhỏ | scale ([[bài:feature-scaling]]) |
+| **Nhóm có thứ tự** (ordinal) | cỡ áo S, M, L; mức độ hài lòng 1 đến 5 | so lớn nhỏ, nhưng khoảng cách chưa chắc đều | mã hóa theo thứ tự |
+| **Nhóm không thứ tự** (nominal) | màu sắc, thành phố | chỉ "giống" hay "khác" | one-hot ([[bài:categorical-encoding]]) |
+| **Mã định danh** | PatientID, số điện thoại | chỉ để nhận diện | thường **bỏ** khỏi feature |
 
-## Vì sao phải hiểu feature trước khi xử lý?
+Câu hỏi cốt lõi cho từng cột: *các phép tính (cộng, trung bình, so sánh) trên nó có nghĩa không?* Nếu không, đừng đưa vào model như một con số thường.
 
-Trước khi đưa dữ liệu vào model, cần hiểu rõ **từng feature thuộc loại
-gì** — vì cách xử lý (tiền xử lý, mã hóa/encode) sẽ khác nhau tùy loại
-feature. Phân loại sai ngay từ đầu dễ dẫn tới xử lý sai ở các bước sau.
-
-> **EN:** Before feeding data into a model, you need to know **what type
-> each feature is** — because preprocessing and encoding differ by feature
-> type. Misclassifying a feature early on tends to cause mistakes in every
-> step that follows.
-
-## Số đo hay mã định danh?
-
-**Numerical (số):**
-- Integer (số nguyên): `1, 2, 3` hoặc `-2, -1, 0, 1, 2`
-- Float (số thực): `0.1, 0.2, 0.3`
-
-**Categorical (phân loại)** — có hữu hạn các giá trị khác nhau, rời rạc:
-- Nominal (định danh): các giá trị bình đẳng về ý nghĩa, không có thứ bậc.
-  VD: `red, green, blue`; `US, Vietnam, Thailand`
-- Ordinal (thứ bậc): các giá trị có liên quan thứ tự với nhau về mặt thứ
-  bậc. VD: `happy, normal, sad`; `XS, S, M, L, XL`
-- Boolean (logic): `True/False`, `Yes/No`
-
-**Lưu ý quan trọng:** có trường hợp ngoại lệ — 1 cột trông giống numerical
-feature (toàn số) nhưng thực chất là categorical. Cách phân biệt: xem các
-giá trị này **có quan hệ thứ bậc/ý nghĩa toán học hay không**. Ví dụ mã số
-xe là số, nhưng cộng/trừ hai mã số xe không có ý nghĩa gì — nên nó vẫn là
-categorical (nominal), dù đã được số hóa.
-
-> **EN:**
->
-> **Numerical:**
-> - Integer: `1, 2, 3` or `-2, -1, 0, 1, 2`
-> - Float: `0.1, 0.2, 0.3`
->
-> **Categorical** — a finite set of distinct, discrete values:
-> - Nominal: values are equal in meaning, with no inherent order.
->   E.g. `red, green, blue`; `US, Vietnam, Thailand`
-> - Ordinal: values have a meaningful order/ranking relative to each other.
->   E.g. `happy, normal, sad`; `XS, S, M, L, XL`
-> - Boolean: `True/False`, `Yes/No`
->
-> **Important edge case:** a column can look numerical (all digits) but
-> actually be categorical. The test is whether the values have a
-> meaningful order/arithmetic relationship. A vehicle ID number is
-> numeric, but adding or subtracting two IDs is meaningless — so it stays
-> categorical (nominal) even though it's been digitized.
-
-## Đọc các cột của Adult dataset
-
-:::worked Ví dụ và số liệu đối chiếu
-Trong bộ dữ liệu **Adult dataset**:
-- `age` → Numerical, Integer
-- `education` → Categorical, Ordinal (có thứ bậc: HS-grad < Some-college <
-  Bachelors < Masters < Doctorate)
-- `sex` → Categorical, Nominal (không có thứ bậc giữa Male/Female)
-- `income` (`<=50K` / `>50K`) → Categorical, có thể coi là Ordinal (có thứ
-  bậc thấp/cao) hoặc Boolean tùy cách đặt bài toán
-
-> **EN:** In the **Adult dataset**:
-> - `age` → Numerical, Integer
-> - `education` → Categorical, Ordinal (ranked: HS-grad < Some-college <
->   Bachelors < Masters < Doctorate)
-> - `sex` → Categorical, Nominal (no ranking between Male/Female)
-> - `income` (`<=50K` / `>50K`) → Categorical — arguably Ordinal (low/high
->   ranking) or Boolean depending on how the problem is framed
+:::ck
+Cột `ZipCode` (mã vùng) được pandas đọc thành `int64`. Nó là loại cột nào, và nên làm gì?
+@answer
+Là **nhóm không thứ tự (hoặc mã định danh)**, dù pandas lưu bằng số. Mã vùng 70000 không "lớn hơn" 10000 theo nghĩa nào có ích. Cách làm: mã hóa như categorical (one-hot nếu số vùng ít), hoặc bỏ nếu chỉ là mã. `dtype` cho biết cách **lưu**, không cho biết bản chất **ý nghĩa**.
 :::
 
-## Kiểm tra dtype và giá trị bằng pandas
+## Kiểm tra bằng pandas, nhưng đừng tin mỗi `dtype`
 
 ```python
-import pandas as pd
-
-df = pd.read_csv("adult.csv")
-print(df.dtypes)                     # kiểu dữ liệu pandas tự suy ra
-print(df["education"].unique())      # các giá trị duy nhất của 1 cột categorical
+data.dtypes           # kiểu lưu của từng cột
+data.describe()       # thống kê cột số
+data["Outcome"].value_counts()   # đếm giá trị của cột nhóm
 ```
 
-> **EN:** Reads the dataset and inspects pandas' inferred dtypes, then
-> lists the unique values of one categorical column — the first sanity
-> check before deciding how to encode each feature.
+Ba bẫy hay gặp: (1) mã định danh lưu bằng số; (2) nhóm lưu bằng số (ví dụ 0/1 cho giới tính); (3) số lưu bằng chữ (ví dụ "1,200" hoặc "N/A") nên bị đọc thành `object`. Luôn đọc tên cột, nhìn vài giá trị, rồi mới kết luận. Bước tiếp theo, tách cột đáp án khỏi bảng, nằm ở [[bài:labeled-data]].
 
-## Dtype chưa phải bản chất feature (bổ sung)
-
-:::pitfall ID và thứ tự giả
-Cột mã khách hàng lưu dạng integer vẫn có thể là nominal. Không tự suy ra khoảng cách hay xếp hạng từ mã. Ordinal có thứ tự nhưng khoảng cách giữa các mức chưa chắc bằng nhau; xem [[bài:categorical-encoding]] trước khi đưa mã số vào model.
+:::slides 7-8 | Slide 7–8: dataset, feature và các loại dữ liệu
 :::
 
-> **EN:** Storage dtype does not determine feature semantics. An ordinal variable has an order, but not necessarily equal spacing between levels.
-
-## Tóm tắt 1 phút
-
-:::recap
-- Một dòng là sample, cột đầu vào là feature.
-- Numerical có ý nghĩa định lượng.
-- Nominal không có thứ tự nội tại.
-- Ordinal có thứ tự nhưng chưa chắc có khoảng cách đều.
-- Boolean biểu diễn hai trạng thái.
-- Kiểm tra cả dtype, unique values và ý nghĩa nghiệp vụ.
+:::card Dataset và feature
+- **Hàng = mẫu, cột = feature**; model chỉ thấy các con số.
+- **Số đo**: cộng, trừ, trung bình có nghĩa. **Nhóm**: chỉ giống hay khác (ordinal có thêm thứ tự). **Mã định danh**: chỉ để nhận diện, thường bỏ.
+- Hỏi mỗi cột: *các phép tính trên nó có nghĩa không?*
+- **`dtype` chỉ cho biết cách lưu**, không cho biết ý nghĩa: `ZipCode` là `int64` nhưng là nhóm.
 :::
 
 ## Câu hỏi tự kiểm tra
@@ -193,3 +121,117 @@ WANT: Phân biệt thứ tự với khoảng cách định lượng.
 :::next
 Biết loại feature mới là hiểu đầu vào. [[bài:learning-paradigms]] đi tiếp: model sẽ học từ nhãn, cấu trúc dữ liệu hay phản hồi của môi trường?
 :::
+
+## [sâu] Phần mở đầu gốc
+
+:::intro Đọc xong bài này bạn làm được
+- Chỉ đúng sample và feature trong Adult dataset.
+- Phân biệt nominal, ordinal, boolean và numerical.
+- Giải thích vì sao mã số không nhất thiết là đại lượng số.
+:::
+
+Nền để đọc bài này: [[bài:what-is-ml]].
+
+:::slides 7-8 | Slide gốc — Dataset, Feature và các loại dữ liệu
+:::
+
+Dataset (bộ dữ liệu) trong ML thường ở dạng bảng — gọi là **tabular
+data**/**structured data**. Mỗi dòng trong bảng là 1 **sample** (mẫu), mỗi
+cột là 1 **feature** (thuộc tính) — thông tin mô tả sample đó, dùng làm đầu
+vào cho model.
+
+> **EN:** A dataset in ML is usually shaped like a table — called
+> **tabular data**/**structured data**. Each row is a **sample**, and each
+> column is a **feature** — a piece of information describing that sample,
+> used as input to the model.
+
+## [sâu] Vì sao phải hiểu feature trước khi xử lý?
+
+Trước khi đưa dữ liệu vào model, cần hiểu rõ **từng feature thuộc loại
+gì** — vì cách xử lý (tiền xử lý, mã hóa/encode) sẽ khác nhau tùy loại
+feature. Phân loại sai ngay từ đầu dễ dẫn tới xử lý sai ở các bước sau.
+
+> **EN:** Before feeding data into a model, you need to know **what type
+> each feature is** — because preprocessing and encoding differ by feature
+> type. Misclassifying a feature early on tends to cause mistakes in every
+> step that follows.
+
+## [sâu] Số đo hay mã định danh?
+
+**Numerical (số):**
+- Integer (số nguyên): `1, 2, 3` hoặc `-2, -1, 0, 1, 2`
+- Float (số thực): `0.1, 0.2, 0.3`
+
+**Categorical (phân loại)** — có hữu hạn các giá trị khác nhau, rời rạc:
+- Nominal (định danh): các giá trị bình đẳng về ý nghĩa, không có thứ bậc.
+  VD: `red, green, blue`; `US, Vietnam, Thailand`
+- Ordinal (thứ bậc): các giá trị có liên quan thứ tự với nhau về mặt thứ
+  bậc. VD: `happy, normal, sad`; `XS, S, M, L, XL`
+- Boolean (logic): `True/False`, `Yes/No`
+
+**Lưu ý quan trọng:** có trường hợp ngoại lệ — 1 cột trông giống numerical
+feature (toàn số) nhưng thực chất là categorical. Cách phân biệt: xem các
+giá trị này **có quan hệ thứ bậc/ý nghĩa toán học hay không**. Ví dụ mã số
+xe là số, nhưng cộng/trừ hai mã số xe không có ý nghĩa gì — nên nó vẫn là
+categorical (nominal), dù đã được số hóa.
+
+> **EN:**
+>
+> **Numerical:**
+> - Integer: `1, 2, 3` or `-2, -1, 0, 1, 2`
+> - Float: `0.1, 0.2, 0.3`
+>
+> **Categorical** — a finite set of distinct, discrete values:
+> - Nominal: values are equal in meaning, with no inherent order.
+>   E.g. `red, green, blue`; `US, Vietnam, Thailand`
+> - Ordinal: values have a meaningful order/ranking relative to each other.
+>   E.g. `happy, normal, sad`; `XS, S, M, L, XL`
+> - Boolean: `True/False`, `Yes/No`
+>
+> **Important edge case:** a column can look numerical (all digits) but
+> actually be categorical. The test is whether the values have a
+> meaningful order/arithmetic relationship. A vehicle ID number is
+> numeric, but adding or subtracting two IDs is meaningless — so it stays
+> categorical (nominal) even though it's been digitized.
+
+## [sâu] Đọc các cột của Adult dataset
+
+:::worked Ví dụ và số liệu đối chiếu
+Trong bộ dữ liệu **Adult dataset**:
+- `age` → Numerical, Integer
+- `education` → Categorical, Ordinal (có thứ bậc: HS-grad < Some-college <
+  Bachelors < Masters < Doctorate)
+- `sex` → Categorical, Nominal (không có thứ bậc giữa Male/Female)
+- `income` (`<=50K` / `>50K`) → Categorical, có thể coi là Ordinal (có thứ
+  bậc thấp/cao) hoặc Boolean tùy cách đặt bài toán
+
+> **EN:** In the **Adult dataset**:
+> - `age` → Numerical, Integer
+> - `education` → Categorical, Ordinal (ranked: HS-grad < Some-college <
+>   Bachelors < Masters < Doctorate)
+> - `sex` → Categorical, Nominal (no ranking between Male/Female)
+> - `income` (`<=50K` / `>50K`) → Categorical — arguably Ordinal (low/high
+>   ranking) or Boolean depending on how the problem is framed
+:::
+
+## [sâu] Kiểm tra dtype và giá trị bằng pandas
+
+```python
+import pandas as pd
+
+df = pd.read_csv("adult.csv")
+print(df.dtypes)                     # kiểu dữ liệu pandas tự suy ra
+print(df["education"].unique())      # các giá trị duy nhất của 1 cột categorical
+```
+
+> **EN:** Reads the dataset and inspects pandas' inferred dtypes, then
+> lists the unique values of one categorical column — the first sanity
+> check before deciding how to encode each feature.
+
+## [sâu] Dtype chưa phải bản chất feature (bổ sung)
+
+:::pitfall ID và thứ tự giả
+Cột mã khách hàng lưu dạng integer vẫn có thể là nominal. Không tự suy ra khoảng cách hay xếp hạng từ mã. Ordinal có thứ tự nhưng khoảng cách giữa các mức chưa chắc bằng nhau; xem [[bài:categorical-encoding]] trước khi đưa mã số vào model.
+:::
+
+> **EN:** Storage dtype does not determine feature semantics. An ordinal variable has an order, but not necessarily equal spacing between levels.

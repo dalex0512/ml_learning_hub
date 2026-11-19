@@ -1,149 +1,68 @@
 ---
 title: Phân chia Dataset (Train / Validation / Test Split)
 order: 7
-description: "Tách vai trò train, validation và test; chọn cách chia theo tình huống triển khai và tránh vô tình học từ dữ liệu đánh giá."
+description: "Vì sao không chấm trên dữ liệu đã học: train học, validation chọn, test chấm cuối đúng một lần."
 slides: 22
 needs: [loss-function]
 tags: [split, validation, test, leakage]
 ---
 
-## Vì sao không chấm trên dữ liệu đã học?
+## Vì sao không chấm model trên dữ liệu nó đã học?
 
-:::intro Đọc xong bài này bạn làm được
-- Nói rõ tập nào cập nhật tham số, tập nào chọn model, tập nào đánh giá cuối.
-- Tính được tỉ lệ chia hai lần.
-- Nhận ra rò rỉ theo thời gian, khách hàng và tiền xử lý.
+:::intro Mục tiêu bài này
+- Hiểu vì sao điểm trên dữ liệu đã học **không chứng minh gì** (học thuộc khác hiểu bài).
+- Phân biệt vai của **train**, **validation** và **test**.
+- Chia dữ liệu đúng thứ tự: tách test trước, chọn model bằng validation.
 :::
 
-Nền để đọc bài này: [[bài:loss-function]].
+Một cây quyết định không giới hạn đạt **100%** khi chấm lại trên chính dữ liệu nó đã học, nhưng chỉ **74.7%** trên 154 bệnh nhân chưa từng thấy (số thật từ Project Bước 2). Nó **thuộc bài** chứ chưa **hiểu bài**. Một học sinh làm đi làm lại đề cũ rồi được 10 điểm không chứng tỏ gì về đề mới. Vì vậy ta phải chấm bằng dữ liệu model **chưa từng nhìn**.
 
-:::slides 22 | Slide gốc — Phân chia Dataset (Train / Validation / Test Split)
+:::predict
+Bạn chia dữ liệu 80/20, huấn luyện, thấy test chỉ được 70%. Bạn chỉnh model, chạy lại, test được 72%; chỉnh nữa, 74%... Sau 20 lần chỉnh, test đạt 80%. Con số 80% đó còn là phép chấm trung thực không?
+@answer
+**Không còn nữa.** Mỗi lần chỉnh theo điểm test, bộ test đã tham gia **lựa chọn** model, nên điểm 80% là lạc quan (ta đã vô tình "học" bộ test). Cần một tập thứ ba, **validation**, để chỉnh model; test chỉ dùng **một lần cuối**.
 :::
 
-Khi làm việc với 1 bộ dữ liệu, bắt buộc phải **chia nhỏ** nó ra trước khi
-huấn luyện — không dùng nguyên cả bộ dữ liệu để vừa train vừa đánh giá,
-vì như vậy không thể biết model có thực sự học tốt hay chỉ đang "học
-thuộc lòng" đúng những gì đã thấy.
+## Ba tập, ba vai
 
-> **EN:** When working with a dataset, you must **split it up** before
-> training — you never use the entire dataset for both training and
-> evaluation, because then there's no way to tell whether the model is
-> actually learning well or just memorizing what it has already seen.
+| Tập | Vai | Dùng khi nào |
+|---|---|---|
+| **Train** | để model **học** (cập nhật tham số) | mọi lần huấn luyện |
+| **Validation** | để **chọn**: model nào, tham số nào, tiền xử lý nào | trong lúc phát triển, dùng nhiều lần |
+| **Test** | để **chấm cuối**, báo cáo điểm thật | **một lần**, sau khi đã chốt mọi thứ |
 
-## Ba tập, ba vai trò
+Hãy tự chia để thấy: kéo tỉ lệ, đọc vai của mỗi phần.
 
-Về mặt lý thuyết, dữ liệu được chia thành 3 bộ con:
-- **Training Set**: dùng trong suốt quá trình huấn luyện (training)
-- **Validation Set**: dùng để đánh giá quá trình huấn luyện, ở giữa và
-  sau mỗi giai đoạn train
-- **Test Set**: dùng sau khi huấn luyện xong hoàn toàn, để đánh giá cuối
-  cùng
-
-Tỉ lệ chia thường gặp: **80–10–10** hoặc **90–5–5** (tỉ lệ Training Set
-luôn lớn nhất) — dùng tỉ lệ nghiêng hẳn về Train khi dữ liệu khan hiếm, để
-model có đủ dữ liệu học.
-
-> **EN:** In theory, data is split into three subsets:
-> - **Training Set**: used throughout the training process
-> - **Validation Set**: used to evaluate the training process, both
->   during and after each stage
-> - **Test Set**: used only after training is fully complete, for the
->   final evaluation
->
-> Common split ratios: **80–10–10** or **90–5–5** (the Training Set share
-> is always the largest) — lean the ratio heavily toward Train when data
-> is scarce, so the model has enough to learn from.
-
-## Loss được dùng để cập nhật hay để lựa chọn?
-
-**Sự khác biệt quan trọng nhất giữa 3 bộ nằm ở cách dùng loss:**
-
-- **Training Set**: loss value tính trên bộ này được dùng để **quay
-  ngược lại update model** (đây là bộ duy nhất model thực sự "học" từ đó).
-- **Validation Set** và **Test Set**: loss value tính trên 2 bộ này **chỉ
-  dùng để đánh giá**, không được dùng để cập nhật model. Mục đích của
-  Validation Set là giám sát xem quá trình huấn luyện có đang đi đúng
-  hướng hay không — nếu train đúng hướng, loss trên validation set sẽ
-  càng ngày càng tốt hơn theo thời gian.
-
-Một cách ví von dễ nhớ: **Validation Set giống như các bài kiểm tra giữa
-kỳ** — làm nhiều lần trong quá trình học, để biết mình đang học ổn không
-và còn kịp điều chỉnh. **Test Set giống kỳ thi tốt nghiệp THPT** — chỉ thi
-1 lần duy nhất, sau khi đã học xong hết, đánh giá thực lực cuối cùng,
-không có cơ hội "thi lại rồi sửa cách học".
-
-> **EN:** **The key difference between the three sets is how their loss
-> is used:**
-> - **Training Set**: its loss value is used to **update the model** (the
->   only set the model actually "learns" from).
-> - **Validation Set** and **Test Set**: their loss values are used
->   **only for evaluation**, never to update the model. The Validation
->   Set's job is to monitor whether training is heading in the right
->   direction — if so, validation loss should keep improving over time.
->
-> A helpful analogy: the **Validation Set is like periodic mid-term
-> quizzes** — taken repeatedly while studying, to check you're on track
-> and still have time to adjust. The **Test Set is like a final
-> graduation exam** — taken only once, after all studying is done,
-> measuring your true final ability with no chance to "retake and fix
-> your approach."
-
-## Chia 100 mẫu theo 80–10–10
-
-:::worked Ví dụ và số liệu đối chiếu
-Diabetes dataset, chia theo tỉ lệ 80–10–10 (giả sử có 100 sample):
-- Training Set: 80 sample đầu — dùng để huấn luyện
-- Validation Set: 10 sample tiếp — dùng để theo dõi trong lúc train
-- Test Set: 10 sample cuối — chỉ chạm tới đúng 1 lần, sau khi đã chọn
-  xong model cuối cùng
-
-> **EN:** Diabetes dataset, split 80–10–10 (assume 100 samples):
-> - Training Set: first 80 samples — used for training
-> - Validation Set: next 10 samples — used to monitor progress during
->   training
-> - Test Set: last 10 samples — touched exactly once, after the final
->   model has already been chosen
+:::widget split-bar
 :::
 
-## Tách test trước rồi chia validation
+Một chi tiết hay nhầm: **loss** trên train dùng để cập nhật tham số; điểm trên **validation** dùng để lựa chọn cấu hình. Hai việc khác nhau, nên cần hai tập khác nhau.
 
-```python
-from sklearn.model_selection import train_test_split
+## Chia theo thứ tự đúng
 
-# bước 1: tách Test set ra trước, giữ nguyên không đụng tới
-X_train_val, X_test, y_train_val, y_test = train_test_split(
-    X, y, test_size=0.10, random_state=42
-)
+1. **Tách test trước**, cất đi, không động tới.
+2. Từ phần còn lại, tách validation (hoặc thay bằng cross-validation, xem [[bài:k-fold-cross-validation]]).
+3. Mọi bước **học từ dữ liệu** (scaler, imputer) chỉ `fit` trên train.
 
-# bước 2: chia phần còn lại thành Train và Validation
-X_train, X_val, y_train, y_val = train_test_split(
-    X_train_val, y_train_val, test_size=1/9, random_state=42
-)
-# kết quả xấp xỉ tỉ lệ 80-10-10 trên toàn bộ dataset
-```
+Ví dụ 100 mẫu chia 80/10/10: lấy 10 mẫu test trước; còn 90 mẫu, lấy 10 mẫu validation (khoảng 11% của 90) và 80 mẫu train. Với 614 + 154 của Diabetes, ta chia hai lần: `test_size=0.2`, rồi `test_size=0.25` trên phần train để ra 60/20/20 ([[từ:validation]] là phần giữa).
 
-> **EN:** Split off the Test set first and leave it untouched, then split
-> the remaining data into Train and Validation — the `1/9` ratio in step
-> 2 produces an overall split that approximates 80–10–10 across the full
-> dataset.
+Chia **theo cách sẽ dùng model**: dữ liệu theo thời gian thì tập test phải ở **sau** train, không xáo ngẫu nhiên (xáo là nhìn trộm tương lai); dữ liệu nhiều mẫu của cùng một người thì giữ cùng người ở cùng tập.
 
-## Chia theo cách sẽ dùng model (bổ sung)
-
-:::pitfall Không phải lúc nào cũng shuffle
-Ví dụ '80 mẫu đầu, 10 mẫu tiếp, 10 mẫu cuối' chỉ minh họa số lượng. Với dữ liệu độc lập có thể chia ngẫu nhiên; với dự báo tương lai phải chia theo thời gian; cùng một người xuất hiện nhiều dòng cần cân nhắc chia theo người. Fit scaler/imputer trên train, rồi transform validation/test. Validation không cập nhật trực tiếp tham số nhưng vẫn ảnh hưởng việc chọn model và dừng train. Tỉ lệ 90–5–5 không tự phù hợp khi dữ liệu ít: tập đánh giá quá nhỏ sẽ rất bất ổn.
+:::ck
+Bạn có chuỗi doanh thu theo ngày trong 3 năm và muốn dự đoán tuần sau. Bạn dùng `train_test_split` xáo ngẫu nhiên 80/20. Sai ở đâu?
+@answer
+Xáo ngẫu nhiên đưa các ngày **sau** vào train và các ngày **trước** vào test: model "nhìn thấy tương lai". Cách đúng: chia **theo thời gian** (train là các ngày đầu, test là các ngày cuối).
 :::
 
-> **EN:** Match the split to deployment: random splits for independent samples, temporal splits for forecasting, and group splits for repeated entities. Validation guides model selection; the test set remains independent.
+:::slides 22 | Slide 22: train, validation và test
+:::
 
-## Tóm tắt 1 phút
-
-:::recap
-- Train dùng để học tham số.
-- Validation dùng để chọn cấu hình và theo dõi.
-- Test đánh giá sau khi đã chốt lựa chọn.
-- Tỉ lệ là lựa chọn theo dữ liệu, không phải quy luật.
-- Split theo thời gian hoặc nhóm khi cần.
-- Mọi bước fit tiền xử lý phải nằm trong train.
+:::card Train / Validation / Test
+- **Điểm trên dữ liệu đã học không đáng tin** (cây: 100% so với 74.7%).
+- **Train học, validation chọn, test chấm cuối đúng một lần.**
+- **Thứ tự:** tách test trước; scaler, imputer chỉ `fit` trên train.
+- **60/20/20** = chia hai lần (20% test, rồi 25% của phần còn lại làm validation).
+- **Dữ liệu theo thời gian:** test phải nằm sau train; không xáo.
 :::
 
 ## Câu hỏi tự kiểm tra
@@ -217,3 +136,131 @@ Một validation split có thể quá phụ thuộc vào cách lấy mẫu. [[b�
 
 Thực hành: [[bài:diabetes-first-model]] — tự chia614/154 hàng và kiểm index tái lập.
 :::
+
+## [sâu] Phần mở đầu gốc
+
+:::intro Đọc xong bài này bạn làm được
+- Nói rõ tập nào cập nhật tham số, tập nào chọn model, tập nào đánh giá cuối.
+- Tính được tỉ lệ chia hai lần.
+- Nhận ra rò rỉ theo thời gian, khách hàng và tiền xử lý.
+:::
+
+Nền để đọc bài này: [[bài:loss-function]].
+
+:::slides 22 | Slide gốc — Phân chia Dataset (Train / Validation / Test Split)
+:::
+
+Khi làm việc với 1 bộ dữ liệu, bắt buộc phải **chia nhỏ** nó ra trước khi
+huấn luyện — không dùng nguyên cả bộ dữ liệu để vừa train vừa đánh giá,
+vì như vậy không thể biết model có thực sự học tốt hay chỉ đang "học
+thuộc lòng" đúng những gì đã thấy.
+
+> **EN:** When working with a dataset, you must **split it up** before
+> training — you never use the entire dataset for both training and
+> evaluation, because then there's no way to tell whether the model is
+> actually learning well or just memorizing what it has already seen.
+
+## [sâu] Ba tập, ba vai trò
+
+Về mặt lý thuyết, dữ liệu được chia thành 3 bộ con:
+- **Training Set**: dùng trong suốt quá trình huấn luyện (training)
+- **Validation Set**: dùng để đánh giá quá trình huấn luyện, ở giữa và
+  sau mỗi giai đoạn train
+- **Test Set**: dùng sau khi huấn luyện xong hoàn toàn, để đánh giá cuối
+  cùng
+
+Tỉ lệ chia thường gặp: **80–10–10** hoặc **90–5–5** (tỉ lệ Training Set
+luôn lớn nhất) — dùng tỉ lệ nghiêng hẳn về Train khi dữ liệu khan hiếm, để
+model có đủ dữ liệu học.
+
+> **EN:** In theory, data is split into three subsets:
+> - **Training Set**: used throughout the training process
+> - **Validation Set**: used to evaluate the training process, both
+>   during and after each stage
+> - **Test Set**: used only after training is fully complete, for the
+>   final evaluation
+>
+> Common split ratios: **80–10–10** or **90–5–5** (the Training Set share
+> is always the largest) — lean the ratio heavily toward Train when data
+> is scarce, so the model has enough to learn from.
+
+## [sâu] Loss được dùng để cập nhật hay để lựa chọn?
+
+**Sự khác biệt quan trọng nhất giữa 3 bộ nằm ở cách dùng loss:**
+
+- **Training Set**: loss value tính trên bộ này được dùng để **quay
+  ngược lại update model** (đây là bộ duy nhất model thực sự "học" từ đó).
+- **Validation Set** và **Test Set**: loss value tính trên 2 bộ này **chỉ
+  dùng để đánh giá**, không được dùng để cập nhật model. Mục đích của
+  Validation Set là giám sát xem quá trình huấn luyện có đang đi đúng
+  hướng hay không — nếu train đúng hướng, loss trên validation set sẽ
+  càng ngày càng tốt hơn theo thời gian.
+
+Một cách ví von dễ nhớ: **Validation Set giống như các bài kiểm tra giữa
+kỳ** — làm nhiều lần trong quá trình học, để biết mình đang học ổn không
+và còn kịp điều chỉnh. **Test Set giống kỳ thi tốt nghiệp THPT** — chỉ thi
+1 lần duy nhất, sau khi đã học xong hết, đánh giá thực lực cuối cùng,
+không có cơ hội "thi lại rồi sửa cách học".
+
+> **EN:** **The key difference between the three sets is how their loss
+> is used:**
+> - **Training Set**: its loss value is used to **update the model** (the
+>   only set the model actually "learns" from).
+> - **Validation Set** and **Test Set**: their loss values are used
+>   **only for evaluation**, never to update the model. The Validation
+>   Set's job is to monitor whether training is heading in the right
+>   direction — if so, validation loss should keep improving over time.
+>
+> A helpful analogy: the **Validation Set is like periodic mid-term
+> quizzes** — taken repeatedly while studying, to check you're on track
+> and still have time to adjust. The **Test Set is like a final
+> graduation exam** — taken only once, after all studying is done,
+> measuring your true final ability with no chance to "retake and fix
+> your approach."
+
+## [sâu] Chia 100 mẫu theo 80–10–10
+
+:::worked Ví dụ và số liệu đối chiếu
+Diabetes dataset, chia theo tỉ lệ 80–10–10 (giả sử có 100 sample):
+- Training Set: 80 sample đầu — dùng để huấn luyện
+- Validation Set: 10 sample tiếp — dùng để theo dõi trong lúc train
+- Test Set: 10 sample cuối — chỉ chạm tới đúng 1 lần, sau khi đã chọn
+  xong model cuối cùng
+
+> **EN:** Diabetes dataset, split 80–10–10 (assume 100 samples):
+> - Training Set: first 80 samples — used for training
+> - Validation Set: next 10 samples — used to monitor progress during
+>   training
+> - Test Set: last 10 samples — touched exactly once, after the final
+>   model has already been chosen
+:::
+
+## [sâu] Tách test trước rồi chia validation
+
+```python
+from sklearn.model_selection import train_test_split
+
+# bước 1: tách Test set ra trước, giữ nguyên không đụng tới
+X_train_val, X_test, y_train_val, y_test = train_test_split(
+    X, y, test_size=0.10, random_state=42
+)
+
+# bước 2: chia phần còn lại thành Train và Validation
+X_train, X_val, y_train, y_val = train_test_split(
+    X_train_val, y_train_val, test_size=1/9, random_state=42
+)
+# kết quả xấp xỉ tỉ lệ 80-10-10 trên toàn bộ dataset
+```
+
+> **EN:** Split off the Test set first and leave it untouched, then split
+> the remaining data into Train and Validation — the `1/9` ratio in step
+> 2 produces an overall split that approximates 80–10–10 across the full
+> dataset.
+
+## [sâu] Chia theo cách sẽ dùng model (bổ sung)
+
+:::pitfall Không phải lúc nào cũng shuffle
+Ví dụ '80 mẫu đầu, 10 mẫu tiếp, 10 mẫu cuối' chỉ minh họa số lượng. Với dữ liệu độc lập có thể chia ngẫu nhiên; với dự báo tương lai phải chia theo thời gian; cùng một người xuất hiện nhiều dòng cần cân nhắc chia theo người. Fit scaler/imputer trên train, rồi transform validation/test. Validation không cập nhật trực tiếp tham số nhưng vẫn ảnh hưởng việc chọn model và dừng train. Tỉ lệ 90–5–5 không tự phù hợp khi dữ liệu ít: tập đánh giá quá nhỏ sẽ rất bất ổn.
+:::
+
+> **EN:** Match the split to deployment: random splits for independent samples, temporal splits for forecasting, and group splits for repeated entities. Validation guides model selection; the test set remains independent.

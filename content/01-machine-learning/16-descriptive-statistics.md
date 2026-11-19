@@ -1,13 +1,172 @@
 ---
 title: Step 2 — Thống kê mô tả để hiểu dữ liệu
 order: 16
-description: "Đọc dtypes, describe và phân bố class trên Diabetes; từ thống kê phát hiện giá trị thiếu trá hình, thang đo và vấn đề cần tiền xử lý."
+description: "Đọc describe() của Diabetes để thấy số 0 thiếu trá hình, độ lệch và outlier trước khi tiền xử lý."
 slides: 40-44
 needs: [ml-pipeline]
 tags: [describe, mean, median, std, dtypes, statistics]
 ---
 
-## Khám dataset trước khi xử lý
+## `describe()` nói gì, và không nói gì?
+
+:::intro Mục tiêu bài này
+- Đọc bảng `describe()`: mean, std, min, các phân vị, max, và biết mỗi con số gợi ý điều gì.
+- Phát hiện **dữ liệu thiếu trá hình** (số 0 vô lý) và độ lệch qua so mean với median.
+- Hiểu thống kê là **manh mối** để quyết định tiền xử lý, không phải kết luận.
+:::
+
+Trước khi sửa hay huấn luyện, ta nhìn dữ liệu bằng vài con số. `data.describe()` cho mỗi cột: `count` (số ô có giá trị), `mean` (trung bình), `std` (độ trải), `min`, các phân vị `25%`, `50%` (trung vị), `75%`, và `max`. Với bộ Diabetes (768 hàng):
+
+| Cột | mean | std | min | 25% | 50% | 75% | max |
+|---|---|---|---|---|---|---|---|
+| Pregnancies | 3.85 | 3.37 | 0 | 1 | 3 | 6 | 17 |
+| Glucose | 120.89 | 31.97 | **0** | 99 | 117 | 140.25 | 199 |
+| BloodPressure | 69.11 | 19.36 | **0** | 62 | 72 | 80 | 122 |
+| SkinThickness | 20.54 | 15.95 | **0** | **0** | 23 | 32 | 99 |
+| Insulin | 79.80 | 115.24 | **0** | **0** | 30.5 | 127.25 | 846 |
+| BMI | 31.99 | 7.88 | **0** | 27.3 | 32 | 36.6 | 67.1 |
+| DiabetesPedigreeFunction | 0.47 | 0.33 | 0.08 | 0.24 | 0.37 | 0.63 | 2.42 |
+| Age | 33.24 | 11.76 | 21 | 24 | 29 | 41 | 81 |
+
+:::predict
+Nhìn bảng: (1) `Glucose` có `min = 0`. Điều đó có nghĩa y học không? (2) `Insulin` có `mean = 79.8` nhưng `50% = 30.5`. Hai con số lệch nhau nói lên điều gì?
+@answer
+(1) **Không**: đường huyết bằng 0 là không thể ở người còn sống; đó là ô **chưa đo** bị ghi thành 0 ("dữ liệu thiếu trá hình"). (2) **Mean lớn hơn median nhiều** nghĩa là phân phối **lệch phải**: nhiều giá trị thấp (kể cả số 0 thiếu) và vài giá trị rất lớn (max 846) kéo trung bình lên. Insulin có `25% = 0`: ít nhất một phần tư ô là 0.
+:::
+
+## Đọc từng manh mối
+
+- **`min = 0` ở cột không thể bằng 0** (Glucose, BloodPressure, SkinThickness, Insulin, BMI): dữ liệu thiếu trá hình. Số ô 0 thật: Glucose 5, BloodPressure 35, SkinThickness 227, Insulin 374, BMI 11. Riêng `Pregnancies = 0` (111 ô) hợp lệ. Xử lý ở [[bài:missing-values-outliers]].
+- **Mean và median lệch xa nhau** (Insulin): phân phối lệch hoặc có outlier; dùng median khi điền thiếu, cân nhắc scaler bền hơn.
+- **`max` quá xa `75%`** (Insulin: 127 so với 846; SkinThickness: 32 so với 99): đáng kiểm tra outlier.
+- **`std` rất khác giữa các cột** (Insulin 115, DPF 0.33): các cột khác thang đo, cần [[bài:feature-scaling]].
+- **Phân bố class:** 500 người không bệnh và 268 người bệnh: lệch nhẹ (65% và 35%), nên mức sàn là 65.1%.
+
+Đây là **manh mối**, không phải kết luận: cần nhìn thêm biểu đồ ([[bài:data-visualization]]) và hỏi người hiểu lĩnh vực.
+
+:::ck
+Cột `Age` có min 21 và max 81. Có cần nghi ngờ gì không? Còn `Pregnancies` max 17?
+@answer
+**Không có dấu hiệu bất thường**: 21 đến 81 là khoảng tuổi hợp lý của bộ dữ liệu, và 17 lần mang thai tuy hiếm vẫn có thể. Thống kê chỉ gợi ý chỗ cần kiểm tra; ta đánh giá theo **ý nghĩa thực tế** của cột, không theo việc con số nghe lớn hay nhỏ.
+:::
+
+## So theo class
+
+Chia dữ liệu theo nhãn rồi so thống kê cho thấy cột nào có thể ích: trung vị Glucose ở nhóm bệnh là **140**, nhóm không bệnh là **107** (chênh khoảng 31%); BMI lần lượt **34.25** và **30.05** (chênh khoảng 14%). Glucose tách hai nhóm rõ hơn BMI. Đây là điều Project Bước 1 khám phá bằng histogram.
+
+:::slides 40-44 | Slide 40–44: Diabetes dataset, xem dữ liệu, dtypes, describe, phân bố class
+:::
+
+:::card Thống kê mô tả
+- **`describe()`:** count, mean, std, min, 25%, 50%, 75%, max cho mỗi cột số.
+- **`min = 0` ở cột không thể 0** là dữ liệu thiếu trá hình (Diabetes: Insulin 374 ô, SkinThickness 227 ô).
+- **Mean xa median** thì lệch hoặc có outlier; **max xa 75%** thì kiểm tra outlier.
+- **Std rất khác nhau giữa các cột** thì cần scale.
+- **Thống kê là manh mối**; hỏi ý nghĩa thực tế trước khi sửa.
+:::
+
+## Câu hỏi tự kiểm tra
+
+:::quiz
+@tier A | Hiểu bài
+Q: `data.info()` cho thấy mọi cột của Diabetes dataset đều có 768
+non-null. Có thể kết luận dataset không có dữ liệu thiếu không? Vì sao?
+A: Không. Không có ô trống (NaN), nhưng có các giá trị **0 vô
+lý** ở Glucose, BloodPressure, SkinThickness, Insulin, BMI — thực chất
+là dữ liệu thiếu được ghi bằng 0 (ví dụ Insulin có 374 số 0, chiếm
+48.7%). Phải kết hợp thống kê với hiểu biết về ý nghĩa cột mới phát
+hiện được.
+EN: `info()` shows 768 non-null in every column. Is there no
+missing data?
+**A:** No. There are no NaNs, but impossible **zeros** in Glucose,
+> BloodPressure, SkinThickness, Insulin and BMI are missing values in
+> disguise (Insulin: 374 zeros, 48.7%). Spotting them needs domain
+> knowledge.
+
+Q: Trong bảng `describe()`, cột Insulin có 25% = 0 và 50% = 30.5.
+Hai con số này cho biết điều gì?
+A: 25% = 0 nghĩa là **ít nhất một phần tư** số dòng có Insulin
+= 0. Median chỉ 30.5 (trong khi mean = 79.8) cho thấy phân bố lệch phải
+mạnh và bị kéo xuống bởi rất nhiều số 0. Cả hai đều là dấu hiệu dữ liệu
+thiếu trá hình.
+EN: Insulin has 25% = 0 and median 30.5. What do they tell you?
+**A:** At least a quarter of rows are zero; the low median (vs mean
+> 79.8) shows strong right skew dragged down by many zeros — both signs
+> of disguised missing data.
+
+Q: Cột Outcome có mean = 0.349. Con số này có ý nghĩa gì?
+A: Vì Outcome chỉ gồm 0 và 1, mean = (số người mang nhãn 1) /
+(tổng số người) = 268 / 768 ≈ 0.349 → **34.9% người trong dataset mắc
+tiểu đường**.
+EN: What does Outcome's mean of 0.349 mean?
+**A:** For a 0/1 column the mean is the share of class 1: 268 / 768 ≈
+> 34.9% of patients are diabetic.
+
+Q: Với phân bố 500 / 268, một model đạt Accuracy 68% có tốt
+không? Cần xem thêm gì?
+A: Không đáng tin. Model luôn đoán "không bệnh" đã đạt 500 /
+768 ≈ 65.1%, nên 68% chỉ hơn khoảng 3 điểm. Cần xem Recall, Precision,
+F1 của class 1 (người bệnh) — [[bài:classification-metrics]] — và nên chia dữ liệu bằng
+stratified ([[bài:stratified-k-fold]]). Step 3.5 Balance data sẽ học cách cân bằng class.
+EN: With 500 / 268, is 68% accuracy good? What else to check?
+**A:** Not convincing — always predicting "no diabetes" scores ≈
+> 65.1%. Check Recall, Precision and F1 for class 1 (lesson 12), use
+> stratified splits (lesson 09); step 3.5 covers balancing.
+
+Q: Tính count, mean, std (chia n − 1), min, 25%, 50%, 75%, max
+cho dãy `[2, 4, 4, 5, 10]` theo cách của pandas.
+A: count = 5; mean = 25 / 5 = **5**; độ lệch: −3, −1, −1, 0, 5
+→ tổng bình phương = 9 + 1 + 1 + 0 + 25 = 36 → std = √(36 / 4) = **3**;
+min = 2; 25%: vị trí 0.25 × 4 = 1 → **4**; 50%: vị trí 2 → **4**; 75%:
+vị trí 3 → **5**; max = 10. Mean (5) > median (4) → hơi lệch phải do số
+10.
+EN: pandas-style describe for `[2, 4, 4, 5, 10]`.
+**A:** count 5, mean 5, std 3 (36 / 4 = 9), min 2, 25% 4, 50% 4, 75%
+> 5, max 10; mean > median → slight right skew from the 10.
+
+Q: `data.dtypes` cho thấy Outcome là `int64`. Có nên coi Outcome là
+một feature số liên tục như Glucose không?
+A: Không. dtype chỉ là cách lưu trữ. Về ý nghĩa, Outcome là
+**biến phân loại nhị phân** (0 = không bệnh, 1 = bệnh) và là **label**
+của bài toán Classification; các giá trị 0, 1 là tên class, không phải
+đại lượng đo được.
+EN: Outcome's dtype is `int64`. Is it a continuous numeric feature
+like Glucose?
+**A:** No — dtype is just storage. Outcome is a **binary categorical**
+> variable and the **label** of a Classification task; 0 and 1 are class
+> names, not measurements.
+@tier B | Phỏng vấn lý thuyết
+Q: Mean và median khác nhau khi có cực trị?
+A: Mean dùng mọi độ lớn nên bị cực trị kéo; median dựa vị trí nên bền hơn. Tuy nhiên không kết luận hình dạng chỉ từ hai số: cần xem thêm phân bố.
+EN: The mean is sensitive to extreme magnitudes; the median is more robust, but neither alone establishes distribution shape.
+Q: Std chia n và n−1 khác gì?
+A: Chia n mô tả độ phân tán của tập giá trị đang xét; chia n−1 dùng hiệu chỉnh khi ước lượng variance tổng thể từ mẫu. pandas mặc định n−1; StandardScaler dùng n.
+EN: Population-style variance divides by n; sample variance uses n−1. Tool defaults must be checked.
+Q: Non-null đủ có nghĩa dữ liệu đủ chất lượng?
+A: Không. Sentinel như 0, −1, dấu hỏi có thể không phải NaN, dtype cũng có thể sai. Kiểm tra range, unique values, nghĩa cột và nguồn ghi dữ liệu.
+EN: Complete non-null counts can hide missing-value sentinels and invalid measurements.
+Q: Vì sao thống kê theo class hữu ích nhưng dễ bị lạm dụng?
+A: Nó cho biết nhóm có khác biệt quan sát và gợi ý phân tích tiếp. Chưa cho biết quan hệ nhân quả hay hiệu quả dự đoán ngoài mẫu. Nếu dùng kết quả để chọn feature, thực hiện trên phần development.
+EN: Class-wise summaries suggest associations, not causal effects or guaranteed out-of-sample predictive value.
+@tier C | Tình huống doanh nghiệp
+Q: Bảng mới không có NaN nhưng mean một cột tụt mạnh. Kiểm tra gì?
+A: So range, tỷ lệ 0/sentinel, dtype và nguồn thu theo thời gian; kiểm tra đơn vị hoặc mã thiếu mới. Xác nhận với người quản lý dữ liệu trước khi thay thế. Điền vội có thể xóa thay đổi thật *(bổ sung)*.
+WANT: Kết hợp thống kê và định nghĩa dữ liệu để chẩn đoán.
+Q: Báo cáo chỉ head vài dòng rồi kết luận class cân bằng. Bạn phản biện sao?
+A: Đếm toàn bộ nhãn, tỷ lệ theo nhóm/thời gian và baseline majority. Vài dòng đầu có thể sắp theo nguồn hoặc nhãn. Dùng thống kê toàn development pool, giữ test ngoài vòng lựa chọn *(bổ sung)*.
+WANT: Biết sampling bias và hạn chế quan sát vài hàng.
+Q: Mean doanh thu tăng, median đứng yên. Giải thích thế nào?
+A: Kiểm tra các giao dịch lớn, quantile, số khách và lỗi đơn vị, so theo phân khúc. Có thể một nhóm nhỏ tăng mạnh, chưa thể kết luận khách điển hình mua nhiều hơn. Báo cáo cả trung tâm và đuôi phân bố *(bổ sung)*.
+WANT: Không lấy một số trung bình thay cho toàn bộ phân bố.
+:::
+
+## Nối sang bài sau
+
+:::next
+Thống kê đã chỉ ra số 0 bất thường và đuôi phân bố dài. [[bài:missing-values-outliers]] phân biệt dữ liệu thiếu, lỗi đo và điểm hiếm có thật để chọn cách xử lý.
+:::
+
+## [sâu] Phần mở đầu gốc
 
 :::intro Đọc xong bài này bạn làm được
 - Giải nghĩa từng hàng describe bằng ví dụ tính tay.
@@ -49,7 +208,7 @@ giải quyết. Với Diabetes dataset, buổi khám sẽ phát hiện hai "bệ
 > (2) **disguised missing data** — no empty cells, but hundreds of
 > impossible **0** values (Insulin, Glucose, BMI…).
 
-## Thống kê dẫn tới quyết định tiền xử lý nào?
+## [sâu] Thống kê dẫn tới quyết định tiền xử lý nào?
 
 ```
 Step 1 Data collection → [ Step 2 Statistics ] → Step 3 Preprocessing → Step 4 Visualization → …
@@ -82,7 +241,7 @@ Những gì tìm được ở đây sẽ quyết định việc phải làm ở 
 > split → step 3.5 (balancing), plus Stratified K-fold (lesson 09) and the
 > accuracy trap (lesson 12).
 
-## Diabetes dataset (slide 40)
+## [sâu] Diabetes dataset (slide 40)
 
 [[slide:40]] cho xem 15 dòng đầu. Ý nghĩa từng cột *(bổ sung — slide chỉ ghi
 tên cột; theo mô tả gốc của bộ dữ liệu Pima Indians Diabetes, gồm các phụ
@@ -119,7 +278,7 @@ SkinThickness có 7/15 giá trị bằng 0. Người còn sống không thể c�
 > rows. A living person can't have zero blood pressure or BMI — the first
 > clue (section 3.6).
 
-## Xem dữ liệu — How data looks like (slide 41)
+## [sâu] Xem dữ liệu — How data looks like (slide 41)
 
 ```python
 import pandas as pd
@@ -152,7 +311,7 @@ data = pd.read_csv("diabetes.csv", delimiter=",")
 > only a viewing aid. *(Supplementary)* Elsewhere use `data.head()`,
 > `data.tail()` and `data.shape` → `(768, 9)`.
 
-## Kiểm tra kiểu dữ liệu — dtypes (slide 42)
+## [sâu] Kiểm tra kiểu dữ liệu — dtypes (slide 42)
 
 ```python
 print(data.dtypes)
@@ -205,7 +364,7 @@ dạng số 0.
 > `data.info()` shows `768 non-null` everywhere — no empty cells, yet
 > missing data hides as zeros (section 3.6).
 
-## Tóm tắt thống kê — describe() (slide 43)
+## [sâu] Tóm tắt thống kê — describe() (slide 43)
 
 ```python
 from pandas import read_csv
@@ -334,7 +493,7 @@ cột 0/1 luôn là tỉ lệ class 1.
 > 0/1 column is the share of class 1**: Outcome mean ≈ 0.349 → 34.9% of
 > patients are diabetic.
 
-## Phân bố class — Category distribution (slide 44)
+## [sâu] Phân bố class — Category distribution (slide 44)
 
 ```python
 count_class = data.groupby('Outcome').size()
@@ -390,7 +549,7 @@ hơn nhiều so với gọi nhầm một người khỏe đi xét nghiệm lại
 > over-sampling (e.g. SMOTE) or under-sampling. In medicine the "disease"
 > class is usually the minority *and* the one we care about most.
 
-## Giá trị 0 bất thường — dữ liệu thiếu trá hình (Bổ sung — slide không nêu trực tiếp; gối đầu sang Step 3.1)
+## [sâu] Giá trị 0 bất thường — dữ liệu thiếu trá hình (Bổ sung — slide không nêu trực tiếp; gối đầu sang Step 3.1)
 
 `count` = 768 ở mọi cột và `data.isna().sum()` = 0 khiến ta tưởng dữ liệu
 đầy đủ. Nhưng **min = 0** ở 5 cột mà về mặt sinh học **không thể bằng 0**
@@ -451,7 +610,7 @@ hợp thống kê với **hiểu biết về ý nghĩa cột** (domain knowledge
 > always blank: it can hide as 0, −1, 999, "N/A"… — spotting it needs
 > **domain knowledge**.
 
-## So sánh theo class (Bổ sung)
+## [sâu] So sánh theo class (Bổ sung)
 
 Một câu lệnh nữa cho thấy feature nào có vẻ "phân biệt" được hai class:
 
@@ -479,7 +638,7 @@ thành biểu đồ cho dễ thấy hơn.
 > BloodPressure barely differs. (Still includes invalid zeros — indicative
 > only.) Step 4 will **plot** these differences.
 
-## Tự tính describe trên 15 hàng
+## [sâu] Tự tính describe trên 15 hàng
 
 :::worked Ví dụ và số liệu đối chiếu
 Tính `describe()` bằng tay cho cột **Glucose** trên **15 dòng của slide
@@ -559,12 +718,12 @@ dòng đầu** — luôn tính trên toàn bộ dataset.
 > 34.9% overall — never draw conclusions from the first few rows.
 :::
 
-## Kiểm tra thống kê bằng pandas
+## [sâu] Kiểm tra thống kê bằng pandas
 
 Cần file `diabetes.csv` (Pima Indians Diabetes Database, có trên Kaggle)
 cùng thư mục.
 
-## Xem dữ liệu (slide 41)
+## [sâu] Xem dữ liệu (slide 41)
 
 ```python
 import pandas as pd
@@ -577,7 +736,7 @@ print(data.head())     # 5 dòng đầu
 print(data.shape)      # (768, 9)
 ```
 
-## Kiểu dữ liệu từng feature (slide 42)
+## [sâu] Kiểu dữ liệu từng feature (slide 42)
 
 ```python
 print(data.dtypes)
@@ -594,7 +753,7 @@ print(data.dtypes)
 data.info()   # (bổ sung) thêm số non-null: cột nào cũng 768 non-null
 ```
 
-## Tóm tắt thống kê (slide 43)
+## [sâu] Tóm tắt thống kê (slide 43)
 
 ```python
 from pandas import read_csv
@@ -604,7 +763,7 @@ out = data.describe()
 print(out.round(2).T)   # .T: xoay bảng cho dễ đọc khi nhiều cột
 ```
 
-## Phân bố class (slide 44)
+## [sâu] Phân bố class (slide 44)
 
 ```python
 count_class = data.groupby('Outcome').size()
@@ -619,7 +778,7 @@ print(f"Baseline luôn đoán 0: {count_class[0] / len(data):.4f}")    # 0.6510
 print(f"Tỉ lệ 0:1 = {count_class[0] / count_class[1]:.2f} : 1")     # 1.87 : 1
 ```
 
-## Phát hiện dữ liệu thiếu trá hình (Bổ sung)
+## [sâu] Phát hiện dữ liệu thiếu trá hình (Bổ sung)
 
 ```python
 import numpy as np
@@ -651,7 +810,7 @@ print(data[["Glucose", "Insulin"]].agg(["mean", "median", "skew"]).round(2))
 print(data.groupby("Outcome").mean().round(2).T)
 ```
 
-## Kiểm tra ví dụ tay (Bổ sung)
+## [sâu] Kiểm tra ví dụ tay (Bổ sung)
 
 ```python
 g = data["Glucose"].head(15)
@@ -668,7 +827,7 @@ print(data["Insulin"].head(15).describe())   # mean 127.6, 50% = 0, 75% = 131
 > — the data isn't modified yet), mean/median/skew, per-class means, and a
 > check of the hand-computed example.
 
-## Thống kê là manh mối, không phải kết luận (bổ sung)
+## [sâu] Thống kê là manh mối, không phải kết luận (bổ sung)
 
 :::pitfall Không suy hình dạng chỉ từ mean và median
 Mean lớn hơn median thường gợi ý lệch phải nhưng không phải định lý cho mọi phân bố. Cần xem histogram, quantile và dữ liệu cụ thể. Chênh mean giữa hai class chưa chứng minh feature quan trọng nhất, cũng không chứng minh nhân quả. Stratification phù hợp mẫu độc lập; time/group split vẫn ưu tiên khi triển khai yêu cầu.
@@ -682,116 +841,3 @@ Mean lớn hơn median thường gợi ý lệch phải nhưng không phải đ�
 :::
 
 > **EN:** Summary statistics provide clues, not proof of distribution shape, causal effects, or feature importance. Standard deviation conventions also differ between tools.
-
-## Tóm tắt 1 phút
-
-:::recap
-- head cho hình dung, không đại diện toàn tập.
-- dtypes cho cách lưu, chưa cho nghĩa nghiệp vụ.
-- describe tóm tắt vị trí và độ phân tán.
-- pandas std dùng n − 1.
-- Mean của 0/1 là tỷ lệ nhãn 1.
-- Non-null đầy đủ vẫn có thể có sentinel thiếu.
-- Ghi vấn đề để xử lý trong train.
-:::
-
-## Câu hỏi tự kiểm tra
-
-:::quiz
-@tier A | Hiểu bài
-Q: `data.info()` cho thấy mọi cột của Diabetes dataset đều có 768
-non-null. Có thể kết luận dataset không có dữ liệu thiếu không? Vì sao?
-A: Không. Không có ô trống (NaN), nhưng có các giá trị **0 vô
-lý** ở Glucose, BloodPressure, SkinThickness, Insulin, BMI — thực chất
-là dữ liệu thiếu được ghi bằng 0 (ví dụ Insulin có 374 số 0, chiếm
-48.7%). Phải kết hợp thống kê với hiểu biết về ý nghĩa cột mới phát
-hiện được.
-EN: `info()` shows 768 non-null in every column. Is there no
-missing data?
-**A:** No. There are no NaNs, but impossible **zeros** in Glucose,
-> BloodPressure, SkinThickness, Insulin and BMI are missing values in
-> disguise (Insulin: 374 zeros, 48.7%). Spotting them needs domain
-> knowledge.
-
-Q: Trong bảng `describe()`, cột Insulin có 25% = 0 và 50% = 30.5.
-Hai con số này cho biết điều gì?
-A: 25% = 0 nghĩa là **ít nhất một phần tư** số dòng có Insulin
-= 0. Median chỉ 30.5 (trong khi mean = 79.8) cho thấy phân bố lệch phải
-mạnh và bị kéo xuống bởi rất nhiều số 0. Cả hai đều là dấu hiệu dữ liệu
-thiếu trá hình.
-EN: Insulin has 25% = 0 and median 30.5. What do they tell you?
-**A:** At least a quarter of rows are zero; the low median (vs mean
-> 79.8) shows strong right skew dragged down by many zeros — both signs
-> of disguised missing data.
-
-Q: Cột Outcome có mean = 0.349. Con số này có ý nghĩa gì?
-A: Vì Outcome chỉ gồm 0 và 1, mean = (số người mang nhãn 1) /
-(tổng số người) = 268 / 768 ≈ 0.349 → **34.9% người trong dataset mắc
-tiểu đường**.
-EN: What does Outcome's mean of 0.349 mean?
-**A:** For a 0/1 column the mean is the share of class 1: 268 / 768 ≈
-> 34.9% of patients are diabetic.
-
-Q: Với phân bố 500 / 268, một model đạt Accuracy 68% có tốt
-không? Cần xem thêm gì?
-A: Không đáng tin. Model luôn đoán "không bệnh" đã đạt 500 /
-768 ≈ 65.1%, nên 68% chỉ hơn khoảng 3 điểm. Cần xem Recall, Precision,
-F1 của class 1 (người bệnh) — [[bài:classification-metrics]] — và nên chia dữ liệu bằng
-stratified ([[bài:stratified-k-fold]]). Step 3.5 Balance data sẽ học cách cân bằng class.
-EN: With 500 / 268, is 68% accuracy good? What else to check?
-**A:** Not convincing — always predicting "no diabetes" scores ≈
-> 65.1%. Check Recall, Precision and F1 for class 1 (lesson 12), use
-> stratified splits (lesson 09); step 3.5 covers balancing.
-
-Q: Tính count, mean, std (chia n − 1), min, 25%, 50%, 75%, max
-cho dãy `[2, 4, 4, 5, 10]` theo cách của pandas.
-A: count = 5; mean = 25 / 5 = **5**; độ lệch: −3, −1, −1, 0, 5
-→ tổng bình phương = 9 + 1 + 1 + 0 + 25 = 36 → std = √(36 / 4) = **3**;
-min = 2; 25%: vị trí 0.25 × 4 = 1 → **4**; 50%: vị trí 2 → **4**; 75%:
-vị trí 3 → **5**; max = 10. Mean (5) > median (4) → hơi lệch phải do số
-10.
-EN: pandas-style describe for `[2, 4, 4, 5, 10]`.
-**A:** count 5, mean 5, std 3 (36 / 4 = 9), min 2, 25% 4, 50% 4, 75%
-> 5, max 10; mean > median → slight right skew from the 10.
-
-Q: `data.dtypes` cho thấy Outcome là `int64`. Có nên coi Outcome là
-một feature số liên tục như Glucose không?
-A: Không. dtype chỉ là cách lưu trữ. Về ý nghĩa, Outcome là
-**biến phân loại nhị phân** (0 = không bệnh, 1 = bệnh) và là **label**
-của bài toán Classification; các giá trị 0, 1 là tên class, không phải
-đại lượng đo được.
-EN: Outcome's dtype is `int64`. Is it a continuous numeric feature
-like Glucose?
-**A:** No — dtype is just storage. Outcome is a **binary categorical**
-> variable and the **label** of a Classification task; 0 and 1 are class
-> names, not measurements.
-@tier B | Phỏng vấn lý thuyết
-Q: Mean và median khác nhau khi có cực trị?
-A: Mean dùng mọi độ lớn nên bị cực trị kéo; median dựa vị trí nên bền hơn. Tuy nhiên không kết luận hình dạng chỉ từ hai số: cần xem thêm phân bố.
-EN: The mean is sensitive to extreme magnitudes; the median is more robust, but neither alone establishes distribution shape.
-Q: Std chia n và n−1 khác gì?
-A: Chia n mô tả độ phân tán của tập giá trị đang xét; chia n−1 dùng hiệu chỉnh khi ước lượng variance tổng thể từ mẫu. pandas mặc định n−1; StandardScaler dùng n.
-EN: Population-style variance divides by n; sample variance uses n−1. Tool defaults must be checked.
-Q: Non-null đủ có nghĩa dữ liệu đủ chất lượng?
-A: Không. Sentinel như 0, −1, dấu hỏi có thể không phải NaN, dtype cũng có thể sai. Kiểm tra range, unique values, nghĩa cột và nguồn ghi dữ liệu.
-EN: Complete non-null counts can hide missing-value sentinels and invalid measurements.
-Q: Vì sao thống kê theo class hữu ích nhưng dễ bị lạm dụng?
-A: Nó cho biết nhóm có khác biệt quan sát và gợi ý phân tích tiếp. Chưa cho biết quan hệ nhân quả hay hiệu quả dự đoán ngoài mẫu. Nếu dùng kết quả để chọn feature, thực hiện trên phần development.
-EN: Class-wise summaries suggest associations, not causal effects or guaranteed out-of-sample predictive value.
-@tier C | Tình huống doanh nghiệp
-Q: Bảng mới không có NaN nhưng mean một cột tụt mạnh. Kiểm tra gì?
-A: So range, tỷ lệ 0/sentinel, dtype và nguồn thu theo thời gian; kiểm tra đơn vị hoặc mã thiếu mới. Xác nhận với người quản lý dữ liệu trước khi thay thế. Điền vội có thể xóa thay đổi thật *(bổ sung)*.
-WANT: Kết hợp thống kê và định nghĩa dữ liệu để chẩn đoán.
-Q: Báo cáo chỉ head vài dòng rồi kết luận class cân bằng. Bạn phản biện sao?
-A: Đếm toàn bộ nhãn, tỷ lệ theo nhóm/thời gian và baseline majority. Vài dòng đầu có thể sắp theo nguồn hoặc nhãn. Dùng thống kê toàn development pool, giữ test ngoài vòng lựa chọn *(bổ sung)*.
-WANT: Biết sampling bias và hạn chế quan sát vài hàng.
-Q: Mean doanh thu tăng, median đứng yên. Giải thích thế nào?
-A: Kiểm tra các giao dịch lớn, quantile, số khách và lỗi đơn vị, so theo phân khúc. Có thể một nhóm nhỏ tăng mạnh, chưa thể kết luận khách điển hình mua nhiều hơn. Báo cáo cả trung tâm và đuôi phân bố *(bổ sung)*.
-WANT: Không lấy một số trung bình thay cho toàn bộ phân bố.
-:::
-
-## Nối sang bài sau
-
-:::next
-Thống kê đã chỉ ra số 0 bất thường và đuôi phân bố dài. [[bài:missing-values-outliers]] phân biệt dữ liệu thiếu, lỗi đo và điểm hiếm có thật để chọn cách xử lý.
-:::

@@ -1,95 +1,57 @@
 ---
 title: Model Training (Huấn luyện mô hình)
 order: 5
-description: "Nối X và y thành vòng predict → loss → update, phân biệt huấn luyện với sử dụng mô hình và cách theo dõi việc học."
+description: "Học là chỉnh tham số theo sai lệch: vòng lặp dự đoán, đo loss, cập nhật, làm tay trên một ví dụ nhỏ."
 slides: 17-18
 needs: [labeled-data]
 tags: [training, prediction, loss, update]
 ---
 
-## Model thay đổi điều gì khi học?
+## Khi "học", model thay đổi cái gì?
 
-:::intro Đọc xong bài này bạn làm được
-- Theo dõi đường đi feature → model → prediction.
-- Giải thích vai trò của label và loss trong update.
-- Phân biệt lúc train với lúc chỉ dự đoán.
+:::intro Mục tiêu bài này
+- Hiểu model là một bộ **tham số**, và học là **chỉnh tham số** để sai lệch nhỏ đi.
+- Theo dõi được vòng lặp: dự đoán, so với đáp án, đo sai lệch, cập nhật.
+- Phân biệt **lúc học** (tham số đổi) và **lúc dùng** (tham số đóng băng).
 :::
 
-Nền để đọc bài này: [[bài:labeled-data]].
+Hãy tưởng tượng một model đơn giản nhất: `ŷ = a · x` với một tham số `a`. Dữ liệu có ba cặp (x, y): (1, 2), (2, 4), (3, 6). Ta không biết `a` nên bắt đầu đoán bừa `a = 1`. Model khi đó dự đoán 1, 2, 3, còn đáp án là 2, 4, 6: **sai hết**. Học là quá trình chỉnh `a` để sai lệch nhỏ đi.
 
-:::slides 17-18 | Slide gốc — Model Training (Huấn luyện mô hình)
+:::steps
+**Dự đoán:** với `a = 1`, ŷ = (1, 2, 3).
+@step
+**So với đáp án:** sai số ŷ − y = (−1, −2, −3). Ta cần **một con số** đo mức tệ: bình phương sai số rồi lấy trung bình, được (1 + 4 + 9) / 3 ≈ **4.667**. Con số này gọi là **loss** (chi tiết ở [[bài:loss-function]]).
+@step
+**Tìm hướng chỉnh:** loss có độ dốc theo `a`: gradient = −9.333 (âm nghĩa là tăng `a` sẽ làm loss giảm).
+@step
+**Cập nhật:** `a ← a − η · gradient`, với η = 0.05 là bước nhảy: `a = 1 − 0.05 × (−9.333) = 1.467`. Loss mới giảm còn **1.327**.
+@step
+**Lặp lại:** năm vòng tiếp theo cho `a` = 1.716, 1.848, 1.919, 1.957, 1.977 và loss = 0.378, 0.107, 0.031, 0.009, 0.003. `a` tiến sát **2**, giá trị đúng.
 :::
 
-Model training là quá trình đưa **feature vector** qua **model** để model
-tự điều chỉnh sao cho **prediction** (dự đoán) ngày càng gần với **label**
-thật.
+Máy không đoán mò: nó dùng gradient để biết **nên chỉnh `a` theo hướng nào và bao nhiêu**.
 
-> **EN:** Model training is the process of feeding a **feature vector**
-> through a **model** so the model keeps adjusting itself until its
-> **prediction** gets closer and closer to the true **label**.
-
-## Prediction nối với loss ra sao?
-
-Đây là bước ngay trước Loss Function: `feature vector → Model →
-prediction`; `prediction` sau đó được đem so sánh với `label` thật để
-tính ra **loss** — xem chi tiết cách tính ở bài **Loss Function** tiếp
-theo.
-
-> **EN:** This is the step right before Loss Function: `feature vector →
-> Model → prediction`; the `prediction` is then compared against the true
-> `label` to compute the **loss** — the exact calculation is covered in
-> the next **Loss Function** lesson.
-
-## Từ sai lệch đến tín hiệu cập nhật
-
-Chỉ có `prediction` thôi thì chưa đủ để biết model đang làm tốt hay
-không — cần **đánh giá chất lượng dự đoán của model** bằng một con số cụ
-thể, gọi là **loss value**. Con số này được tính bởi một **Loss
-Function**: nhận vào `prediction` và `label`, trả về mức độ sai lệch giữa
-chúng.
-
-> **EN:** A `prediction` alone isn't enough to know whether the model is
-> doing well — you need to **evaluate the quality of the model's
-> prediction** with a concrete number, called the **loss value**. This
-> number is computed by a **Loss Function**: it takes in `prediction` and
-> `label`, and returns how far apart they are.
-
-## Ví dụ số nằm ở bài Loss Function
-
-:::worked Ví dụ và số liệu đối chiếu
-Chưa có ví dụ số liệu ở bài này — ví dụ cụ thể (bảng dự đoán giá nhà) sẽ
-xuất hiện ngay ở bài **Loss Function** tiếp theo, dùng chung sơ đồ pipeline
-này.
-
-> **EN:** No numeric example in this lesson — the concrete example (a
-> house-price prediction table) appears right in the next **Loss
-> Function** lesson, using this same pipeline diagram.
+:::ck
+Model có hàng triệu tham số thay vì một. Ý tưởng "dự đoán, đo sai lệch, cập nhật tham số" có thay đổi không?
+@answer
+**Không đổi về bản chất.** Chỉ khác là gradient trở thành một vector (mỗi tham số một thành phần), và mỗi tham số được chỉnh theo hướng làm loss giảm. Vòng lặp chung giống hệt.
 :::
 
-Chưa có code ở bài này — xem bài **Loss Function** tiếp theo.
+## Lúc học và lúc dùng
 
-> **EN:** No code in this lesson — see the next **Loss Function** lesson.
+- **Lúc học (training):** dùng dữ liệu có nhãn, vòng lặp ở trên chạy nhiều lần, **tham số thay đổi**.
+- **Lúc dùng (inference):** tham số **đã đóng băng**. Model nhận input mới và chỉ tính ŷ, không so với đáp án (vì chưa có đáp án), không cập nhật gì.
 
-## Vòng lặp và lúc sử dụng model
+Vì vậy trong code `model.fit(x_train, y_train)` là lúc học, còn `model.predict(x_new)` chỉ là lúc dùng. Và để đo model học tốt đến đâu, ta chấm trên dữ liệu **chưa từng học** ([[bài:train-test-split]]).
 
-```text
-X → model → prediction → so với y → loss → update tham số
-       ↑_______________________________________|
-```
+:::slides 17-18 | Slide 17–18: model training và pipeline huấn luyện
+:::
 
-Khi train, prediction và y tạo loss, thuật toán tối ưu dùng tín hiệu đó để cập nhật tham số. Khi inference, chỉ cần input và model đã học để tạo prediction; chưa có label vẫn dùng được model. Loss không đảm bảo giảm ở từng bước và train loss thấp chưa đủ kết luận tổng quát tốt *(bổ sung)*.
-
-> **EN:** Training uses targets and a loss to update parameters. Inference applies the trained model without requiring targets. A lower training loss alone does not establish generalization.
-
-## Tóm tắt 1 phút
-
-:::recap
-- X cung cấp feature cho model.
-- Prediction là kết quả model đoán.
-- Label là mục tiêu đã biết trong train.
-- Loss lượng hóa sai lệch theo một hàm cụ thể.
-- Update điều chỉnh tham số rồi lặp lại.
-- Inference dùng model đã học; kiểm tra generalization cần dữ liệu riêng.
+:::card Model Training
+- **Model = hàm có tham số**; học = chỉnh tham số.
+- **Vòng lặp:** dự đoán → so với đáp án → đo sai lệch (loss) → cập nhật tham số (`a ← a − η · gradient`) → lặp.
+- **Ví dụ:** `ŷ = a·x` trên (1,2), (2,4), (3,6): `a` từ 1 tiến về 2, loss từ 4.667 xuống 0.003 sau vài vòng (η = 0.05).
+- **Lúc dùng**: tham số đóng băng; `fit` là học, `predict` chỉ là dùng.
 :::
 
 ## Câu hỏi tự kiểm tra
@@ -152,3 +114,77 @@ WANT: Không lấy prediction hoặc chỉ số thay thế làm bằng chứng c
 :::next
 Sơ đồ train cần một cách lượng hóa sai lệch để model biết phải sửa. [[bài:loss-function]] tính L1, L2 trên cùng ví dụ giá nhà và giải thích độ nhạy với lỗi lớn.
 :::
+
+## [sâu] Phần mở đầu gốc
+
+:::intro Đọc xong bài này bạn làm được
+- Theo dõi đường đi feature → model → prediction.
+- Giải thích vai trò của label và loss trong update.
+- Phân biệt lúc train với lúc chỉ dự đoán.
+:::
+
+Nền để đọc bài này: [[bài:labeled-data]].
+
+:::slides 17-18 | Slide gốc — Model Training (Huấn luyện mô hình)
+:::
+
+Model training là quá trình đưa **feature vector** qua **model** để model
+tự điều chỉnh sao cho **prediction** (dự đoán) ngày càng gần với **label**
+thật.
+
+> **EN:** Model training is the process of feeding a **feature vector**
+> through a **model** so the model keeps adjusting itself until its
+> **prediction** gets closer and closer to the true **label**.
+
+## [sâu] Prediction nối với loss ra sao?
+
+Đây là bước ngay trước Loss Function: `feature vector → Model →
+prediction`; `prediction` sau đó được đem so sánh với `label` thật để
+tính ra **loss** — xem chi tiết cách tính ở bài **Loss Function** tiếp
+theo.
+
+> **EN:** This is the step right before Loss Function: `feature vector →
+> Model → prediction`; the `prediction` is then compared against the true
+> `label` to compute the **loss** — the exact calculation is covered in
+> the next **Loss Function** lesson.
+
+## [sâu] Từ sai lệch đến tín hiệu cập nhật
+
+Chỉ có `prediction` thôi thì chưa đủ để biết model đang làm tốt hay
+không — cần **đánh giá chất lượng dự đoán của model** bằng một con số cụ
+thể, gọi là **loss value**. Con số này được tính bởi một **Loss
+Function**: nhận vào `prediction` và `label`, trả về mức độ sai lệch giữa
+chúng.
+
+> **EN:** A `prediction` alone isn't enough to know whether the model is
+> doing well — you need to **evaluate the quality of the model's
+> prediction** with a concrete number, called the **loss value**. This
+> number is computed by a **Loss Function**: it takes in `prediction` and
+> `label`, and returns how far apart they are.
+
+## [sâu] Ví dụ số nằm ở bài Loss Function
+
+:::worked Ví dụ và số liệu đối chiếu
+Chưa có ví dụ số liệu ở bài này — ví dụ cụ thể (bảng dự đoán giá nhà) sẽ
+xuất hiện ngay ở bài **Loss Function** tiếp theo, dùng chung sơ đồ pipeline
+này.
+
+> **EN:** No numeric example in this lesson — the concrete example (a
+> house-price prediction table) appears right in the next **Loss
+> Function** lesson, using this same pipeline diagram.
+:::
+
+Chưa có code ở bài này — xem bài **Loss Function** tiếp theo.
+
+> **EN:** No code in this lesson — see the next **Loss Function** lesson.
+
+## [sâu] Vòng lặp và lúc sử dụng model
+
+```text
+X → model → prediction → so với y → loss → update tham số
+       ↑_______________________________________|
+```
+
+Khi train, prediction và y tạo loss, thuật toán tối ưu dùng tín hiệu đó để cập nhật tham số. Khi inference, chỉ cần input và model đã học để tạo prediction; chưa có label vẫn dùng được model. Loss không đảm bảo giảm ở từng bước và train loss thấp chưa đủ kết luận tổng quát tốt *(bổ sung)*.
+
+> **EN:** Training uses targets and a loss to update parameters. Inference applies the trained model without requiring targets. A lower training loss alone does not establish generalization.

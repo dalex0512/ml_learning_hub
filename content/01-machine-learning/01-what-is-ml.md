@@ -1,119 +1,79 @@
 ---
 title: AI, Machine Learning, Deep Learning và Data Science là gì
 order: 1
-description: "Phân biệt AI, ML, Deep Learning và Data Science, hiểu sơ đồ input → model → output và quyết định khi nào cần học từ dữ liệu."
+description: "ML là học quy tắc từ ví dụ: vị trí của AI, ML, Deep Learning và Data Science, và sơ đồ input, model, output."
 slides: 3-6
 needs: []
 tags: [ai, ml, dl, data-science]
 ---
 
-## ML đứng ở đâu trong bức tranh dữ liệu?
+## Viết luật bằng tay và học từ ví dụ khác nhau thế nào?
 
-:::intro Đọc xong bài này bạn làm được
-- Vẽ được quan hệ AI ⊃ ML ⊃ DL và vùng giao với Data Science.
-- Phân biệt hệ thống học từ dữ liệu với chương trình dùng luật.
-- Chọn một nhu cầu thực tế phù hợp để bắt đầu với ML.
+:::intro Mục tiêu bài này
+- Nói được ML làm gì bằng một câu: **học quy tắc từ ví dụ** thay vì ta tự viết quy tắc.
+- Đặt đúng vị trí của AI, Machine Learning, Deep Learning và Data Science.
+- Đọc được sơ đồ **input → model → output** và biết "học" nằm ở đâu trong sơ đồ đó.
 :::
 
-:::slides 3-6 | Slide gốc — AI, Machine Learning, Deep Learning và Data Science là gì
+Hãy viết một bộ lọc thư rác. Cách thứ nhất: **ta viết luật**: "email chứa chữ *free* thì là spam". Chạy được ngay, nhưng gặp ngay rắc rối: email "free time this weekend?" của bạn bè bị chặn nhầm, còn spam viết "fr33" thì lọt. Mỗi lỗi lại phải thêm một luật, và số luật phình ra không dứt.
+
+Cách thứ hai: **đưa cho máy 10.000 email đã được gán nhãn** spam hoặc không, để nó **tự tìm ra quy tắc** phân biệt. Quy tắc đó không nằm trong code ta viết; nó nằm trong các **tham số** mà máy học được. Đó là Machine Learning.
+
+:::ck
+Một lập trình viên viết 500 câu `if` để nhận ra email spam, mỗi khi có spam lọt qua lại thêm một `if`. Đây có phải Machine Learning không? Vì sao?
+@answer
+**Không.** Quy tắc do người viết ra và không thay đổi khi có thêm dữ liệu. Với ML, ta đưa **dữ liệu có nhãn** và máy tự điều chỉnh các tham số; khi có thêm ví dụ, ta huấn luyện lại thay vì viết thêm luật.
 :::
 
-Machine Learning (ML) không đứng một mình — nó nằm trong một bức tranh lớn
-hơn cùng với AI, Deep Learning (DL) và Data Science. **AI** là tập lớn nhất:
-hệ thống có thể tự đưa ra hành động từ dữ liệu. **ML** là một tập con của
-AI: hệ thống *học hỏi* từ dữ liệu thay vì được lập trình sẵn từng luật.
-**Deep Learning** lại là tập con của ML: học hỏi từ **rất nhiều** dữ liệu,
-dùng mạng nơ-ron nhiều lớp. **Data Science** giao thoa với cả ba: mục tiêu
-là tạo ra giá trị/insight từ dữ liệu, không nhất thiết phải "học" theo
-nghĩa ML.
+## AI, ML, Deep Learning và Data Science: ai nằm trong ai?
 
-> **EN:** Machine Learning doesn't stand alone — it sits inside a bigger
-> picture together with AI, Deep Learning, and Data Science. **AI** is the
-> broadest set: systems that can take action from data. **ML** is a subset
-> of AI: systems that *learn* from data instead of following hardcoded
-> rules. **Deep Learning** is a subset of ML: learning from a **very
-> large** amount of data using multi-layer neural networks. **Data
-> Science** overlaps with all three: its goal is generating value/insight
-> from data, not necessarily "learning" in the ML sense.
+Bốn cái tên hay bị dùng lẫn lộn. Cách nhớ theo vòng tròn lồng nhau:
 
-## Các vòng tròn giao nhau ra sao?
+- **AI (trí tuệ nhân tạo):** mọi cách làm cho máy hành xử "thông minh", kể cả luật viết tay.
+- **Machine Learning:** *một nhánh của AI* mà máy **học quy tắc từ dữ liệu**.
+- **Deep Learning:** *một nhánh của ML* dùng mạng nơ-ron nhiều tầng.
+- **Data Science:** lĩnh vực dùng dữ liệu để **rút ra hiểu biết và quyết định**. Nó dùng ML như một công cụ, nhưng còn gồm thống kê, trực quan hóa và kỹ thuật dữ liệu; nó **giao** với ML chứ không chỉ chứa trong ML.
 
-Quan hệ giữa 4 khái niệm là các vòng tròn lồng nhau: `AI ⊃ ML ⊃ Deep Learning`,
-còn Data Science là vùng giao thoa giữa 3 mảng: Domain Expertise (hiểu biết
-lĩnh vực), Computer Science, và Mathematics/Statistics — phần lõi ở giữa
-chính là Data Science, và một phần của vùng giao thoa đó trùng với Machine
-Learning. Toàn bộ khóa học này tập trung vào nhánh **ML**.
-
-> **EN:** The relationship between the four concepts is a set of nested
-> circles: `AI ⊃ ML ⊃ Deep Learning`, while Data Science sits at the
-> intersection of three areas — Domain Expertise, Computer Science, and
-> Mathematics/Statistics — with the core overlap partially shared with
-> Machine Learning. This entire course focuses on the **ML** branch.
-
-## Bốn mục tiêu dễ bị nhầm
-
-:::compare Bốn khái niệm
-| Khái niệm | Làm gì từ dữ liệu |
-|---|---|
-| AI | Đưa ra hành động từ dữ liệu |
-| Machine Learning | Học hỏi từ dữ liệu |
-| Deep Learning | Học hỏi từ **rất nhiều** dữ liệu |
-| Data Science | Tạo ra giá trị từ dữ liệu |
-
-> **EN:**
->
-> | Concept | What it does with data |
-> |---|---|
-> | AI | Takes action from data |
-> | Machine Learning | Learns from data |
-> | Deep Learning | Learns from a **very large** amount of data |
-> | Data Science | Creates value from data |
+:::predict
+Đặt mỗi việc sau vào **vòng nhỏ nhất** có thể: (a) chương trình chơi cờ ca-rô bằng luật cứng, (b) bộ lọc spam học từ email gán nhãn, (c) nhận diện ảnh bằng mạng nơ-ron nhiều tầng, (d) vẽ biểu đồ doanh thu theo tháng để báo cáo.
+@answer
+(a) **AI nhưng không phải ML** (luật cứng, không học). (b) **ML** (học từ dữ liệu). (c) **Deep Learning** (mạng nơ-ron nhiều tầng, thuộc ML, thuộc AI). (d) **Data Science** nhưng không nhất thiết có ML: chỉ là tổng hợp và trực quan hóa dữ liệu.
 :::
 
-## Nhìn vào công việc để gọi đúng tên
-
-:::worked Ví dụ và số liệu đối chiếu
-- Gợi ý sản phẩm nên mua tiếp theo → Machine Learning
-- Nhận diện khuôn mặt trong ảnh → Deep Learning
-- Báo cáo phân tích vì sao doanh thu quý này giảm → Data Science
-- Trợ lý ảo trả lời câu hỏi, thực hiện hành động thay người dùng → AI (nói chung)
-
-> **EN:**
-> - Recommending the next product a customer might buy → Machine Learning
-> - Recognizing faces in a photo → Deep Learning
-> - A report analyzing why this quarter's revenue dropped → Data Science
-> - A virtual assistant answering questions and taking actions on a user's
->   behalf → AI (in general)
+:::slides 3-6 | Slide 3–6: AI, Machine Learning, Deep Learning và Data Science
 :::
-
-Ở bước tổng quan này chưa cần viết code — chỉ cần nắm chắc 4 khái niệm và
-mối quan hệ giữa chúng. Đoạn code đầu tiên sẽ xuất hiện ở bài tiếp theo
-("Feature & Data types") khi bắt đầu đọc dữ liệu thật bằng pandas.
-
-> **EN:** No code is needed at this overview stage — just get a solid grasp
-> of the four concepts and how they relate. The first code snippet appears
-> in the next lesson ("Feature & Data types") when we start reading real
-> data with pandas.
 
 ## Đọc sơ đồ input → model → output
 
-[[slide:6]] mô tả lúc dùng mô hình: feature vector đi vào model, prediction đi ra. Mô hình đã học một quy luật từ dữ liệu trước đó; nó không tự hiểu mục tiêu kinh doanh chỉ từ đầu vào.
+Mọi bài toán ML đều có cùng một hình:
 
-> **EN:** At inference time, a feature vector enters a trained model and a prediction comes out. The business objective must be defined separately.
-
-:::note Cách diễn đạt trên slide (nhận xét)
-[[slide:5]] dùng lượng dữ liệu để gợi nhớ Deep Learning. Đặc điểm định nghĩa DL là mạng nơ-ron nhiều lớp, không phải một ngưỡng số mẫu. DL thường cần nhiều dữ liệu khi train từ đầu, nhưng transfer learning có thể dùng ít dữ liệu gán nhãn hơn *(bổ sung)*. AI cũng có thể dùng luật; Data Science có thể tạo giá trị bằng thống kê và báo cáo. Các ví dụ nhận diện ảnh và gợi ý sản phẩm không thuộc độc quyền một kỹ thuật.
+:::steps
+**Input (x):** thông tin đầu vào, tách thành các cột gọi là **feature**. Ví dụ một email, hoặc 8 phép đo của một bệnh nhân.
+@step
+**Model:** một hàm có **tham số** (các "núm vặn"). Lúc đầu tham số chưa tốt, nên model đoán sai.
+@step
+**Output (ŷ):** dự đoán của model: spam hay không, giá nhà bao nhiêu.
+@step
+**Học:** so ŷ với đáp án thật y, đo sai lệch, rồi **chỉnh tham số** để lần sau đoán tốt hơn. Phần "so và chỉnh" là chủ đề của [[bài:model-training-pipeline]] và [[bài:loss-function]].
 :::
 
-## Tóm tắt 1 phút
+Sau khi học xong, ta **đóng băng** tham số và dùng model để đoán dữ liệu mới: lúc đó không còn bước chỉnh nữa.
 
-:::recap
-- AI là phạm vi rộng, gồm cả hệ thống dùng luật.
-- ML học quy luật từ dữ liệu.
-- DL thuộc ML và dùng mạng nơ-ron nhiều lớp.
-- Data Science kết hợp lĩnh vực, lập trình và thống kê để tạo giá trị.
-- Input là feature vector; output là prediction.
-- Chọn công cụ từ vấn đề, dữ liệu và cách đánh giá.
+## Gọi đúng tên một công việc
+
+Ba câu hỏi giúp phân loại nhanh một công việc:
+
+1. Quy tắc do **người viết** hay do **máy học từ dữ liệu**? (Người viết: không phải ML.)
+2. Nếu máy học, mô hình có phải **mạng nơ-ron nhiều tầng** không? (Có: Deep Learning.)
+3. Mục tiêu là **tự động đưa ra dự đoán** hay **hiểu dữ liệu để người ra quyết định**? (Cái sau nghiêng về Data Science.)
+
+Bài [[bài:learning-paradigms]] sẽ hỏi câu tiếp theo: máy học từ **loại phản hồi** nào.
+
+:::card AI, ML, DL, Data Science
+- **ML = học quy tắc từ dữ liệu**; luật viết tay thì không phải ML.
+- **AI ⊃ ML ⊃ Deep Learning**; Data Science giao với ML (nó còn gồm thống kê và trực quan hóa).
+- **Sơ đồ:** input (feature) → model (tham số) → output (dự đoán); học = chỉnh tham số theo sai lệch so với đáp án.
+- **Sau khi học:** tham số đóng băng, model chỉ dùng để dự đoán.
 :::
 
 ## Câu hỏi tự kiểm tra
@@ -174,4 +134,102 @@ WANT: Không coi DL là đồng nghĩa với tự train một mạng lớn từ 
 
 :::next
 Đã biết ML học từ dữ liệu, giờ cần biết dữ liệu được mô tả bằng những gì. [[bài:feature-and-data-types]] giúp đọc sample, feature và ý nghĩa từng loại cột.
+:::
+
+## [sâu] Phần mở đầu gốc
+
+:::intro Đọc xong bài này bạn làm được
+- Vẽ được quan hệ AI ⊃ ML ⊃ DL và vùng giao với Data Science.
+- Phân biệt hệ thống học từ dữ liệu với chương trình dùng luật.
+- Chọn một nhu cầu thực tế phù hợp để bắt đầu với ML.
+:::
+
+:::slides 3-6 | Slide gốc — AI, Machine Learning, Deep Learning và Data Science là gì
+:::
+
+Machine Learning (ML) không đứng một mình — nó nằm trong một bức tranh lớn
+hơn cùng với AI, Deep Learning (DL) và Data Science. **AI** là tập lớn nhất:
+hệ thống có thể tự đưa ra hành động từ dữ liệu. **ML** là một tập con của
+AI: hệ thống *học hỏi* từ dữ liệu thay vì được lập trình sẵn từng luật.
+**Deep Learning** lại là tập con của ML: học hỏi từ **rất nhiều** dữ liệu,
+dùng mạng nơ-ron nhiều lớp. **Data Science** giao thoa với cả ba: mục tiêu
+là tạo ra giá trị/insight từ dữ liệu, không nhất thiết phải "học" theo
+nghĩa ML.
+
+> **EN:** Machine Learning doesn't stand alone — it sits inside a bigger
+> picture together with AI, Deep Learning, and Data Science. **AI** is the
+> broadest set: systems that can take action from data. **ML** is a subset
+> of AI: systems that *learn* from data instead of following hardcoded
+> rules. **Deep Learning** is a subset of ML: learning from a **very
+> large** amount of data using multi-layer neural networks. **Data
+> Science** overlaps with all three: its goal is generating value/insight
+> from data, not necessarily "learning" in the ML sense.
+
+## [sâu] Các vòng tròn giao nhau ra sao?
+
+Quan hệ giữa 4 khái niệm là các vòng tròn lồng nhau: `AI ⊃ ML ⊃ Deep Learning`,
+còn Data Science là vùng giao thoa giữa 3 mảng: Domain Expertise (hiểu biết
+lĩnh vực), Computer Science, và Mathematics/Statistics — phần lõi ở giữa
+chính là Data Science, và một phần của vùng giao thoa đó trùng với Machine
+Learning. Toàn bộ khóa học này tập trung vào nhánh **ML**.
+
+> **EN:** The relationship between the four concepts is a set of nested
+> circles: `AI ⊃ ML ⊃ Deep Learning`, while Data Science sits at the
+> intersection of three areas — Domain Expertise, Computer Science, and
+> Mathematics/Statistics — with the core overlap partially shared with
+> Machine Learning. This entire course focuses on the **ML** branch.
+
+## [sâu] Bốn mục tiêu dễ bị nhầm
+
+:::compare Bốn khái niệm
+| Khái niệm | Làm gì từ dữ liệu |
+|---|---|
+| AI | Đưa ra hành động từ dữ liệu |
+| Machine Learning | Học hỏi từ dữ liệu |
+| Deep Learning | Học hỏi từ **rất nhiều** dữ liệu |
+| Data Science | Tạo ra giá trị từ dữ liệu |
+
+> **EN:**
+>
+> | Concept | What it does with data |
+> |---|---|
+> | AI | Takes action from data |
+> | Machine Learning | Learns from data |
+> | Deep Learning | Learns from a **very large** amount of data |
+> | Data Science | Creates value from data |
+:::
+
+## [sâu] Nhìn vào công việc để gọi đúng tên
+
+:::worked Ví dụ và số liệu đối chiếu
+- Gợi ý sản phẩm nên mua tiếp theo → Machine Learning
+- Nhận diện khuôn mặt trong ảnh → Deep Learning
+- Báo cáo phân tích vì sao doanh thu quý này giảm → Data Science
+- Trợ lý ảo trả lời câu hỏi, thực hiện hành động thay người dùng → AI (nói chung)
+
+> **EN:**
+> - Recommending the next product a customer might buy → Machine Learning
+> - Recognizing faces in a photo → Deep Learning
+> - A report analyzing why this quarter's revenue dropped → Data Science
+> - A virtual assistant answering questions and taking actions on a user's
+>   behalf → AI (in general)
+:::
+
+Ở bước tổng quan này chưa cần viết code — chỉ cần nắm chắc 4 khái niệm và
+mối quan hệ giữa chúng. Đoạn code đầu tiên sẽ xuất hiện ở bài tiếp theo
+("Feature & Data types") khi bắt đầu đọc dữ liệu thật bằng pandas.
+
+> **EN:** No code is needed at this overview stage — just get a solid grasp
+> of the four concepts and how they relate. The first code snippet appears
+> in the next lesson ("Feature & Data types") when we start reading real
+> data with pandas.
+
+## [sâu] Đọc sơ đồ input → model → output
+
+[[slide:6]] mô tả lúc dùng mô hình: feature vector đi vào model, prediction đi ra. Mô hình đã học một quy luật từ dữ liệu trước đó; nó không tự hiểu mục tiêu kinh doanh chỉ từ đầu vào.
+
+> **EN:** At inference time, a feature vector enters a trained model and a prediction comes out. The business objective must be defined separately.
+
+:::note Cách diễn đạt trên slide (nhận xét)
+[[slide:5]] dùng lượng dữ liệu để gợi nhớ Deep Learning. Đặc điểm định nghĩa DL là mạng nơ-ron nhiều lớp, không phải một ngưỡng số mẫu. DL thường cần nhiều dữ liệu khi train từ đầu, nhưng transfer learning có thể dùng ít dữ liệu gán nhãn hơn *(bổ sung)*. AI cũng có thể dùng luật; Data Science có thể tạo giá trị bằng thống kê và báo cáo. Các ví dụ nhận diện ảnh và gợi ý sản phẩm không thuộc độc quyền một kỹ thuật.
 :::

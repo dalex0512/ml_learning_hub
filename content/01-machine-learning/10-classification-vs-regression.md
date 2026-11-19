@@ -1,13 +1,159 @@
 ---
 title: Classification vs Regression
 order: 10
-description: "Chọn classification hay regression từ ý nghĩa target, phân biệt binary, multiclass và multilabel trước khi chọn loss và metric."
+description: "Phân loại đoán nhóm, hồi quy đoán số; dạng đầu ra quyết định loss, metric và cách đặt bài toán."
 slides: 25-26
 needs: [learning-paradigms]
 tags: [classification, regression, multiclass, multilabel, ordinal]
 ---
 
-## Ta cần dự đoán nhãn hay đại lượng?
+## Ta cần dự đoán một nhãn hay một đại lượng?
+
+:::intro Mục tiêu bài này
+- Phân biệt **phân loại** (đầu ra là nhóm) và **hồi quy** (đầu ra là số đo).
+- Thấy rằng dạng đầu ra quyết định **loss và metric** phù hợp.
+- Tự phân loại một tình huống thật bằng một chuỗi câu hỏi ngắn.
+:::
+
+Hai câu hỏi nghe giống nhau nhưng khác hẳn: "người này có bị tiểu đường **không**?" (một trong hai nhóm) và "đường huyết của người này sẽ là **bao nhiêu**?" (một con số). Câu đầu là **phân loại (classification)**; câu sau là **hồi quy (regression)**.
+
+| | Phân loại | Hồi quy |
+|---|---|---|
+| **Đầu ra** | nhãn rời rạc (nhóm) | số liên tục, có ý nghĩa đo lường |
+| **Ví dụ** | spam hay không, loại bệnh | giá nhà, nhiệt độ |
+| **Loss thường dùng** | cross-entropy (log loss) | MSE, MAE |
+| **Metric thường dùng** | accuracy, precision, recall, F1 ([[bài:classification-metrics]]) | MAE, RMSE, R² ([[bài:regression-metrics]]) |
+
+Cách chọn dạng bài quyết định cả loss lẫn cách đo, nên là bước đầu tiên khi đặt bài toán.
+
+:::predict
+Phân loại hay hồi quy? (1) đoán số sao (1 đến 5) khách chấm; (2) đoán một email là spam hay không; (3) đoán doanh thu tháng sau; (4) đoán loại tin tức (thể thao, kinh tế, giải trí); (5) đoán số lượt bấm vào quảng cáo; (6) đoán mức độ hài lòng "thấp, vừa, cao".
+@answer
+(1) **Có thể cả hai**: tùy cách đặt. Nếu coi 1 đến 5 là năm nhóm thì phân loại (nhóm có thứ tự); nếu coi là số đo và muốn đoán 3.7 thì hồi quy. (2) **Phân loại nhị phân.** (3) **Hồi quy.** (4) **Phân loại nhiều lớp.** (5) **Hồi quy** (số đếm, hoặc mô hình đếm chuyên biệt). (6) **Phân loại** có thứ tự (ordinal). Mấu chốt: **có thứ tự hay là số không đủ để gọi là hồi quy**; phải hỏi ta muốn đoán **nhóm** hay **một số có khoảng cách đều**.
+:::
+
+## Các dạng đầu ra cần phân biệt
+
+- **Nhị phân:** hai nhóm (có bệnh hay không).
+- **Nhiều lớp:** nhiều nhóm loại trừ nhau (một tin chỉ thuộc một chuyên mục).
+- **Nhiều nhãn:** một mẫu có thể có nhiều nhãn cùng lúc (một ảnh vừa có "chó" vừa có "bãi cỏ").
+- **Hồi quy:** số liên tục.
+- **Đếm và thứ tự:** nằm giữa hai bờ; chọn cách đặt phù hợp với việc cần dùng kết quả để làm gì.
+
+:::ck
+Công ty muốn đoán "khách hàng có rời đi trong tháng tới không" và cũng muốn đoán "khách sẽ chi bao nhiêu tiền trong tháng tới". Mỗi câu là dạng bài nào, và metric nào hợp lý?
+@answer
+Câu đầu **phân loại nhị phân** (metric: recall, precision, F1; có thể cần ngưỡng). Câu sau **hồi quy** (metric: MAE hoặc RMSE). Dùng cùng dữ liệu khách hàng nhưng **hai mô hình, hai loss, hai cách đo** khác nhau.
+:::
+
+:::slides 25-26 | Slide 25–26: classification và regression
+:::
+
+:::card Classification và Regression
+- **Phân loại:** đoán nhóm. **Hồi quy:** đoán số có khoảng cách đều.
+- **Dạng bài quyết định loss và metric** (cross-entropy với accuracy, precision, recall; MSE với MAE, RMSE).
+- **Có thứ tự hay là số chưa đủ** để gọi là hồi quy; hỏi ta muốn đoán nhóm hay số.
+- **Một dữ liệu có thể sinh nhiều bài toán** (rời đi hay không là phân loại; chi bao nhiêu là hồi quy).
+:::
+
+## Câu hỏi tự kiểm tra
+
+:::quiz
+@tier A | Hiểu bài
+Q: Điểm khác biệt cốt lõi giữa Classification và Regression là gì?
+A: Ở dạng của label (output). Classification dự đoán một nhãn
+trong tập hữu hạn các class rời rạc; Regression dự đoán một số thực
+liên tục. Phép thử nhanh: nếu một đáp án hợp lệ có thể nằm giữa hai đáp
+án hợp lệ khác thì đó là Regression.
+EN: What is the core difference between Classification and
+Regression?
+**A:** The form of the label. Classification predicts one of a finite
+> set of discrete classes; Regression predicts a continuous real
+> number. Quick test: if a valid answer can fall between two other
+> valid answers, it's Regression.
+
+Q: Multiclass và Multilabel khác nhau thế nào? Cho mỗi loại một
+ví dụ.
+A: Multiclass: mỗi mẫu thuộc **đúng một** class trong ≥ 3 class
+(ảnh là sushi, steak hoặc pizza). Multilabel: mỗi mẫu có thể mang
+**nhiều nhãn cùng lúc** (bài viết được gắn cả tag "Machine learning"
+lẫn "Artificial intelligence").
+EN: How do Multiclass and Multilabel differ? Give an example of
+each.
+**A:** Multiclass: each sample belongs to **exactly one** of ≥ 3
+> classes (a photo is sushi, steak or pizza). Multilabel: each sample
+> can carry **several labels at once** (an article tagged both "Machine
+> learning" and "Artificial intelligence").
+
+Q: Cột `Outcome` của Diabetes dataset chứa các số 0 và 1. Đây là
+bài toán Regression hay Classification? Vì sao?
+A: Binary Classification. 0 và 1 chỉ là mã hóa của hai class
+(không bệnh / có bệnh), không có giá trị nào nằm giữa, và phép so sánh
+"lớn hơn" giữa chúng không mang ý nghĩa đại lượng.
+EN: The Diabetes `Outcome` column contains 0s and 1s. Regression or
+Classification? Why?
+**A:** Binary Classification. 0 and 1 are just codes for two classes
+> (no diabetes / diabetes); no value lies in between and "greater than"
+> carries no quantitative meaning.
+
+Q: Vì sao phải xác định dạng bài **trước** khi chọn metric đánh
+giá?
+A: Vì metric phụ thuộc dạng bài. Classification đo xem đoán
+**đúng hay sai nhãn** (Confusion Matrix, Accuracy, Precision, Recall,
+F1, ROC/AUC); Regression đo **sai lệch bao nhiêu** giữa hai con số
+(MAE, RMSE). Dùng nhầm — ví dụ tính Accuracy cho giá nhà — sẽ cho kết
+quả vô nghĩa, vì gần như không bao giờ đoán trúng chính xác từng đồng.
+EN: Why must the problem type be identified **before** choosing an
+evaluation metric?
+**A:** Metrics depend on the problem type. Classification measures
+> whether the **label is right or wrong** (Confusion Matrix, Accuracy,
+> Precision, Recall, F1, ROC/AUC); Regression measures **how far off**
+> a number is (MAE, RMSE). Mixing them up — e.g. computing Accuracy on
+> house prices — is meaningless.
+
+Q: "Dự đoán ngày mai mưa hay không" và "dự đoán lượng mưa ngày
+mai" — hai bài này thuộc dạng nào? Rút ra điều gì?
+A: Bài đầu là Binary Classification, bài sau là Regression.
+Cùng một nhu cầu thực tế có thể được thiết kế thành hai dạng bài khác
+nhau tùy câu hỏi muốn trả lời, nên việc chọn dạng bài là một quyết định
+thiết kế, không chỉ là "nhìn dữ liệu là biết".
+EN: "Will it rain tomorrow?" vs "how much will it rain tomorrow?" —
+which type is each, and what's the lesson?
+**A:** The first is Binary Classification, the second is Regression.
+> The same real-world need can be framed as different problem types
+> depending on the question, so choosing the type is a design decision.
+@tier B | Phỏng vấn lý thuyết
+Q: Vì sao Outcome số 0/1 vẫn là classification?
+A: Đây là mã của hai class, không phải đại lượng có khoảng cách cần tối ưu. Model có thể xuất xác suất nhưng target vẫn là class và cần metric phân loại.
+EN: Numeric codes for categories remain classification targets; a probability output does not change the task type.
+Q: Một mẫu có nhiều class có luôn là multiclass không?
+A: Không. Multiclass chọn đúng một trong nhiều class, còn multilabel cho phép nhiều nhãn đồng thời. Phân loại món ăn loại trừ nhau khác gắn nhiều thể loại phim.
+EN: Multiclass selects one class; multilabel assigns multiple potentially co-occurring labels.
+Q: Dự đoán số khách ngày mai là regression hay classification?
+A: Thường là bài toán số đếm vì chênh lệch có ý nghĩa định lượng. Có thể đặt thành nhóm thấp/vừa/cao nếu quyết định chỉ cần nhóm, nhưng sẽ mất chi tiết và đổi metric.
+EN: Counts are quantitative targets; discretizing them into categories changes the objective and loses detail.
+Q: Có thể dùng accuracy cho mọi target số không?
+A: Không. Với giá nhà, sai ít vẫn không khớp tuyệt đối nên accuracy không phản ánh mức sai. Dùng MAE/RMSE; với mã class số thì dùng metric classification.
+EN: Exact-match accuracy is not a meaningful general-purpose metric for continuous predictions.
+@tier C | Tình huống doanh nghiệp
+Q: Sàn có rating theo sao và muốn dự đoán mức hài lòng. Chọn dạng bài nào?
+A: Hỏi cần điểm số hay mức để hành động. Nếu thứ tự quan trọng nhưng khoảng cách chưa đều, cân nhắc ordinal classification; nếu dùng điểm trung bình có thể thử regression kèm giả định rõ. So theo chi phí dự đoán lệch nhiều mức, không chỉ accuracy *(bổ sung)*.
+WANT: Không chọn chỉ vì nhãn được lưu bằng số.
+Q: Một bài viết có thể thuộc nhiều chủ đề nhưng hệ thống bắt chọn một. Sửa thế nào?
+A: Kiểm tra định nghĩa nhãn và mục tiêu tìm kiếm. Nếu chủ đề thực sự đồng thời, đổi thành multilabel và dữ liệu gán nhiều nhãn; đánh giá theo từng tag và chi phí bỏ sót. Nếu nghiệp vụ cần một mục chính, giữ multiclass với quy tắc mục chính rõ *(bổ sung)*.
+WANT: Biết mục tiêu nghiệp vụ quyết định tính loại trừ của class.
+Q: Kho chỉ cần biết ngày mai nhu cầu vượt sức chứa không. Cần regression?
+A: Có thể classification vượt/không vượt nếu đó là quyết định duy nhất. Regression dự báo số lượng hỗ trợ nhiều ngưỡng nhưng đòi hỏi metric và kiểm chứng khác. Chọn theo hành động, chi phí báo động giả/bỏ sót và nhu cầu chi tiết *(bổ sung)*.
+WANT: Biết cùng một dữ liệu có nhiều cách đặt bài toán hợp lệ.
+:::
+
+## Nối sang bài sau
+
+:::next
+Khi đầu ra là class, sai không chỉ có một kiểu. [[bài:confusion-matrix]] tách báo động giả và bỏ sót thành bốn ô TP, FP, FN, TN.
+:::
+
+## [sâu] Phần mở đầu gốc
 
 :::intro Đọc xong bài này bạn làm được
 - Phân loại bài toán từ target thay vì dtype.
@@ -42,7 +188,7 @@ Một email không thể "nửa spam nửa không" → Classification.
 > **Regression**. A quick test: *"Can a valid answer fall between two
 > other valid answers?"* If yes, it's Regression.
 
-## Dạng bài quyết định loss và metric
+## [sâu] Dạng bài quyết định loss và metric
 
 [[bài:learning-paradigms]] đã chia ML thành Supervised / Unsupervised / Reinforcement. Bài này
 đi sâu vào nhánh **Supervised**, chia tiếp thành hai dạng bài ([[slide:25]]):
@@ -74,7 +220,7 @@ thứ phía sau:
 > training, how the data can be split (Stratified K-fold only works for
 > Classification), and which evaluation metrics apply.
 
-## Các dạng đầu ra cần phân biệt
+## [sâu] Các dạng đầu ra cần phân biệt
 
 ### Classification — Binary
 
@@ -187,7 +333,7 @@ Tên gọi có lý do lịch sử, đừng phân loại theo tên.
 > "will it rain tomorrow?" vs "how many mm of rain?"; (4) despite its
 > name, Logistic Regression is a **classification** algorithm.
 
-## Tám tình huống để tự phân loại
+## [sâu] Tám tình huống để tự phân loại
 
 :::worked Ví dụ và số liệu đối chiếu
 Xác định dạng bài cho từng tình huống sau (che cột phải để tự làm trước):
@@ -214,7 +360,7 @@ Xác định dạng bài cho từng tình huống sau (che cột phải để t�
 > slides.)*
 :::
 
-## Code chỉ gợi ý, ý nghĩa mới quyết định
+## [sâu] Code chỉ gợi ý, ý nghĩa mới quyết định
 
 Kiểm tra nhanh kiểu label bằng code — một thói quen tốt khi mới nhận
 dataset:
@@ -254,118 +400,10 @@ là đại lượng đếm. Quyết định cuối cùng luôn dựa trên **ý 
 > be class codes or counts. The final decision always rests on what the
 > label **means**.
 
-## Target có thứ tự chưa quyết định một cách làm (bổ sung)
+## [sâu] Target có thứ tự chưa quyết định một cách làm (bổ sung)
 
 :::note Rating và số đếm
 Số sao có thứ tự, có thể đặt thành ordinal classification hoặc regression tùy mục tiêu và giả định khoảng cách. Quy tắc 'có số nằm giữa' chỉ là mẹo nhập môn; số đếm vẫn có thể là regression. X-quang trong bảng chỉ là multiclass nếu các nhãn được định nghĩa loại trừ nhau; bệnh có thể đồng thời xuất hiện thì dùng multilabel.
 :::
 
 > **EN:** Problem formulation depends on target semantics and the decision objective. Ordered ratings and integer counts require more care than a dtype-based heuristic.
-
-## Tóm tắt 1 phút
-
-:::recap
-- Classification dự đoán class rời rạc.
-- Regression dự đoán đại lượng có sai số định lượng.
-- Binary có hai class.
-- Multiclass có đúng một nhãn mỗi mẫu.
-- Multilabel cho phép nhiều nhãn cùng mẫu.
-- Target số hoặc shape 2D chưa đủ quyết định dạng bài.
-:::
-
-## Câu hỏi tự kiểm tra
-
-:::quiz
-@tier A | Hiểu bài
-Q: Điểm khác biệt cốt lõi giữa Classification và Regression là gì?
-A: Ở dạng của label (output). Classification dự đoán một nhãn
-trong tập hữu hạn các class rời rạc; Regression dự đoán một số thực
-liên tục. Phép thử nhanh: nếu một đáp án hợp lệ có thể nằm giữa hai đáp
-án hợp lệ khác thì đó là Regression.
-EN: What is the core difference between Classification and
-Regression?
-**A:** The form of the label. Classification predicts one of a finite
-> set of discrete classes; Regression predicts a continuous real
-> number. Quick test: if a valid answer can fall between two other
-> valid answers, it's Regression.
-
-Q: Multiclass và Multilabel khác nhau thế nào? Cho mỗi loại một
-ví dụ.
-A: Multiclass: mỗi mẫu thuộc **đúng một** class trong ≥ 3 class
-(ảnh là sushi, steak hoặc pizza). Multilabel: mỗi mẫu có thể mang
-**nhiều nhãn cùng lúc** (bài viết được gắn cả tag "Machine learning"
-lẫn "Artificial intelligence").
-EN: How do Multiclass and Multilabel differ? Give an example of
-each.
-**A:** Multiclass: each sample belongs to **exactly one** of ≥ 3
-> classes (a photo is sushi, steak or pizza). Multilabel: each sample
-> can carry **several labels at once** (an article tagged both "Machine
-> learning" and "Artificial intelligence").
-
-Q: Cột `Outcome` của Diabetes dataset chứa các số 0 và 1. Đây là
-bài toán Regression hay Classification? Vì sao?
-A: Binary Classification. 0 và 1 chỉ là mã hóa của hai class
-(không bệnh / có bệnh), không có giá trị nào nằm giữa, và phép so sánh
-"lớn hơn" giữa chúng không mang ý nghĩa đại lượng.
-EN: The Diabetes `Outcome` column contains 0s and 1s. Regression or
-Classification? Why?
-**A:** Binary Classification. 0 and 1 are just codes for two classes
-> (no diabetes / diabetes); no value lies in between and "greater than"
-> carries no quantitative meaning.
-
-Q: Vì sao phải xác định dạng bài **trước** khi chọn metric đánh
-giá?
-A: Vì metric phụ thuộc dạng bài. Classification đo xem đoán
-**đúng hay sai nhãn** (Confusion Matrix, Accuracy, Precision, Recall,
-F1, ROC/AUC); Regression đo **sai lệch bao nhiêu** giữa hai con số
-(MAE, RMSE). Dùng nhầm — ví dụ tính Accuracy cho giá nhà — sẽ cho kết
-quả vô nghĩa, vì gần như không bao giờ đoán trúng chính xác từng đồng.
-EN: Why must the problem type be identified **before** choosing an
-evaluation metric?
-**A:** Metrics depend on the problem type. Classification measures
-> whether the **label is right or wrong** (Confusion Matrix, Accuracy,
-> Precision, Recall, F1, ROC/AUC); Regression measures **how far off**
-> a number is (MAE, RMSE). Mixing them up — e.g. computing Accuracy on
-> house prices — is meaningless.
-
-Q: "Dự đoán ngày mai mưa hay không" và "dự đoán lượng mưa ngày
-mai" — hai bài này thuộc dạng nào? Rút ra điều gì?
-A: Bài đầu là Binary Classification, bài sau là Regression.
-Cùng một nhu cầu thực tế có thể được thiết kế thành hai dạng bài khác
-nhau tùy câu hỏi muốn trả lời, nên việc chọn dạng bài là một quyết định
-thiết kế, không chỉ là "nhìn dữ liệu là biết".
-EN: "Will it rain tomorrow?" vs "how much will it rain tomorrow?" —
-which type is each, and what's the lesson?
-**A:** The first is Binary Classification, the second is Regression.
-> The same real-world need can be framed as different problem types
-> depending on the question, so choosing the type is a design decision.
-@tier B | Phỏng vấn lý thuyết
-Q: Vì sao Outcome số 0/1 vẫn là classification?
-A: Đây là mã của hai class, không phải đại lượng có khoảng cách cần tối ưu. Model có thể xuất xác suất nhưng target vẫn là class và cần metric phân loại.
-EN: Numeric codes for categories remain classification targets; a probability output does not change the task type.
-Q: Một mẫu có nhiều class có luôn là multiclass không?
-A: Không. Multiclass chọn đúng một trong nhiều class, còn multilabel cho phép nhiều nhãn đồng thời. Phân loại món ăn loại trừ nhau khác gắn nhiều thể loại phim.
-EN: Multiclass selects one class; multilabel assigns multiple potentially co-occurring labels.
-Q: Dự đoán số khách ngày mai là regression hay classification?
-A: Thường là bài toán số đếm vì chênh lệch có ý nghĩa định lượng. Có thể đặt thành nhóm thấp/vừa/cao nếu quyết định chỉ cần nhóm, nhưng sẽ mất chi tiết và đổi metric.
-EN: Counts are quantitative targets; discretizing them into categories changes the objective and loses detail.
-Q: Có thể dùng accuracy cho mọi target số không?
-A: Không. Với giá nhà, sai ít vẫn không khớp tuyệt đối nên accuracy không phản ánh mức sai. Dùng MAE/RMSE; với mã class số thì dùng metric classification.
-EN: Exact-match accuracy is not a meaningful general-purpose metric for continuous predictions.
-@tier C | Tình huống doanh nghiệp
-Q: Sàn có rating theo sao và muốn dự đoán mức hài lòng. Chọn dạng bài nào?
-A: Hỏi cần điểm số hay mức để hành động. Nếu thứ tự quan trọng nhưng khoảng cách chưa đều, cân nhắc ordinal classification; nếu dùng điểm trung bình có thể thử regression kèm giả định rõ. So theo chi phí dự đoán lệch nhiều mức, không chỉ accuracy *(bổ sung)*.
-WANT: Không chọn chỉ vì nhãn được lưu bằng số.
-Q: Một bài viết có thể thuộc nhiều chủ đề nhưng hệ thống bắt chọn một. Sửa thế nào?
-A: Kiểm tra định nghĩa nhãn và mục tiêu tìm kiếm. Nếu chủ đề thực sự đồng thời, đổi thành multilabel và dữ liệu gán nhiều nhãn; đánh giá theo từng tag và chi phí bỏ sót. Nếu nghiệp vụ cần một mục chính, giữ multiclass với quy tắc mục chính rõ *(bổ sung)*.
-WANT: Biết mục tiêu nghiệp vụ quyết định tính loại trừ của class.
-Q: Kho chỉ cần biết ngày mai nhu cầu vượt sức chứa không. Cần regression?
-A: Có thể classification vượt/không vượt nếu đó là quyết định duy nhất. Regression dự báo số lượng hỗ trợ nhiều ngưỡng nhưng đòi hỏi metric và kiểm chứng khác. Chọn theo hành động, chi phí báo động giả/bỏ sót và nhu cầu chi tiết *(bổ sung)*.
-WANT: Biết cùng một dữ liệu có nhiều cách đặt bài toán hợp lệ.
-:::
-
-## Nối sang bài sau
-
-:::next
-Khi đầu ra là class, sai không chỉ có một kiểu. [[bài:confusion-matrix]] tách báo động giả và bỏ sót thành bốn ô TP, FP, FN, TN.
-:::

@@ -1,13 +1,123 @@
 ---
 title: Regular Expression — tìm và làm sạch dữ liệu chuỗi với Python re
 order: 23
-description: "Định nghĩa pattern rồi tìm, trích hoặc thay thế trong chuỗi; phân biệt search, match, fullmatch, group, greedy/lazy và giới hạn của RegEx."
+description: "Regex mô tả hình dạng của chuỗi: bộ ký hiệu cốt lõi, search, match, fullmatch, greedy và lazy với re của Python."
 slides: null
 needs: [feature-and-data-types]
 tags: [regex, python, text-cleaning, pattern, validation]
 ---
 
 ## Ta cần tìm khuôn mẫu nào trong chuỗi?
+
+:::intro Mục tiêu bài này
+- Hiểu **regular expression (regex)** là cách mô tả **hình dạng** của chuỗi cần tìm.
+- Đọc được bộ ký hiệu cốt lõi và phân biệt `search`, `match`, `fullmatch`.
+- Biết khác biệt **greedy** và **lazy**, và dùng `re` của Python để tìm, trích, kiểm, thay.
+:::
+
+Dữ liệu thật thường có cột chữ lộn xộn: số điện thoại, email, ngày tháng, khoảng trắng thừa. Thay vì viết hàng chục `if`, ta mô tả **hình dạng** cần tìm bằng một **pattern**, ví dụ "ba chữ số, dấu gạch, bốn chữ số":
+
+```python
+import re
+re.findall(r"\d{3}-\d{4}", "Gọi 555-1234 hoặc 555-9876")
+# ['555-1234', '555-9876']
+```
+
+## Bộ ký hiệu đủ dùng
+
+| Ký hiệu | Nghĩa |
+|---|---|
+| `\d`, `\w`, `\s` | một chữ số / một ký tự chữ-số-gạch dưới / một khoảng trắng |
+| `.` | một ký tự bất kỳ (trừ xuống dòng) |
+| `[abc]`, `[a-z]` | một ký tự trong tập |
+| `+`, `*`, `?` | một hoặc nhiều / không hoặc nhiều / không hoặc một |
+| `{3}`, `{2,4}` | đúng 3 / từ 2 đến 4 lần |
+| `^`, `$` | đầu chuỗi / cuối chuỗi |
+| `( )`, `\|` | nhóm để trích / hoặc |
+
+:::predict
+Pattern `\d+` được dùng với `search`, `match` và `fullmatch` trên chuỗi `"abc123"`. Hàm nào tìm thấy, hàm nào không?
+@answer
+`re.search(r"\d+", "abc123")` **tìm thấy** (quét cả chuỗi, thấy "123"). `re.match(r"\d+", "abc123")` **không** (chỉ khớp từ **đầu** chuỗi, mà đầu chuỗi là chữ). `re.fullmatch(r"\d+", "abc123")` **không** (cả chuỗi phải khớp). Còn `re.fullmatch(r"\d+", "123")` thì **có**.
+:::
+
+## Tìm, trích, kiểm, thay
+
+- **`re.findall(p, s)`:** liệt kê mọi phần khớp. Ví dụ trích email: `re.findall(r"[\w.]+@[\w.]+\.\w+", "an@mail.com, binh.k@corp.vn")` cho `['an@mail.com', 'binh.k@corp.vn']`.
+- **`re.fullmatch(p, s)`:** kiểm cả chuỗi có đúng khuôn không (xác nhận định dạng).
+- **`re.sub(p, thay, s)`:** thay mọi phần khớp. `re.sub(r"\s+", " ", "a   b \t c")` cho `'a b c'` (gộp khoảng trắng).
+
+## Greedy và lazy: khớp tham lam hay vừa đủ
+
+Mặc định `+` và `*` **tham lam**: lấy nhiều nhất có thể. Thêm `?` thì thành **lazy**: lấy ít nhất có thể.
+
+```python
+re.findall(r"<.+>",  "<a><b>")   # ['<a><b>']       greedy: nuốt cả hai thẻ
+re.findall(r"<.+?>", "<a><b>")   # ['<a>', '<b>']   lazy: từng thẻ một
+```
+
+:::ck
+Bạn muốn lấy từng thẻ HTML riêng trong chuỗi `"<b>đậm</b> và <i>nghiêng</i>"`. Dùng `<.+>` có đúng không? Dùng gì thay?
+@answer
+**Không đúng**: `<.+>` tham lam sẽ nuốt từ `<b>` đầu đến `</i>` cuối thành **một** phần khớp. Dùng `<.+?>` (lazy) hoặc `<[^>]+>` (mọi ký tự trừ `>`) để lấy từng thẻ.
+:::
+
+Hai lời khuyên: dùng **chuỗi thô** `r"..."` để không phải nhân đôi dấu gạch chéo; và nhớ regex của mỗi nơi (Python, JavaScript, công cụ web) có thể khác nhau chút ít, nên kiểm tra pattern bằng **đúng engine** bạn sẽ dùng.
+
+:::card Regular expression
+- **Pattern mô tả hình dạng** của chuỗi cần tìm: `\d{3}-\d{4}`.
+- **Ký hiệu cốt lõi:** `\d \w \s . [] + * ? {n} ^ $ () |`.
+- **`search`** quét cả chuỗi; **`match`** chỉ từ đầu; **`fullmatch`** cả chuỗi phải khớp.
+- **Greedy** (`.+`) lấy nhiều nhất, **lazy** (`.+?`) lấy ít nhất.
+- **Dùng `r"..."`**; kiểm tra bằng đúng engine.
+:::
+
+## Câu hỏi tự kiểm tra
+
+:::quiz
+@tier A | Hiểu bài
+Q: Vì sao search thấy mã đơn trong “Đơn DH-2026-0042” mà match không thấy?
+A: Search dò mọi vị trí; match cần pattern bắt đầu ở vị trí 0. Input bắt đầu bằng “Đơn ” nên match thất bại, còn search thấy token phía sau.
+Q: Pattern 0[0-9]{9} dùng với search có đủ xác thực toàn trường điện thoại không?
+A: Không. Search có thể tìm đoạn phù hợp trong chuỗi thừa chữ hoặc số. Dùng fullmatch cho toàn trường; vẫn cần xác thực nghiệp vụ nếu muốn biết số có hợp lệ/thực sự tồn tại.
+Q: findall với hai named groups year và seq trả list token đầy đủ hay tuple?
+A: Nó trả list tuple của hai group, như [("2026","0042")]. Dùng finditer rồi group(0) nếu muốn Match đầy đủ và thông tin vị trí.
+Q: Greedy và lazy cho kết quả gì trên “[A] [B]” với hai pattern trong bài?
+A: Pattern greedy lấy một chuỗi “[A] [B]”; lazy lấy hai chuỗi “[A]” và “[B]”. Đây là ưu tiên khớp, không phải bảo đảm hiệu năng.
+Q: Vì sao “2025-02-29” khớp định dạng ngày nhưng vẫn sai?
+A: Regex trong bài chỉ kiểm bốn số, dấu -, hai số, dấu -, hai số. Năm 2025 không có ngày 29/2; date.fromisoformat phát hiện lỗi lịch.
+@tier B | Phỏng vấn lý thuyết
+Q: Search, match, fullmatch khác nhau thế nào và chọn khi nào?
+A: Search để tìm/trích token trong văn bản; match để kiểm tiền tố có cấu trúc; fullmatch để kiểm toàn trường theo pattern. Chọn theo việc cần một đoạn hay toàn input, không theo thói quen dùng một API.
+EN: Search scans anywhere, match anchors to the start, and fullmatch requires the entire input to match. Extraction and field validation need different choices.
+Q: Vì sao cần raw string và re.escape?
+A: Raw string hạn chế Python xử lý backslash trước khi regex nhận pattern. re.escape bảo vệ metacharacter trong đoạn text cần tìm literal; nó không làm thay vai trò của raw string. Một cái thuộc cú pháp chuỗi Python, một cái thuộc cú pháp regex.
+EN: Raw strings avoid Python escape interference; re.escape quotes regex metacharacters in literal text. They solve different problems.
+Q: RegEx xác thực định dạng có thay được kiểm tra nghiệp vụ không?
+A: Không. Chuỗi ngày có thể đúng khuôn mà sai lịch, số điện thoại đúng số ký tự mà không tồn tại. Dùng regex cho cấu trúc, sau đó parser và quy tắc miền cho ý nghĩa.
+EN: Regex validates textual structure; parsers and domain checks are needed for semantic validity and existence.
+Q: Vì sao đổi greedy thành lazy chưa xử lý xong catastrophic backtracking?
+A: Lazy thay thứ tự các khả năng được thử, vẫn có thể backtrack qua nhiều tổ hợp. Cần bớt mơ hồ/lượng từ lồng, giới hạn input và kiểm near-miss; với nguồn không tin cậy còn phải kiểm ngân sách tài nguyên.
+EN: Lazy quantifiers change search order but can still backtrack pathologically. Pattern structure and resource limits matter.
+@tier C | Tình huống doanh nghiệp
+Q: ETL lấy điện thoại bằng search rồi chấp nhận mọi trường có một đoạn khớp. Dữ liệu rác lọt qua. Sửa sao?
+A: Chốt định dạng được phép, chuẩn hóa ngoài theo quy tắc rõ và fullmatch toàn trường. Tách bước trích token khỏi bước xác thực; lưu trường lỗi để kiểm lại thay vì xóa âm thầm. Nếu cần kiểm số thật, thêm xác thực miền ngoài regex; chấp nhận chặt hơn có thể từ chối một số định dạng cũ cần migration.
+WANT: Nhận ra lỗi chọn API và thiết kế luồng dữ liệu lỗi có thể truy vết.
+Q: Dịch vụ nhận text người dùng, một pattern đôi lúc làm CPU tăng cao. Bạn điều tra gì?
+A: Khoanh pattern và input near-miss bằng dữ liệu giả, kiểm lượng từ lồng/nhánh mơ hồ và giới hạn input trước khi match. Viết lại pattern rõ hơn, đo thời gian theo độ dài, cân nhắc engine hoặc cô lập khi cần. Không chạy payload dài vô hạn trong process phục vụ để chứng minh lỗi.
+WANT: Hiểu hiệu năng là một phần độ đúng của bộ xử lý input, không chỉ kết quả khớp.
+Q: Pattern đúng trên RegExr nhưng lỗi trong Python. Có chép lại thêm backslash đến khi chạy không?
+A: Kiểm engine, flags, raw string và các cú pháp riêng như named group trước; tạo bộ test tối thiểu bằng Python re. Chốt một đặc tả chung và test trong môi trường thực thi. Khả năng tương thích cần xác nhận, không chỉnh escape ngẫu nhiên làm đổi pattern.
+WANT: Phân tách lớp chuỗi Python, cú pháp regex và khác biệt engine.
+:::
+
+## Nối lại quy trình dữ liệu
+
+:::next
+Sau khi trích/chuẩn hóa text, kiểm lại dtype, giá trị thiếu và miền hợp lệ ở [[bài:descriptive-statistics]] và [[bài:missing-values-outliers]]. Quay về [[bài:ml-pipeline]] để đặt RegEx đúng vai trò công cụ hỗ trợ; nó không thay thế toàn bộ bước làm sạch hay mô hình ML.
+:::
+
+## [sâu] Phần mở đầu gốc
 
 :::intro Đọc xong bài này bạn làm được
 - Viết một pattern đơn giản cho mã đơn, số điện thoại hoặc định dạng ngày.
@@ -24,7 +134,7 @@ RegEx có trong ghi chú của chủ repo nhưng không xuất hiện trong ản
 
 > **EN:** A regular expression specifies a text pattern. Matching structure supports extraction and cleaning, but does not establish semantic correctness.
 
-## Bộ ký hiệu đủ để đọc các ví dụ
+## [sâu] Bộ ký hiệu đủ để đọc các ví dụ
 
 :::compare Ký hiệu → ý nghĩa
 | Cú pháp | Nghĩa trong Python re | Ví dụ |
@@ -51,7 +161,7 @@ Với chuỗi Unicode, `\d` có thể khớp chữ số ngoài ASCII; dùng `[0-
 
 > **EN:** Raw strings avoid Python string-escape interference; regex metacharacters still apply. Unicode character classes can be broader than ASCII business formats, so choose them deliberately.
 
-## Tìm ở đâu và có cần khớp toàn chuỗi?
+## [sâu] Tìm ở đâu và có cần khớp toàn chuỗi?
 
 :::compare Chọn API theo câu hỏi
 | API | Câu hỏi | Kết quả chính |
@@ -85,7 +195,7 @@ r"\bDH-(?P<year>[0-9]{4})-(?P<seq>[0-9]{4})\b"
 `search` tìm token ở đoạn `[4,16)` của chuỗi Python; đầu vào phía trước không cần khớp. `match` trả None vì input bắt đầu bằng `Đơn `. `fullmatch` cũng trả None vì còn cả phần văn bản khác. Khi lấy riêng token `DH-2026-0042`, fullmatch thành công. Giữ `seq` là chuỗi để không mất hai số 0 đầu.
 :::
 
-## Code Python re: tìm, trích, kiểm và thay
+## [sâu] Code Python re: tìm, trích, kiểm và thay
 
 Thư viện `re` có sẵn trong Python, không cần pip install. Code sau chạy độc lập; dữ liệu đều tự soạn.
 
@@ -147,7 +257,7 @@ Muốn trích email có thể bắt đầu bằng pattern đơn giản để tì
 
 > **EN:** A pattern can recognize a date or phone-like format without validating its meaning or existence. Structured formats often need dedicated parsers and domain validation after extraction.
 
-## Greedy, lazy và giới hạn tài nguyên
+## [sâu] Greedy, lazy và giới hạn tài nguyên
 
 ```python
 import re
@@ -165,67 +275,10 @@ Pattern mơ hồ có lượng từ lồng, như `(a+)+$`, có thể thử rất 
 
 > **EN:** Greedy and lazy quantifiers change matching preference, not a general runtime guarantee. Ambiguous nested quantifiers can cause pathological backtracking on near-miss inputs.
 
-## Thử pattern mà không nhầm engine
+## [sâu] Thử pattern mà không nhầm engine
 
 [RegExr](https://regexr.com/) giúp tô phần khớp và thử pattern nhanh. Kiểm tra engine/flags của công cụ; đừng giả định cú pháp Python như `(?P<year>...)` chạy y hệt ở engine khác. Kết quả cuối cho bài này phải kiểm lại bằng `re` trong Python. Dùng dữ liệu giả lập khi thử trên công cụ web, không dán dữ liệu khách hàng thật.
 
 Một bộ ví dụ thử nên có: chuỗi hợp lệ, không hợp lệ, gần đúng nhưng sai, rỗng, xuống dòng, Unicode và chuỗi dài trong giới hạn dự kiến. Chạy thử không thay thế đặc tả: trước hết phải biết muốn chấp nhận định dạng nào. Xem [tài liệu Python re](https://docs.python.org/3/library/re.html) cho cú pháp/flags cụ thể.
 
 > **EN:** Regex syntax and flags depend on the engine. Verify the final pattern in Python and test valid, invalid, near-miss, empty and Unicode cases against an explicit specification.
-
-## Tóm tắt 1 phút
-
-:::recap
-- RegEx mô tả khuôn chuỗi, không tự hiểu ý nghĩa dữ liệu.
-- Raw string giúp tránh xung đột escape của Python.
-- Search tìm bất kỳ đâu; match nhìn đầu; fullmatch kiểm toàn chuỗi.
-- Group giúp trích trường, nhưng làm đổi kết quả findall.
-- Greedy/lazy khác ưu tiên khớp, không bảo đảm runtime an toàn.
-- Định dạng đúng vẫn cần kiểm nghiệp vụ/lịch/parser.
-- Thử trên RegExr rồi kiểm lại đúng engine Python với dữ liệu tự soạn.
-:::
-
-## Câu hỏi tự kiểm tra
-
-:::quiz
-@tier A | Hiểu bài
-Q: Vì sao search thấy mã đơn trong “Đơn DH-2026-0042” mà match không thấy?
-A: Search dò mọi vị trí; match cần pattern bắt đầu ở vị trí 0. Input bắt đầu bằng “Đơn ” nên match thất bại, còn search thấy token phía sau.
-Q: Pattern 0[0-9]{9} dùng với search có đủ xác thực toàn trường điện thoại không?
-A: Không. Search có thể tìm đoạn phù hợp trong chuỗi thừa chữ hoặc số. Dùng fullmatch cho toàn trường; vẫn cần xác thực nghiệp vụ nếu muốn biết số có hợp lệ/thực sự tồn tại.
-Q: findall với hai named groups year và seq trả list token đầy đủ hay tuple?
-A: Nó trả list tuple của hai group, như [("2026","0042")]. Dùng finditer rồi group(0) nếu muốn Match đầy đủ và thông tin vị trí.
-Q: Greedy và lazy cho kết quả gì trên “[A] [B]” với hai pattern trong bài?
-A: Pattern greedy lấy một chuỗi “[A] [B]”; lazy lấy hai chuỗi “[A]” và “[B]”. Đây là ưu tiên khớp, không phải bảo đảm hiệu năng.
-Q: Vì sao “2025-02-29” khớp định dạng ngày nhưng vẫn sai?
-A: Regex trong bài chỉ kiểm bốn số, dấu -, hai số, dấu -, hai số. Năm 2025 không có ngày 29/2; date.fromisoformat phát hiện lỗi lịch.
-@tier B | Phỏng vấn lý thuyết
-Q: Search, match, fullmatch khác nhau thế nào và chọn khi nào?
-A: Search để tìm/trích token trong văn bản; match để kiểm tiền tố có cấu trúc; fullmatch để kiểm toàn trường theo pattern. Chọn theo việc cần một đoạn hay toàn input, không theo thói quen dùng một API.
-EN: Search scans anywhere, match anchors to the start, and fullmatch requires the entire input to match. Extraction and field validation need different choices.
-Q: Vì sao cần raw string và re.escape?
-A: Raw string hạn chế Python xử lý backslash trước khi regex nhận pattern. re.escape bảo vệ metacharacter trong đoạn text cần tìm literal; nó không làm thay vai trò của raw string. Một cái thuộc cú pháp chuỗi Python, một cái thuộc cú pháp regex.
-EN: Raw strings avoid Python escape interference; re.escape quotes regex metacharacters in literal text. They solve different problems.
-Q: RegEx xác thực định dạng có thay được kiểm tra nghiệp vụ không?
-A: Không. Chuỗi ngày có thể đúng khuôn mà sai lịch, số điện thoại đúng số ký tự mà không tồn tại. Dùng regex cho cấu trúc, sau đó parser và quy tắc miền cho ý nghĩa.
-EN: Regex validates textual structure; parsers and domain checks are needed for semantic validity and existence.
-Q: Vì sao đổi greedy thành lazy chưa xử lý xong catastrophic backtracking?
-A: Lazy thay thứ tự các khả năng được thử, vẫn có thể backtrack qua nhiều tổ hợp. Cần bớt mơ hồ/lượng từ lồng, giới hạn input và kiểm near-miss; với nguồn không tin cậy còn phải kiểm ngân sách tài nguyên.
-EN: Lazy quantifiers change search order but can still backtrack pathologically. Pattern structure and resource limits matter.
-@tier C | Tình huống doanh nghiệp
-Q: ETL lấy điện thoại bằng search rồi chấp nhận mọi trường có một đoạn khớp. Dữ liệu rác lọt qua. Sửa sao?
-A: Chốt định dạng được phép, chuẩn hóa ngoài theo quy tắc rõ và fullmatch toàn trường. Tách bước trích token khỏi bước xác thực; lưu trường lỗi để kiểm lại thay vì xóa âm thầm. Nếu cần kiểm số thật, thêm xác thực miền ngoài regex; chấp nhận chặt hơn có thể từ chối một số định dạng cũ cần migration.
-WANT: Nhận ra lỗi chọn API và thiết kế luồng dữ liệu lỗi có thể truy vết.
-Q: Dịch vụ nhận text người dùng, một pattern đôi lúc làm CPU tăng cao. Bạn điều tra gì?
-A: Khoanh pattern và input near-miss bằng dữ liệu giả, kiểm lượng từ lồng/nhánh mơ hồ và giới hạn input trước khi match. Viết lại pattern rõ hơn, đo thời gian theo độ dài, cân nhắc engine hoặc cô lập khi cần. Không chạy payload dài vô hạn trong process phục vụ để chứng minh lỗi.
-WANT: Hiểu hiệu năng là một phần độ đúng của bộ xử lý input, không chỉ kết quả khớp.
-Q: Pattern đúng trên RegExr nhưng lỗi trong Python. Có chép lại thêm backslash đến khi chạy không?
-A: Kiểm engine, flags, raw string và các cú pháp riêng như named group trước; tạo bộ test tối thiểu bằng Python re. Chốt một đặc tả chung và test trong môi trường thực thi. Khả năng tương thích cần xác nhận, không chỉnh escape ngẫu nhiên làm đổi pattern.
-WANT: Phân tách lớp chuỗi Python, cú pháp regex và khác biệt engine.
-:::
-
-## Nối lại quy trình dữ liệu
-
-:::next
-Sau khi trích/chuẩn hóa text, kiểm lại dtype, giá trị thiếu và miền hợp lệ ở [[bài:descriptive-statistics]] và [[bài:missing-values-outliers]]. Quay về [[bài:ml-pipeline]] để đặt RegEx đúng vai trò công cụ hỗ trợ; nó không thay thế toàn bộ bước làm sạch hay mô hình ML.
-:::
