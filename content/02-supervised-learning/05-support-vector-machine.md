@@ -1,7 +1,7 @@
 ---
 title: Máy vector hỗ trợ (Support Vector Machine — SVM)
 order: 5
-description: "Chọn đường có lề rộng nhất, soft margin với C, và kernel để uốn ranh giới bằng cách thêm chiều."
+description: "SVM (slide 70-74): chọn đường có lề rộng nhất, soft margin với C, kernel và gamma uốn ranh giới bằng cách thêm chiều; đo C và gamma trên Diabetes."
 slides: 70-74
 needs: [logistic-regression, polynomial-regression, feature-scaling, classification-metrics]
 tags: [svm, support-vector, hyperplane, margin, kernel, rbf, soft-margin, C, gamma]
@@ -10,12 +10,17 @@ tags: [svm, support-vector, hyperplane, margin, kernel, rbf, soft-margin, C, gam
 ## Nhiều đường cùng đúng, chọn đường nào?
 
 :::intro Mục tiêu bài này
-- Hiểu SVM chọn đường phân tách có **lề (margin) rộng nhất**, và **support vector** là gì.
-- Hiểu **soft margin** (tham số C) cho dữ liệu không tách hoàn toàn.
-- Hiểu ý tưởng **kernel**: thêm chiều để ranh giới cong, mà không phải dựng thêm cột.
+- Đọc bốn slide SVM (70 đến 73): lề rộng nhất, support vector, tách được và không tách được, thêm chiều.
+- Hiểu **soft margin** (tham số C) và **kernel** (tham số gamma) qua số đo thật trên Diabetes.
+- Biết dùng SVM đúng cách: scale, chọn C và gamma bằng cross-validation, và nhận ra khi nào bị overfit.
 :::
 
-Hai nhóm điểm tách được bằng **vô số** đường thẳng. Đường sát một nhóm thì mong manh: một điểm mới nhích nhẹ là bị đoán sai. SVM chọn đường **cách đều hai nhóm và xa nhất có thể**: đường có **lề (margin) rộng nhất**. Những điểm nằm ngay trên mép lề gọi là **support vector**: chỉ chúng quyết định đường; bỏ các điểm khác đi, đường không đổi.
+## Chọn đường có lề rộng nhất (slide 70)
+
+:::slides 70-74 | Slide 70–74: Support Vector Machine, lề rộng nhất, tách được và không tách được, thêm chiều bằng hàm ánh xạ
+:::
+
+Hai nhóm điểm tách được bằng **vô số** đường thẳng (hình trái slide 70: nhiều đường xanh/đỏ đều đúng). Đường sát một nhóm thì mong manh: một điểm mới nhích nhẹ là bị đoán sai. SVM chọn đường **cách đều hai nhóm và xa nhất có thể** (hình phải): **optimal hyperplane** (siêu phẳng tối ưu, trong 2 chiều chỉ là một đường thẳng) nằm giữa hai mép đứt. Khoảng giữa hai mép là **maximum margin** (lề rộng nhất). Những điểm nằm ngay trên mép gọi là **support vector**: chỉ chúng quyết định đường.
 
 :::predict
 Hai nhóm điểm tách được. Ta **xóa một điểm xa mép lề** (không phải support vector). Đường SVM có đổi không? Còn nếu xóa một support vector?
@@ -28,45 +33,78 @@ Hãy tự tìm: kéo góc và vị trí của đường; chỉ những đường
 :::widget svm-margin
 :::
 
-## Soft margin: khi dữ liệu không tách hoàn toàn
+Hình học nhỏ: với đường `w·x + b = 0` và mép được chuẩn hóa ở `±1`, độ rộng lề toàn dải là `2/‖w‖`, nên tìm lề rộng nhất nghĩa là làm `‖w‖` nhỏ nhất. Ví dụ `w = (3, 4)`, `b = −5`: ‖w‖ = 5, lề = 2/5 = **0.4**; điểm (3, 0) có `f = 3·3 + 4·0 − 5 = 4`, cách biên 4/5 = **0.8**.
 
-Dữ liệu thật thường lẫn lộn, không có đường nào tách hoàn toàn. **Soft margin** cho phép vài điểm **nằm sai phía hoặc trong lề**, với một **mức phạt** điều khiển bởi **C**:
+## Tách được và không tách được (slide 71)
 
-- **C lớn:** phạt nặng điểm sai, lề hẹp, bám sát dữ liệu (dễ overfit).
-- **C nhỏ:** chấp nhận nhiều điểm sai hơn, lề rộng, đơn giản hơn (dễ underfit).
+Slide 71 đặt cạnh nhau hai tình huống. **Linearly separable:** một đường thẳng tách hoàn toàn hai nhóm. **Not linearly separable:** nhóm xanh lục nằm **giữa** một đám đỏ bao quanh, không đường thẳng nào tách được. Có hai cách xử lý, mỗi cách là một tham số của SVM.
 
-## Kernel: khi một đường thẳng không đủ
+### Cách 1: soft margin, tham số C
+
+Dữ liệu thật thường lẫn lộn. **Soft margin** cho phép vài điểm **nằm sai phía hoặc trong lề**, với một **mức phạt** điều khiển bởi **C**: C lớn phạt nặng điểm sai nên lề hẹp, bám sát dữ liệu (dễ overfit); C nhỏ chấp nhận nhiều điểm sai, lề rộng, đơn giản (dễ underfit).
+
+### Cách 2: thêm chiều, kernel và gamma (slide 72 và 73)
+
+Slide 72 cho thấy chính xác ý tưởng: không gian 2D với nhóm lục nằm giữa đám đỏ; **hàm ánh xạ** φ(x1, x2) = (x1, x2, z) thêm **chiều thứ ba z** (trục "New Dimension"); trong 3D, một **mặt phẳng** tách được hai nhóm. Slide 73 vẽ lại ví dụ đó: nhìn mặt phẳng tách ấy từ trên xuống thì thành **một vòng tròn** ở 2D, là ranh giới cong.
 
 :::steps
-Dữ liệu 1 chiều: lớp A ở x = −1, 0, 1; lớp B ở x = −3 và x = 3. **Không có điểm cắt nào** trên trục x tách được hai lớp (A nằm giữa B).
+Một chiều: lớp A ở x = −1, 0, 1; lớp B ở x = −3 và x = 3. **Không có điểm cắt nào** trên trục x tách được hai lớp (A nằm giữa B).
 @step
 **Thêm chiều:** thêm cột z = x². Lớp A có z = 1, 0, 1; lớp B có z = 9, 9.
 @step
-Trong mặt phẳng (x, z), một **đường thẳng ngang z = 4** tách hoàn toàn hai lớp. Đường thẳng đó, khi nhìn lại trên trục x, là ranh giới cong.
+Trong mặt phẳng (x, z), một **đường thẳng ngang z = 4** tách hoàn toàn hai lớp. Nhìn lại trên trục x, đó là hai điểm cắt x = ±2: ranh giới cong.
 @step
 **Kernel trick:** thay vì dựng thật các cột mới (có thể là vô hạn), kernel tính trực tiếp "độ giống" như thể mẫu đã ở không gian cao chiều. Kernel **RBF** phổ biến: tham số **gamma** điều khiển độ cong (gamma lớn: ranh giới uốn sát từng điểm, dễ overfit).
 :::
 
-## Dùng SVM đúng cách
+## Số thật trên Diabetes: C và gamma
 
-- **Scale trước** (khoảng cách và lề nhạy với đơn vị, [[bài:feature-scaling]]).
-- **Chọn C và gamma bằng cross-validation** trong Pipeline, không chọn bằng bộ test.
-- **So với Logistic:** SVM có thể bắt ranh giới cong (kernel) nhưng không cho xác suất mặc định và chậm hơn với dữ liệu rất lớn.
+Pipeline `StandardScaler` rồi `SVC`, CV 5-fold có phân tầng (`random_state=42`); cột "train" đo trên 614 mẫu train (chia 80/20).
+
+| C (gamma mặc định) | Train | CV | Số support vector (trên 614) |
+|---|---|---|---|
+| 0.01 | 0.651 | 0.651 | 432 |
+| 0.1 | 0.795 | 0.753 | 426 |
+| **1** | 0.836 | **0.762** | 352 |
+| 10 | 0.891 | 0.728 | 319 |
+| 100 | 0.963 | 0.698 | 300 |
+
+| gamma (C = 1) | Train | CV |
+|---|---|---|
+| 0.001 | 0.658 | 0.654 |
+| **0.01** | 0.792 | **0.766** |
+| 0.1 | 0.832 | 0.758 |
+| 1 | 0.969 | 0.703 |
+| 10 | **1.000** | 0.651 |
+
+Ba điều đọc được. **Một:** C và gamma đều có **vùng giữa tốt**; quá nhỏ thì underfit (C = 0.01 chỉ bằng mức sàn 0.651), quá lớn thì train tăng còn CV **giảm** (C = 100: train 0.963, CV 0.698; gamma = 10: train 1.000, CV 0.651, tệ ngang đoán toàn 0). **Hai:** support vector không "chỉ vài điểm": với dữ liệu lẫn lộn như Diabetes, hơn một nửa mẫu train (300 đến 432) đều là support vector; ý "chỉ vài điểm" đúng cho dữ liệu tách gọn. **Ba:** kernel không tự thắng: SVM tuyến tính cho CV **0.771**, RBF 0.762, đa thức 0.734; Diabetes gần như không cần ranh giới cong. Đo trên một bộ dữ liệu với một cách chia, nên chênh lệch dưới độ lệch giữa các fold (khoảng 0.02) chưa kết luận được.
 
 :::ck
 SVM RBF với gamma rất lớn đạt 100% trên train nhưng thấp trên test. Có bất ngờ không? Chỉnh gì?
 @answer
-Không bất ngờ: gamma lớn uốn ranh giới sát từng điểm nên **học thuộc** (overfitting). Giảm gamma và/hoặc giảm C, chọn bằng cross-validation.
+Không bất ngờ: gamma lớn uốn ranh giới sát từng điểm nên **học thuộc** (overfitting); trên Diabetes gamma = 10 cho train 1.000 nhưng CV chỉ 0.651. Giảm gamma và/hoặc giảm C, chọn bằng cross-validation.
 :::
 
-:::slides 70-74 | Slide 70–74: Support Vector Machine
-:::
+## Dùng SVM đúng cách
+
+- **Scale trước:** khoảng cách và lề nhạy với đơn vị ([[bài:feature-scaling]]). Trên Diabetes RBF không scale cho CV 0.760, gần bằng khi có scale (0.762); đừng suy ra scale không cần, vì bộ này có thang đo tương đối cân; vẫn nên scale làm mặc định.
+- **Chọn C và gamma bằng cross-validation** trong Pipeline, không chọn bằng bộ test ([[bài:k-fold-cross-validation]]).
+- **So với Logistic** ([[bài:logistic-regression]]): SVM có thể bắt ranh giới cong (kernel) nhưng điểm của nó không phải xác suất, và chậm hơn với dữ liệu rất lớn.
+
+## Những hiểu sai thường gặp
+
+- **"Chọn đường tách đúng nào cũng như nhau."** Đường có lề rộng nhất chống nhiễu tốt hơn.
+- **"Mọi điểm đều ảnh hưởng đường."** Chỉ support vector; nhưng với dữ liệu lẫn lộn có thể có rất nhiều support vector.
+- **"Gamma lớn nghĩa là mô hình mạnh hơn."** Nó chỉ linh hoạt hơn; train 1.000 đi kèm CV 0.651.
+- **"Kernel luôn tốt hơn tuyến tính."** Không; Diabetes cho tuyến tính 0.771 so với RBF 0.762.
+- **"Train 100% là cấu hình tốt nhất."** Chọn bằng CV, không bằng train.
+- **"Kernel trick dựng ra các cột mới."** Nó tránh dựng chúng; chỉ tính độ giống giữa các cặp mẫu.
 
 :::card SVM
-- **Chọn đường có lề rộng nhất**; **support vector** là các điểm trên mép lề quyết định đường.
-- **Soft margin (C):** C lớn bám dữ liệu hơn, C nhỏ đơn giản hơn.
-- **Kernel:** thêm chiều (x → x²) để một đường thẳng tách được; kernel RBF với gamma điều khiển độ cong.
-- **Scale trước; chọn C, gamma bằng CV.**
+- **Chọn đường có lề rộng nhất** (lề = 2/‖w‖); **support vector** là các điểm trên mép lề quyết định đường.
+- **Soft margin (C):** C lớn bám dữ liệu hơn, C nhỏ đơn giản hơn (Diabetes: C = 1 tốt nhất, CV 0.762).
+- **Kernel (slide 72 và 73):** thêm chiều (x → x², hoặc (x1, x2) → (x1, x2, z)) để một siêu phẳng tách được; RBF với gamma điều khiển độ cong (gamma = 10: train 1.000, CV 0.651).
+- **Scale trước; chọn C, gamma bằng CV**, không bằng train hay test.
 :::
 
 ## Câu hỏi tự kiểm tra
