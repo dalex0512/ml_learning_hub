@@ -80,6 +80,41 @@ Một mô hình đạt accuracy 80% trên bộ test, nhưng đoán toàn lớp �
 Mô hình chỉ hơn mức sàn **2 điểm**: chưa chắc có giá trị. Luôn so với **baseline** (đoán lớp đông, hoặc mô hình đơn giản nhất) trước khi khen một con số.
 :::
 
+## Tự so sánh ứng viên bằng code
+
+Đoạn dưới tái hiện bảng ở trên (đã chạy trên `diabetes.csv`): cùng một cách chia fold cho mọi mô hình, mô hình cần scale thì đặt scaler trong `Pipeline`, và luôn có một **baseline**:
+
+```python
+import pandas as pd
+from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.dummy import DummyClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+
+data = pd.read_csv("diabetes.csv")
+X, y = data.drop(columns="Outcome"), data["Outcome"]
+cv = StratifiedKFold(5, shuffle=True, random_state=42)
+models = {
+    "Dummy (đoán lớp đông)": DummyClassifier(strategy="most_frequent"),
+    "Logistic":              make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000)),
+    "KNN":                   make_pipeline(StandardScaler(), KNeighborsClassifier()),
+    "SVM":                   make_pipeline(StandardScaler(), SVC()),
+    "Decision Tree":         DecisionTreeClassifier(random_state=42),
+    "Random Forest":         RandomForestClassifier(random_state=42),
+}
+for name, model in models.items():
+    s = cross_val_score(model, X, y, cv=cv)
+    print(f"{name:24s} {s.mean():.3f}  (độ lệch {s.std():.3f})")
+# Dummy 0.651, Logistic 0.775, SVM 0.762... xem bảng trên
+```
+
+Sau bước này mới có cơ sở chọn: ứng viên nào hơn baseline rõ rệt, chênh lệch có lớn hơn độ lệch giữa các fold không, và có cần giải thích được không. Các bài sau lần lượt mở từng họ.
+
 ## Những hiểu sai thường gặp
 
 - **"Có mô hình tốt nhất."** Không; thứ tự phụ thuộc dữ liệu, metric và cách chia.
@@ -137,69 +172,4 @@ WANT: Biết cân bằng độ bất định, chất lượng và chi phí vận
 
 :::next
 Bắt đầu với [[bài:linear-regression]]: học hệ số của một quan hệ tuyến tính, tự tính một ví dụ nhỏ rồi đối chiếu sklearn; sau đó [[bài:polynomial-regression]] thêm feature để khớp đường cong. [[bài:logistic-regression]] chuyển sang phân loại bằng xác suất và ngưỡng; [[bài:svm]] học biên theo margin và dùng kernel khi cần; [[bài:k-nearest-neighbours]] dự đoán từ các mẫu train gần nhất. [[bài:decision-tree]] học chuỗi luật chia dữ liệu; [[bài:random-forest]] gộp nhiều cây đa dạng và khép lại phạm vi slide 64–80. Naive Bayes chưa có slide riêng trong phạm vi này nên chưa có bài.
-:::
-
-## [sâu] Phần mở đầu gốc
-
-:::intro Đọc xong bài này bạn làm được
-- Đọc đúng hai cột và dấu sao trên slide 64.
-- Phân biệt tên họ thuật toán với phiên bản dành cho regression/classification.
-- Chọn một baseline có lý do, rồi đánh giá trên dữ liệu chưa thấy.
-:::
-
-[[bài:classification-vs-regression]] giúp xác định **target cần dự đoán**; [[bài:model-training-pipeline]] giải thích mô hình học từ X và y. Module này bắt đầu đi vào từng thuật toán. Bảng [[slide:64]] là bản đồ các lựa chọn, không phải bảng xếp hạng chất lượng.
-
-> **EN:** The target defines the task; the algorithm defines how a model learns from features and labels. This slide is a map of model families, not a performance ranking.
-
-:::slides 64 | Hai cột Regression / Classification; dấu * chỉ họ thuật toán có phiên bản hồi quy
-:::
-
-## [sâu] Đọc đúng hai cột và dấu sao
-
-Trên slide, cột **Regression** ghi Linear Regression, Polynomial Regression. Cột **Classification** ghi Logistic Regression, Support Vector Machine*, K-nearest neighbours*, Naive Bayes, Decision Tree*, Random Forest*. Dòng “*Could also be used here” ở cột trái nói rằng **bốn họ có dấu sao cũng dùng được cho regression**.
-
-Không phải lấy nguyên một classifier rồi truyền label liên tục vào. Ta chọn phiên bản phù hợp: ví dụ `SVC` / `SVR`, `KNeighborsClassifier` / `KNeighborsRegressor`. Tên **Logistic Regression** có chữ regression nhưng trong bảng này nó là thuật toán **classification**; Polynomial Regression vẫn dự đoán đại lượng số.
-
-> **EN:** Stars mark families with both classification and regression variants. Choose the appropriate estimator and objective; Logistic Regression is a classifier despite its name.
-
-:::note Phạm vi nguồn
-Slide 64 chỉ liệt kê tên và dấu sao. Các câu mô tả ý tưởng, ưu/nhược và bảng chọn dưới đây là **bổ sung ngoài slide** để đọc bản đồ; chưa phải bài hướng dẫn các thuật toán chưa học. Linear Regression, Polynomial Regression, hồi quy logistic, SVM, KNN, cây quyết định và rừng ngẫu nhiên đã có bài riêng. Naive Bayes được liệt kê ở slide 64 nhưng chưa có slide riêng trong phạm vi 64–80.
-:::
-
-## [sâu] Mỗi họ thuật toán giải quyết điều gì? (bổ sung ngoài slide)
-
-:::compare Bản đồ module — ý tưởng để định hướng, không phải cam kết chất lượng
-| Thuật toán trên slide | Bài toán | Ý tưởng một câu | Điểm mạnh / giới hạn cần nhớ | Bài riêng |
-|---|---|---|---|---|
-| Linear Regression | Regression | Khớp tổng có trọng số của các feature với target | Nhanh, dễ giải thích hệ số / khó khớp đường cong khi chỉ dùng feature gốc, nhạy outlier | [[bài:linear-regression]] |
-| Polynomial Regression | Regression | Thêm lũy thừa/tích của feature để mô tả đường cong | Biểu diễn được quan hệ cong / bậc cao dễ overfit và ngoại suy kém | [[bài:polynomial-regression]] |
-| Logistic Regression | Classification | Biến điểm tuyến tính thành xác suất class trong mô hình logistic | Baseline dễ kiểm tra / ranh giới hạn chế nếu feature không đủ | [[bài:logistic-regression]] |
-| Support Vector Machine* | Cả hai, tùy phiên bản | SVC tìm biên phân tách; SVR khớp với một vùng dung sai | Kernel có thể mô tả phi tuyến / cần chú ý scale, tham số và chi phí với tập lớn | [[bài:svm]] |
-| K-nearest neighbours* | Cả hai | Dựa vào nhãn/giá trị của các láng giềng gần nhất | Trực quan, ít bước fit / nhạy scale, số chiều, tốn chi phí khi dự đoán | [[bài:k-nearest-neighbours]] |
-| Naive Bayes | Classification trong bảng này | Kết hợp bằng chứng theo xác suất với giả định độc lập có điều kiện | Nhẹ, thường là baseline cho text / giả định có thể lệch dữ liệu | Chưa có slide riêng trong 64–80 |
-| Decision Tree* | Cả hai | Chia dữ liệu theo các điều kiện rồi dự đoán ở lá | Bắt tương tác, ít cần scale / cây sâu dễ overfit và bất ổn | [[bài:decision-tree]] |
-| Random Forest* | Cả hai | Gộp nhiều cây có ngẫu nhiên hóa mẫu/feature | Giảm biến động so với một cây / nặng hơn và khó giải thích bằng một hệ số | [[bài:random-forest]] |
-:::
-
-Đây là **xu hướng để chọn ứng viên**, không phải kết quả benchmark. Cùng một họ có nhiều cấu hình; dữ liệu, cách split, metric và tài nguyên mới quyết định lựa chọn cuối. Naive Bayes chưa có bài nên chỉ ghi trạng thái, không tạo đường dẫn. Module này đã bao phủ các bài riêng trong slide 64–80; slide 81 bắt đầu Unsupervised Learning.
-
-> **EN:** These are starting intuitions, not benchmark results. Model selection depends on the data, split, metric and resource budget.
-
-## [sâu] Chọn ứng viên theo bài toán (bổ sung ngoài slide)
-
-:::compare Từ target đến thử nghiệm đầu tiên
-| Câu hỏi thực tế | Loại target | Bắt đầu hợp lý | Kiểm tra trước khi nâng độ phức tạp |
-|---|---|---|---|
-| Dự đoán giá nhà | Giá trị tiền | Baseline dự đoán mean, rồi Linear Regression | MAE/RMSE, residual theo diện tích/khu vực, split đúng |
-| Email spam hay bình thường | Class | Baseline theo tần suất; Naive Bayes hoặc Logistic là ứng viên | Precision/Recall, nhãn, cách biểu diễn text |
-| Dữ liệu bảng có tương tác/ngưỡng | Tùy target | So baseline với cây/forest đúng phiên bản | Validation, overfit, chi phí và cách diễn giải |
-| Điểm gần nhau có hành vi giống nhau | Tùy target | KNN là ứng viên có thể thử | Scale, khoảng cách, số chiều, thời gian dự đoán |
-:::
-
-“Bắt đầu đơn giản” nghĩa là tạo mốc đo có thể kiểm chứng. Với regression, mean của **train** là baseline dùng cho các tập sau; với classification, đoán class đông nhất giúp nhận ra bẫy accuracy. Chọn/tune bằng validation hoặc [[bài:k-fold-cross-validation]]; giữ test cho đánh giá cuối. Dữ liệu thời gian/nhóm cần cách split tương ứng, không mặc định chia ngẫu nhiên.
-
-> **EN:** A baseline gives a reference, not a final model. Learn baseline parameters from training data, use validation for selection, and reserve test data for the final estimate.
-
-:::pitfall Dấu sao không có nghĩa model tự nhận ra bài toán
-Random Forest có thể hồi quy và phân loại nhưng cần chọn estimator, loss và metric thích hợp. Một mã class dạng số vẫn có thể là target categorical; đừng quyết định chỉ từ dtype. Với class hiếm, nối lại [[bài:classification-metrics]] trước khi chọn ứng viên theo accuracy.
 :::
