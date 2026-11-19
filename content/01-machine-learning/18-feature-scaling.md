@@ -162,6 +162,63 @@ Một đồng nghiệp chạy `fit_transform` trên toàn bộ dữ liệu rồi
 Con số gần nhau **không làm cho quy trình đúng**. Mean và std đã tính cả hàng test, nên test không còn là "bệnh nhân chưa từng gặp"; điểm đo được lạc quan hơn thực tế dù ít hay nhiều. Làm lại: chia trước, `fit` trên train, `transform` test, hoặc dùng Pipeline để không thể làm sai.
 :::
 
+## Kiểm tra ví dụ tay, fit trên train, và gói vào Pipeline
+
+**Kiểm tra dãy nhỏ 2, 4, 4, 5, 10** (đúng số đã tính tay), kể cả một giá trị mới x = 12 ở tập test, dùng thông số của train:
+
+```python
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler
+a = np.array([[2], [4], [4], [5], [10]], dtype=float)
+print(MinMaxScaler().fit_transform(a).ravel())     # [0. 0.25 0.25 0.375 1.]
+print(StandardScaler().fit_transform(a).ravel())   # [-1.118 -0.3727 -0.3727 0. 1.8634]
+print(RobustScaler().fit_transform(a).ravel())     # [-2. 0. 0. 1. 6.]
+new = np.array([[12.0]])
+print(MinMaxScaler().fit(a).transform(new))        # [[1.25]]  vượt [0, 1], bình thường
+print(StandardScaler().fit(a).transform(new))      # [[2.6087]]
+```
+
+**Cách làm đúng trên Diabetes: fit trên train.** Scaler học min/max hoặc mean/std từ train, rồi áp cho test:
+
+```python
+import pandas as pd
+from sklearn.model_selection import train_test_split
+X = data.drop(columns="Outcome")
+y = data["Outcome"]
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, stratify=y, random_state=42)
+mm = MinMaxScaler().fit(X_train)                   # học min/max từ train
+X_test_mm = pd.DataFrame(mm.transform(X_test), columns=X.columns)
+print(X_train["Insulin"].max(), X_test["Insulin"].max())   # 744 846
+print(X_test_mm.max().round(3).to_dict())          # Insulin 1.137, DPF 1.041 (> 1, bình thường)
+ss = StandardScaler().fit(X_train)                 # học mean/std từ train
+X_train_ss, X_test_ss = ss.transform(X_train), ss.transform(X_test)
+print(X_train_ss.mean(axis=0).round(6))            # ~0 trên train
+print(X_test_ss.mean(axis=0).round(3))             # gần 0 nhưng không đúng 0 trên test
+```
+
+Insulin lớn nhất ở train là 744 nhưng ở test là 846, nên MinMax của train cho test ra **1.137** (lớn hơn 1): đó là bình thường, không phải lỗi, và đừng "sửa" bằng cách fit lại trên test.
+
+**Gói vào Pipeline** để không bao giờ quên quy tắc này, kể cả khi cross-validation ([[bài:k-fold-cross-validation]]): mỗi fold, imputer và scaler được fit lại chỉ trên phần train của fold ([[bài:ml-pipeline]]):
+
+```python
+from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import cross_val_score, StratifiedKFold
+zero_cols = ["Glucose", "BloodPressure", "SkinThickness", "Insulin", "BMI"]
+Xc = X.copy()
+Xc[zero_cols] = Xc[zero_cols].replace(0, np.nan)
+model = Pipeline([
+    ("impute", SimpleImputer(strategy="median")),
+    ("scale", StandardScaler()),
+    ("clf", LogisticRegression(max_iter=1000)),
+])
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+scores = cross_val_score(model, Xc, y, cv=cv, scoring="f1")
+print(scores.round(3), scores.mean().round(3))   # [0.639 0.652 0.638 0.596 0.654] 0.636
+```
+
 ## Những hiểu sai thường gặp
 
 - **"Scale để model chính xác hơn."** Scale giúp model **dùng khoảng cách hoặc trọng số** học công bằng; với cây và forest nó không đổi gì.
@@ -243,289 +300,4 @@ Scaling xử lý cột **số**. Nhưng còn cột chữ như giới tính, thà
 Đó là nửa còn lại của Step 3.3: [[bài:categorical-encoding]]. Sau đó, [[bài:correlation-multicollinearity]] sẽ kiểm tra các feature đã scale xem có trùng lặp thông tin không.
 
 Thực hành: [[bài:diabetes-first-model]] — tự gõ fit/transform và kiểm mean/std train khác test.
-:::
-
-## [sâu] Đọc code slide 47 từng dòng
-
-Hai đoạn code giống hệt nhau, chỉ khác scaler. Viết lại:
-
-```python
-from pandas import read_csv
-from sklearn.preprocessing import MinMaxScaler      # hoặc StandardScaler
-
-data = read_csv("diabetes.csv")
-scaler = MinMaxScaler(feature_range=(0, 1))          # hoặc StandardScaler()
-before = data[["Pregnancies"]].values
-after = scaler.fit_transform(data[["Pregnancies"]])
-for b, a in zip(before, after):
-    print("Before: {}. After: {}".format(b, a))
-```
-
-- `data[["Pregnancies"]]` — **hai** cặp ngoặc vuông để lấy ra một DataFrame **2 chiều** (768 dòng × 1 cột). scikit-learn luôn đòi đầu vào
-  dạng bảng 2 chiều (n mẫu × n feature); `data["Pregnancies"]` chỉ cho Series 1 chiều và sẽ báo lỗi.
-- `.values` — chuyển sang mảng NumPy, nên output in ra dạng `[6]`.
-- `fit_transform` = `fit` (**học** thông số: min, max hoặc mean, std) + `transform` (**áp** công thức lên dữ liệu) trong một lệnh.
-- `zip(before, after)` — đi song song hai mảng để in từng cặp trước/sau.
-
-Output (10 dòng đầu, chép từ ảnh slide — khớp khi chạy lại):
-
-| Before | MinMaxScaler | StandardScaler |
-|---|---|---|
-| 6 | 0.35294118 | 0.63994726 |
-| 1 | 0.05882353 | −0.84488505 |
-| 8 | 0.47058824 | 1.23388019 |
-| 1 | 0.05882353 | −0.84488505 |
-| 0 | 0. | −1.14185152 |
-| 5 | 0.29411765 | 0.3429808 |
-| 3 | 0.17647059 | −0.25095213 |
-| 10 | 0.58823529 | 1.82781311 |
-| 2 | 0.11764706 | −0.54791859 |
-| 8 | 0.47058824 | 1.23388019 |
-
-Nhận xét đầu tiên: cả hai đều giữ **thứ tự** (8 vẫn lớn hơn 6) và **cùng giá trị cho ra cùng kết quả** (hai số 1 → cùng 0.0588).
-Scaling chỉ **đổi thang**, không đổi hình dạng phân bố.
-
-> **EN:** Double brackets yield a 2-D DataFrame (n_samples × n_features), as scikit-learn requires. `fit_transform` = `fit`
-> (learn min/max or mean/std) + `transform` (apply the formula). Both scalers preserve order and map equal inputs to equal
-> outputs — scaling changes the scale, not the shape of the distribution.
-
-## [sâu] MinMaxScaler — đưa về khoảng [0, 1]
-
-:::formula
-**MinMaxScaler** (đưa về [0, 1]):
-```
-x' = (x − min) / (max − min)
-```
-<!-- note: min → 0, max → 1, còn lại theo tỉ lệ -->
-Giá trị nhỏ nhất → 0, lớn nhất → 1, các giá trị khác nằm theo **tỉ lệ** giữa hai đầu. `feature_range=(0, 1)` là mặc định;
-muốn khoảng [a, b] thì scikit-learn tính tiếp `x'' = x' × (b − a) + a`.
-
-**StandardScaler** (z-score):
-```
-z = (x − μ) / σ
-```
-<!-- note: mean 0, std 1 → đo "cách TB mấy độ lệch chuẩn" -->
-μ và σ **học từ dữ liệu fit**. Sau khi scale, cột có mean = 0 và std = 1; giá trị âm = dưới trung bình. Không bị chặn khoảng.
-:::
-
-Với cột Pregnancies: min = 0, max = 17 → `x' = x / 17`. Ví dụ 6 / 17 = **0.35294118** — đúng dòng đầu của slide.
-
-**Ưu:** dễ hiểu, giữ nguyên số 0 nếu min = 0, bị chặn trong [0, 1] — hợp với dữ liệu cần khoảng cố định
-(cường độ pixel ảnh 0–255 → 0–1, đầu vào mạng nơ-ron).
-**Nhược:** **rất nhạy với outlier** — chỉ một giá trị max khổng lồ là toàn bộ giá trị khác bị ép vào một khoảng hẹp gần 0.
-
-> **EN:** MinMax: min → 0, max → 1. Pros: intuitive, bounded. Cons: very outlier-sensitive — one huge max squeezes everything
-> else near 0.
-
-## [sâu] StandardScaler — đưa về mean 0, std 1
-
-Kết quả gọi là **z-score** (đã gặp ở [[bài:missing-values-outliers]] khi phát hiện outlier): giá trị cách trung bình bao nhiêu lần độ lệch chuẩn.
-Nếu phân phối gần chuẩn, phần lớn giá trị nằm khoảng −3 đến 3 nhưng vẫn có thể vượt. Với Pregnancies: μ = 3.84505, σ = 3.36738 → z(6) = (6 − 3.84505) / 3.36738 ≈ **0.63995** — đúng dòng đầu slide.
-
-:::pitfall Chi tiết dễ nhầm: σ chia n hay n − 1?
-`StandardScaler` tính σ bằng cách **chia cho n** (độ lệch chuẩn tổng thể, `ddof=0`), còn pandas `describe()` / `.std()` ở
-[[bài:descriptive-statistics]] **chia cho n − 1** (độ lệch chuẩn mẫu). Vì vậy bài đó ghi std Pregnancies = 3.3696, còn StandardScaler dùng 3.3674.
-Nếu tự tính z bằng `data.std()` của pandas sẽ lệch chút ít so với output slide (dùng `.std(ddof=0)` để khớp).
-:::
-
-> **EN:** StandardScaler: z = (x − μ)/σ with μ, σ learned at fit time → mean 0, std 1; mostly within ±3 only for approximately normal data. Its σ divides by n
-> (`ddof=0`), while pandas `.std()` divides by n − 1 (3.3674 vs 3.3696 for Pregnancies).
-
-## [sâu] So sánh và chọn scaler
-
-:::compare MinMax vs Standard vs Robust
-| | MinMaxScaler | StandardScaler | RobustScaler *(bổ sung)* |
-|---|---|---|---|
-| Công thức | (x − min)/(max − min) | (x − mean)/std | (x − median)/IQR |
-| Khoảng kết quả | [0, 1] (trên dữ liệu fit) | Không chặn, quanh 0 | Không chặn, quanh 0 |
-| Học thông số gì | min, max | mean, std | median, Q1, Q3 |
-| Bị outlier ảnh hưởng | **Rất mạnh** | Vừa | **Ít** |
-| Dùng khi | Cần khoảng cố định; dữ liệu không có outlier | Mặc định phổ biến; dữ liệu gần chuẩn | Có nhiều outlier thật muốn giữ lại |
-:::
-
-Quy tắc chọn nhanh: không biết chọn gì → **StandardScaler**; có outlier mà không muốn xóa → **RobustScaler**; cần đúng khoảng [0, 1] → **MinMaxScaler**.
-
-> **EN:** Default: StandardScaler. Genuine outliers you keep: RobustScaler (median/IQR). Need a fixed [0, 1] range: MinMaxScaler.
-
-## [sâu] Model nào cần scaling?
-
-:::compare Cần hay không cần scaling
-| Cần scaling | Vì sao | Không cần | Vì sao |
-|---|---|---|---|
-| [[bài:k-nearest-neighbours|KNN]], K-Means | Dựa trực tiếp vào khoảng cách | [[bài:decision-tree]], [[bài:random-forest]] | Mỗi lần chỉ so một feature với một ngưỡng ("Glucose > 127?") — đổi thang không đổi thứ tự nên không đổi kết quả |
-| [[bài:svm]] | Đơn vị feature ảnh hưởng margin, penalty và kernel | Naive Bayes | Xét từng feature riêng |
-| Logistic / Linear Regression có regularization | Phạt độ lớn hệ số — feature thang nhỏ cần hệ số lớn bị phạt oan | | |
-| PCA | Tìm hướng phương sai lớn — cột thang lớn có phương sai lớn "giả" | | |
-| Mạng nơ-ron, mọi thứ dùng gradient descent | Hội tụ nhanh và ổn định hơn | | |
-:::
-
-Ngoài ra scaling giúp **so sánh hệ số**: sau StandardScaler, hệ số của Logistic Regression cho biết "tăng 1 độ lệch chuẩn của feature này thì log-odds
-thay đổi bao nhiêu" — so được giữa các feature. **Không scale label** trong Classification (Outcome 0/1 là tên class).
-
-> **EN:** Distance-based models, SVM, regularized linear models, PCA and gradient-descent models need scaling; tree models and
-> Naive Bayes do not, since a split threshold is unchanged by rescaling.
-
-## [sâu] Fit trên train, transform trên test
-
-Code slide 47 gọi `fit_transform` trên **toàn bộ** 768 dòng — chấp nhận được khi chỉ để xem scaler làm gì. Khi làm model thật thì phải:
-
-```python
-scaler.fit(X_train)                   # học min/max hoặc mean/std CHỈ từ train
-X_train_s = scaler.transform(X_train)
-X_test_s = scaler.transform(X_test)   # dùng lại thông số của train, KHÔNG fit lại
-```
-
-Vì sao? Tập test đóng vai "bệnh nhân tương lai" chưa từng thấy. Nếu min, max, mean, std tính cả từ test thì thông tin của test đã lọt
-vào quá trình chuẩn bị dữ liệu (**data leakage**) — điểm đánh giá sẽ lạc quan hơn thực tế.
-
-:::pitfall Hai lỗi hay gặp
-- `scaler.fit_transform(X_test)` — fit lại trên test → test được scale theo thang của **chính nó**, không cùng thang với train mà model đã học.
-- Scale toàn bộ dataset rồi mới `train_test_split`.
-:::
-
-Hệ quả bình thường của cách làm đúng: dữ liệu test sau MinMaxScaler **có thể ra ngoài [0, 1]**. Ví dụ thật trên Diabetes (chia 80/20,
-`stratify=y`, `random_state=42`): Insulin lớn nhất trong train là 744, nhưng test có một bệnh nhân Insulin 846 → 846 / 744 ≈ **1.137**.
-Đây không phải lỗi; nó chỉ nói bệnh nhân này vượt ngoài những gì đã thấy khi huấn luyện. (Muốn ép về khoảng thì dùng `MinMaxScaler(clip=True)`.)
-
-> **EN:** Fit on the training set only, then transform both sets with the same parameters; fitting on test data leaks
-> information. A correct side effect: scaled test values can fall outside [0, 1] (846/744 ≈ 1.137); use `clip=True` if needed.
-
-## [sâu] Ví dụ tay
-
-:::worked Tính lại output slide 47 — Pregnancies: min = 0, max = 17, μ = 3.845052, σ (chia n) = 3.367384
-| x | MinMax: x / 17 | Standard: (x − 3.845052) / 3.367384 |
-|---|---|---|
-| 0 | 0 / 17 = **0** | −3.845052 / 3.367384 = **−1.1419** |
-| 1 | 1 / 17 = **0.0588** | −2.845052 / 3.367384 = **−0.8449** |
-| 3 | 3 / 17 = **0.1765** | −0.845052 / 3.367384 = **−0.2510** |
-| 6 | 6 / 17 = **0.3529** | 2.154948 / 3.367384 = **0.6399** |
-| 10 | 10 / 17 = **0.5882** | 6.154948 / 3.367384 = **1.8278** |
-
-Khớp từng số với ảnh slide. Nếu dùng σ của pandas (3.369578, chia n − 1) thì z(6) = 0.6395 — lệch ở chữ số thứ tư.
-:::
-
-:::worked Một dãy nhỏ tính trọn vẹn — tập train: 2, 4, 4, 5, 10
-**MinMaxScaler:** min = 2, max = 10, max − min = 8 → (x − 2) / 8:
-
-| x | 2 | 4 | 4 | 5 | 10 |
-|---|---|---|---|---|---|
-| MinMax | **0** | **0.25** | **0.25** | **0.375** | **1** |
-
-**StandardScaler:** μ = 25 / 5 = 5; Σ(x − μ)² = 9 + 1 + 1 + 0 + 25 = 36 → σ (chia n) = √(36 / 5) = √7.2 ≈ **2.6833**
-
-| x | 2 | 4 | 4 | 5 | 10 |
-|---|---|---|---|---|---|
-| z | **−1.1180** | **−0.3727** | **−0.3727** | **0** | **1.8634** |
-
-Kiểm tra: tổng các z = 0 → mean = 0 ✓.
-
-**RobustScaler:** median = 4; Q1 = 4, Q3 = 5 → IQR = 1 → (x − 4) / 1 = **−2, 0, 0, 1, 6**. Giá trị 10 vẫn nổi bật rõ (6), không làm co các điểm khác lại.
-Nhìn lại MinMax: chỉ vì số 10, bốn điểm còn lại bị dồn vào [0, 0.375] — minh họa "MinMax nhạy với outlier".
-
-**Một giá trị mới ở tập test: x = 12** (dùng thông số của train, không fit lại): MinMax: (12 − 2) / 8 = **1.25** (vượt [0, 1], bình thường);
-Standard: (12 − 5) / 2.6833 ≈ **2.6087**. Nếu tự áp công thức trên riêng một điểm 12 thì max − min = 0; scikit-learn có xử lý cột hằng nên không trực tiếp báo chia 0 như phép tính tay. Dù vậy **không được fit lại trên test**: thang đo không còn là thang train.
-:::
-
-## [sâu] Code
-
-### Chạy lại code slide 47
-
-```python
-from pandas import read_csv
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
-
-data = read_csv("diabetes.csv")
-before = data[["Pregnancies"]].values
-
-for scaler in [MinMaxScaler(feature_range=(0, 1)), StandardScaler()]:
-    after = scaler.fit_transform(data[["Pregnancies"]])
-    print(type(scaler).__name__)
-    for b, a in list(zip(before, after))[:10]:      # 10 dòng đầu như slide
-        print("Before: {}. After: {}".format(b, a))
-
-# Thông số scaler đã học
-mm = MinMaxScaler().fit(data[["Pregnancies"]])
-ss = StandardScaler().fit(data[["Pregnancies"]])
-print(mm.data_min_, mm.data_max_)          # [0.] [17.]
-print(ss.mean_, ss.scale_)                 # [3.84505208] [3.36738361]
-print(data["Pregnancies"].std())           # 3.3695780626988694 (pandas chia n-1)
-```
-
-### Kiểm tra ví dụ tay
-
-```python
-import numpy as np
-from sklearn.preprocessing import RobustScaler
-
-a = np.array([[2], [4], [4], [5], [10]], dtype=float)
-print(MinMaxScaler().fit_transform(a).ravel())     # [0. 0.25 0.25 0.375 1.]
-print(StandardScaler().fit_transform(a).ravel())   # [-1.118 -0.3727 -0.3727 0. 1.8634]
-print(RobustScaler().fit_transform(a).ravel())     # [-2. 0. 0. 1. 6.]
-
-new = np.array([[12.0]])
-print(MinMaxScaler().fit(a).transform(new))        # [[1.25]]
-print(StandardScaler().fit(a).transform(new))      # [[2.6087]]
-```
-
-### Cách làm đúng trên Diabetes: fit trên train
-
-```python
-import pandas as pd
-from sklearn.model_selection import train_test_split
-
-X = data.drop(columns="Outcome")
-y = data["Outcome"]
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, stratify=y, random_state=42)
-
-mm = MinMaxScaler().fit(X_train)                   # học min/max từ train
-X_test_mm = pd.DataFrame(mm.transform(X_test), columns=X.columns)
-print(X_train["Insulin"].max(), X_test["Insulin"].max())   # 744 846
-print(X_test_mm.max().round(3).to_dict())          # Insulin 1.137, DPF 1.041 (> 1, bình thường)
-
-ss = StandardScaler().fit(X_train)                 # học mean/std từ train
-X_train_ss = ss.transform(X_train)
-X_test_ss = ss.transform(X_test)
-print(X_train_ss.mean(axis=0).round(6))            # ~0 trên train
-print(X_train_ss.std(axis=0).round(6))             # 1 trên train
-print(X_test_ss.mean(axis=0).round(3))             # gần 0 nhưng không đúng 0 trên test
-```
-
-### Gói vào Pipeline (nối [[bài:ml-pipeline]])
-
-`Pipeline` đảm bảo không bao giờ quên quy tắc fit-trên-train, kể cả khi dùng cross-validation ([[bài:k-fold-cross-validation]]):
-mỗi fold, scaler được fit lại chỉ trên phần train của fold đó.
-
-```python
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import cross_val_score, StratifiedKFold
-
-zero_cols = ["Glucose", "BloodPressure", "SkinThickness", "Insulin", "BMI"]
-Xc = X.copy()
-Xc[zero_cols] = Xc[zero_cols].replace(0, np.nan)   # bài 17
-
-model = Pipeline([
-    ("impute", SimpleImputer(strategy="median")),
-    ("scale", StandardScaler()),
-    ("clf", LogisticRegression(max_iter=1000)),
-])
-cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-scores = cross_val_score(model, Xc, y, cv=cv, scoring="f1")
-print(scores.round(3), scores.mean().round(3))   # [0.639 0.652 0.638 0.596 0.654] 0.636
-```
-
-## [sâu] Cùng độ dài, khác con số (bổ sung từ ghi chú)
-
-:::worked Ox tính km, Oy tính m
-Ox có dải 0–10 km, Oy có dải 0–10000 m: đó là cùng một độ dài vật lý. Nếu hai mẫu lệch 1 km theo Ox và 1000 m theo Oy, Euclidean distance trên số thô dùng 1² + 1000²; Oy đóng góp **1.000.000 lần** vào bình phương khoảng cách chỉ do khác đơn vị. Đổi cả hai sang km thì hai phần đóng góp bằng nhau. Scaling xử lý vấn đề thang đo, không tự quyết định feature nào quan trọng về nghiệp vụ.
-:::
-
-Trên Pima, DPF quanh 0–2 so với Insulin tới hàng trăm gợi đúng vấn đề này. Không nên nói model “không để ý DPF”: mức ảnh hưởng phụ thuộc thuật toán, dữ liệu và mục tiêu. KNN, RBF-SVM, model có regularization và tối ưu gradient nhạy thang; cây tách ngưỡng từng cột thường không cần scaling. Hồi quy tuyến tính giải không regularization không có cùng vấn đề phạt hệ số như bản regularized, dù scaling có thể giúp ổn định số.
-
-> **EN:** Different units can dominate numeric distances without implying greater business relevance. Scaling matters especially for distances, penalties and gradient optimization; threshold-based trees are usually invariant to positive rescaling.
-
-:::note StandardScaler không biến dữ liệu thành Gaussian (nhận xét)
-Khoảng ±3σ bao phủ khoảng 99.73% nếu phân phối thật sự chuẩn; đó không phải biên cứng của StandardScaler. Affine scaling giữ hình dạng phân bố, nên lệch vẫn lệch. Mean và std vẫn bị outlier kéo; không có định luật StandardScaler luôn ít nhạy hơn MinMax trên mọi tiêu chí. So cả RobustScaler hoặc biến đổi log trên validation nếu đuôi dài. Trên dữ liệu fit không hằng, mean 0 và variance chia n bằng 1; cột hằng sau scale là 0.
 :::
