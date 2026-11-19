@@ -1,7 +1,7 @@
 ---
 title: Các phương thức học trong Machine Learning
 order: 3
-description: "Model học từ loại phản hồi nào: có đáp án, không có đáp án hay thưởng phạt, và nhãn quyết định điều đó."
+description: "Ba phương thức học của slide 9 (supervised, unsupervised, reinforcement), vì sao nhãn quyết định phương thức, và cây câu hỏi để đặt bài toán vào đúng nhóm."
 slides: 9-10
 needs: [what-is-ml]
 tags: [supervised, unsupervised, reinforcement, labels]
@@ -10,50 +10,79 @@ tags: [supervised, unsupervised, reinforcement, labels]
 ## Model học từ loại phản hồi nào?
 
 :::intro Mục tiêu bài này
-- Phân biệt ba cách học: **có đáp án**, **không có đáp án**, và **thưởng phạt**.
-- Biết vì sao **nhãn** quyết định phương thức học.
-- Đặt một bài toán thật vào đúng nhóm bằng một chuỗi câu hỏi ngắn.
+- Phân biệt ba phương thức học của slide 9: **Supervised**, **Unsupervised**, **Reinforcement**, và các dạng bài toán trong mỗi loại.
+- Hiểu vì sao câu hỏi đầu tiên luôn là: **dữ liệu có nhãn (đáp án) không?**
+- Đặt một bài toán thật vào đúng nhóm bằng chuỗi hai câu hỏi.
 :::
 
-Một đứa trẻ học qua ba kiểu phản hồi: (1) người lớn **chỉ vào và gọi tên** ("đây là con chó"), (2) trẻ tự **nhận ra nhóm** các thứ giống nhau dù chưa ai gọi tên, (3) trẻ **thử và nhận thưởng hoặc bị phạt** (đạp xe ngã thì đau). Ba kiểu này ứng với ba phương thức học của máy.
+Một đứa trẻ học qua ba kiểu phản hồi khác nhau: (1) người lớn **chỉ vào và gọi tên** ("đây là con chó"); (2) trẻ tự **nhận ra các nhóm** đồ vật giống nhau dù chưa ai gọi tên; (3) trẻ **thử rồi nhận hậu quả**: đạp xe ngã thì đau, đi đúng thì được khen. Ba kiểu này chính là ba phương thức học của máy, và cái làm chúng khác nhau là **loại phản hồi mà máy nhận được**.
 
-| Phương thức | Phản hồi | Có nhãn? | Ví dụ bài toán |
-|---|---|---|---|
-| **Supervised** (có giám sát) | đáp án đúng cho từng mẫu | **có** | đoán bệnh, đoán giá nhà |
-| **Unsupervised** (không giám sát) | không có đáp án; tự tìm cấu trúc | **không** | gom nhóm khách hàng |
-| **Reinforcement** (tăng cường) | điểm thưởng hoặc phạt sau mỗi hành động | không có nhãn từng mẫu | chơi game, điều khiển robot |
+## Bản đồ ba phương thức (slide 9)
 
-:::predict
-Bạn có 100.000 ảnh sản phẩm, **chưa ai gán nhãn**, và muốn chia chúng thành các nhóm giống nhau để cửa hàng sắp xếp kệ. Thuộc phương thức nào?
-@answer
-**Unsupervised** (cụ thể là gom nhóm, clustering): không có đáp án sẵn, ta để máy tìm các nhóm tự nhiên. Nếu ta đã có nhãn "áo", "giày" cho từng ảnh và muốn dạy máy đoán nhãn, mới là supervised.
+| Phương thức | Phản hồi | Dạng bài toán và ví dụ trên slide |
+|---|---|---|
+| **Supervised learning** (học có giám sát) | đáp án (nhãn) cho từng mẫu | **Classification:** phát hiện gian lận, lọc email spam, chẩn đoán bệnh, phân loại ảnh. **Regression:** đánh giá rủi ro, dự đoán điểm số |
+| **Unsupervised learning** (học không giám sát) | không có đáp án; tự tìm cấu trúc | **Clustering:** gom khách hàng, trực quan hóa dữ liệu. **Association:** hệ thống gợi ý |
+| **Reinforcement learning** (học tăng cường) | điểm thưởng hoặc phạt sau hành động | lý thuyết trò chơi (game theory), xe tự lái |
+
+:::slides 9-10 | Slide 9–10: các phương thức học trong Machine Learning; bắt đầu với supervised learning
 :::
 
 ## Nhãn quyết định phương thức học
 
-Câu hỏi đầu tiên luôn là: **dữ liệu của tôi có nhãn không?**
+Câu hỏi đầu tiên luôn là: **mỗi mẫu có sẵn đáp án không?** Đáp án đó gọi là **[[từ:label|nhãn]]**, và dữ liệu có nhãn gọi là *labeled data* (slide ghi chú việc gán nhãn là *data labelling*).
 
-- **Có nhãn** và nhãn là một nhóm (spam hay không): *supervised, phân loại*.
-- **Có nhãn** và nhãn là một con số (giá nhà): *supervised, hồi quy*. Hai dạng này là chủ đề của [[bài:classification-vs-regression]].
-- **Không có nhãn**: *unsupervised* (gom nhóm, giảm chiều).
-- **Không có nhãn từng mẫu, nhưng có phản hồi thưởng hoặc phạt** sau chuỗi hành động: *reinforcement*.
+- **Có nhãn** và nhãn là một **nhóm** (spam hay không): *supervised, classification*.
+- **Có nhãn** và nhãn là một **con số** (điểm thi, giá nhà): *supervised, regression*. Hai dạng này là chủ đề của [[bài:classification-vs-regression]].
+- **Không có nhãn**: *unsupervised*. Máy chỉ nhận dữ liệu và tìm cấu trúc bên trong (các nhóm giống nhau, các thứ hay đi cùng nhau).
+- **Không có nhãn từng mẫu nhưng có thưởng hoặc phạt** sau chuỗi hành động: *reinforcement*.
 
-Gán nhãn thường là phần **đắt nhất** của một dự án ML (cần người đọc từng mẫu), nên có nhãn hay không là chuyện rất thực tế. Cột đáp án và cách tách nó ra khỏi bảng là nội dung [[bài:labeled-data]].
+Gán nhãn thường là phần **đắt nhất** của một dự án ML (cần người đọc, chẩn đoán, gán từng mẫu), nên có nhãn hay không là chuyện rất thực tế, không chỉ là thuật ngữ.
+
+:::predict
+Bạn có 100.000 ảnh sản phẩm, **chưa ai gán nhãn**, và muốn chia chúng thành các nhóm giống nhau để sắp xếp kệ hàng. Thuộc phương thức nào, và dạng bài toán nào?
+@answer
+**Unsupervised, dạng Clustering.** Không có đáp án sẵn, ta để máy tìm các nhóm tự nhiên. Nếu ta **đã có** nhãn "áo", "giày", "túi" cho từng ảnh và muốn dạy máy đoán nhãn cho ảnh mới, đó mới là supervised classification: cùng loại dữ liệu nhưng **khác bài toán vì khác nhãn**.
+:::
+
+Hãy tự thử: trả lời hai câu hỏi trong cây để ra kết luận, rồi đặt sáu tình huống vào đúng nhóm.
+
+:::widget paradigm-chooser
+:::
+
+## Supervised: học khi có đáp án để chấm
+
+Vì mỗi mẫu có đáp án, ta **chấm được** model: so dự đoán với nhãn thật, đo sai lệch ([[bài:loss-function]]), rồi chỉnh. Cả hai dạng đều có chung cấu trúc "feature vào, nhãn ra"; chỉ khác loại nhãn:
+
+- **Classification:** nhãn thuộc một tập hữu hạn (gian lận hoặc không; một trong 10 loại ảnh).
+- **Regression:** nhãn là số liên tục (điểm số, mức rủi ro).
+
+Toàn bộ Project (Diabetes) là supervised classification: 768 người, nhãn `Outcome` 0 hoặc 1.
+
+## Unsupervised và Reinforcement: khi không có đáp án cho từng mẫu
+
+- **Unsupervised:** không có nhãn nên **không có đáp án đúng để chấm**. Clustering cho ra các nhóm, nhưng "nhóm nào đúng" phải do người đánh giá bằng ý nghĩa. Association tìm quy luật như "người mua A thường mua B".
+- **Reinforcement:** một **tác tử** hành động trong một **môi trường**, nhận **thưởng hoặc phạt**, và học chuỗi hành động tối đa hóa tổng thưởng. Không có bảng dữ liệu có nhãn sẵn; dữ liệu sinh ra từ chính các lần thử.
 
 :::ck
-Một ứng dụng nghe nhạc gợi ý bài hát "những người giống bạn cũng thích". Có nhãn nào không? Dù tên ứng dụng nghe "gợi ý", bạn có thể kết luận ngay phương thức học chưa?
+Một ứng dụng nghe nhạc gợi ý bài hát "những người giống bạn cũng thích". Dựa vào **tên ứng dụng** (hệ thống gợi ý), bạn kết luận ngay được phương thức học chưa?
 @answer
-**Chưa kết luận được từ tên ứng dụng.** Phải hỏi dữ liệu: nếu ta có nhãn "người dùng đã bấm thích bài này" thì có thể là supervised (đoán xác suất thích); nếu chỉ gom người dùng thành nhóm theo hành vi thì là unsupervised. Phương thức học do **loại dữ liệu và mục tiêu** quyết định, không do tên sản phẩm.
+**Chưa.** Slide xếp hệ thống gợi ý vào Association (unsupervised), nhưng trên thực tế nó còn có thể là **supervised** nếu ta có nhãn "người dùng đã bấm thích bài này" và đoán xác suất thích. Phương thức học do **dữ liệu và nhãn** quyết định, không do tên sản phẩm. Luôn hỏi: dữ liệu có nhãn nào, mục tiêu là gì?
 :::
 
-:::slides 9-10 | Slide 9–10: các phương thức học
-:::
+## Những hiểu sai thường gặp
+
+- **"Unsupervised nghĩa là không cần dữ liệu."** Sai: vẫn cần dữ liệu, chỉ là không có nhãn.
+- **"Tên ứng dụng cho biết phương thức học."** Sai: cùng một sản phẩm có thể dùng supervised hoặc unsupervised tùy dữ liệu.
+- **"Regression là supervised, classification là khác."** Cả hai đều là supervised; khác nhau ở loại nhãn.
+- **"Có nhiều dữ liệu nghĩa là supervised được."** Sai: supervised cần **nhãn**, không chỉ cần nhiều dữ liệu.
 
 :::card Các phương thức học
-- **Supervised:** có nhãn (đáp án) cho từng mẫu; gồm phân loại (nhãn là nhóm) và hồi quy (nhãn là số).
-- **Unsupervised:** không có nhãn; tìm cấu trúc (gom nhóm).
-- **Reinforcement:** học qua thưởng và phạt sau hành động.
-- **Câu hỏi đầu tiên:** dữ liệu có nhãn không? Đừng suy từ tên ứng dụng.
+- **Supervised:** có nhãn cho từng mẫu; **Classification** (nhãn là nhóm) và **Regression** (nhãn là số).
+- **Unsupervised:** không có nhãn; **Clustering** (gom nhóm), **Association** (luật đi cùng nhau).
+- **Reinforcement:** học qua thưởng và phạt sau hành động (game, xe tự lái).
+- **Câu hỏi đầu tiên:** mỗi mẫu có sẵn đáp án không? Nếu có: nhãn là nhóm hay số?
+- **Đừng suy từ tên ứng dụng**, hãy nhìn dữ liệu và nhãn.
 :::
 
 ## Câu hỏi tự kiểm tra

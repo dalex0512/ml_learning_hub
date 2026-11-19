@@ -92,3 +92,11 @@ dump("folds.json", {"folds": folds, "holdout": holdout})
 print("holdout", min(holdout), max(holdout))
 print({k: (round(float(np.mean(v)), 3), round(float(np.std(v)), 3)) for k, v in folds.items()})
 print("raw", raw.round(3), "std", std.round(3), "mm", mmx.round(3))
+
+# 4. Bảng 24 hàng đầu của Diabetes (bài X và y) + hoán vị cố định để minh họa xáo lệch
+head = data.head(24)
+perm = [int(v) for v in np.random.default_rng(0).permutation(24)]
+aligned = float(((head["Glucose"] >= 140).astype(int) == head["Outcome"]).mean())
+shuffled = float(((head["Glucose"].to_numpy()[perm] >= 140).astype(int) == head["Outcome"].to_numpy()).mean())
+dump("rows.json", {"cols": cols + ["Outcome"], "rows": head.values.tolist(), "perm": perm, "aligned": aligned, "shuffled": shuffled})
+print("aligned", aligned, "shuffled", shuffled)

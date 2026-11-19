@@ -1,7 +1,7 @@
 ---
 title: Labeled Data — feature matrix (X) và label vector (y)
 order: 4
-description: "Một mẫu có nhãn gồm feature và đáp án; tách bảng thành X và y mà hàng và nhãn luôn khớp nhau."
+description: "Gọi đúng tên sample, feature, label, feature vector, X và y theo slide 11 đến 16; tách bảng Diabetes thành X (768 × 8) và y, và vì sao hàng và nhãn phải luôn khớp."
 slides: 11-16
 needs: [feature-and-data-types, learning-paradigms]
 tags: [X, y, label, sample, feature-matrix]
@@ -10,18 +10,40 @@ tags: [X, y, label, sample, feature-matrix]
 ## Một mẫu có nhãn gồm những gì?
 
 :::intro Mục tiêu bài này
-- Nói được một **mẫu có nhãn** gồm hai phần: feature (đề) và nhãn (đáp án).
-- Tách một bảng thành **X** (ma trận feature) và **y** (vector nhãn) và biết hình dạng của chúng.
-- Hiểu vì sao hàng thứ i của X phải luôn đi cùng nhãn thứ i của y.
+- Gọi đúng tên các phần của **labeled data** theo slide 11 đến 16: sample, feature, label (target), feature vector, feature matrix **X** và label vector **y**.
+- Tách một bảng thành **X** và **y** và biết hình dạng của chúng (Diabetes: X là 768 × 8, y có 768 phần tử).
+- Hiểu vì sao hàng i của X phải luôn đi cùng nhãn y⁽ⁱ⁾, và điều gì xảy ra khi chúng lệch nhau.
 :::
 
-Lấy hàng đầu tiên của bộ Diabetes:
+Slide 11 mở đầu bằng bảng Diabetes (dữ liệu có nhãn). Cứ mỗi lần slide tô một vùng, nó đặt một cái tên:
+
+| Phần của bảng | Tên | Slide |
+|---|---|---|
+| Một **hàng** | **sample** (mẫu) | 12 |
+| Một **cột** thông tin (ví dụ BMI) | **feature** | 13 |
+| Cột đáp án `Outcome` | **label (target)** | 14 |
+| Các feature của **một** mẫu | **feature vector** (đầu vào, input) | 15 |
+| Label tương ứng của mẫu đó | **corresponding label (target)** (đầu ra, output) | 15 |
+| Toàn bộ các cột feature | **feature matrix (X)** | 16 |
+| Toàn bộ cột nhãn | **label/target vector (y)** | 16 |
+
+:::slides 11-16 | Slide 11–16: labeled data, sample, feature, label, feature vector, feature matrix X và label vector y
+:::
+
+Hãy bấm vào bảng Diabetes dưới đây để thấy x⁽ⁱ⁾ và y⁽ⁱ⁾ của từng mẫu, bấm "Tách thành X và y" để thấy bảng chia hai.
+
+:::widget xy-table
+:::
+
+## Một mẫu có nhãn = đề + đáp án
+
+Lấy mẫu thứ 6 của bộ Diabetes (mẫu được khoanh đỏ ở slide 12):
 
 | Pregnancies | Glucose | BloodPressure | SkinThickness | Insulin | BMI | DPF | Age | Outcome |
 |---|---|---|---|---|---|---|---|---|
-| 6 | 148 | 72 | 35 | 0 | 33.6 | 0.627 | 50 | **1** |
+| 5 | 116 | 74 | 0 | 0 | 25.6 | 0.201 | 30 | **0** |
 
-Tám con số đầu là **đề bài** (feature): thông tin ta có về bệnh nhân. Con số cuối, `Outcome = 1`, là **đáp án** (nhãn): người này có tiểu đường. Một mẫu có nhãn luôn gồm hai phần đó. Model học bằng cách nhìn rất nhiều cặp (đề, đáp án).
+Tám con số đầu là **đề bài** (feature vector, input): thông tin ta có về một người. Con số cuối, `Outcome = 0`, là **đáp án** (label, output): người này không bị tiểu đường. Model học bằng cách nhìn rất nhiều cặp (đề, đáp án) như vậy, rồi tự tìm quy luật nối đề với đáp án ([[bài:model-training-pipeline]]).
 
 ## Từ bảng đến X và y
 
@@ -30,7 +52,7 @@ Ta tách bảng thành hai thứ và đặt tên theo quy ước toán học:
 - **X**: ma trận feature, mỗi **hàng** là một mẫu, mỗi **cột** là một feature. Với Diabetes: **768 hàng × 8 cột**.
 - **y**: vector nhãn, mỗi phần tử là đáp án của một mẫu. Với Diabetes: **768 phần tử**.
 
-Với mẫu thứ i, ta viết x⁽ⁱ⁾ (hàng i của X, một vector 8 số) và y⁽ⁱ⁾ (nhãn của mẫu đó). Mẫu đầu tiên ở trên: x⁽¹⁾ = (6, 148, 72, 35, 0, 33.6, 0.627, 50), y⁽¹⁾ = 1.
+Với mẫu thứ i, ta viết **x⁽ⁱ⁾** (hàng i của X, một vector 8 số) và **y⁽ⁱ⁾** (nhãn của nó). Ở ví dụ trên, x⁽⁶⁾ = (5, 116, 74, 0, 0, 25.6, 0.201, 30) và y⁽⁶⁾ = 0. Model là một hàm nhận x⁽ⁱ⁾ và trả ra dự đoán ŷ⁽ⁱ⁾ để so với y⁽ⁱ⁾.
 
 ```python
 x = data.drop(labels="Outcome", axis=1)   # bỏ cột đáp án: còn 8 cột
@@ -38,35 +60,39 @@ y = data["Outcome"]                        # chỉ lấy cột đáp án
 print(x.shape, y.shape)                    # (768, 8) (768,)
 ```
 
-(Project Bước 3 làm đúng bước này và giải thích từng dòng, kể cả vì sao `axis=1` bỏ cột còn `axis=0` báo lỗi.)
+Chú ý `y.shape` là `(768,)`, không phải `(768, 1)`: y là **một dãy** (vector), không phải bảng một cột. Project Bước 3 làm đúng bước này và có nút "Giải thích code" cho từng dòng (kể cả vì sao `axis=1` bỏ cột còn `axis=0` báo lỗi).
 
 :::predict
 Bạn lỡ để cột `Outcome` lại trong `x` khi huấn luyện. Điểm trên bộ test sẽ thế nào, và điều đó có đáng mừng không?
 @answer
-Điểm sẽ **cao bất thường** (gần 100%), vì model nhìn thẳng đáp án như một feature. Không đáng mừng: đó là **rò rỉ dữ liệu (data leakage)**. Khi dùng thật, ta không có đáp án để đưa vào, nên model hỏng ngay.
+Điểm sẽ **cao bất thường** (gần 100%), vì model nhìn thẳng đáp án như một feature. Không đáng mừng: đó là **rò rỉ dữ liệu ([[từ:data-leakage]])**. Khi dùng thật ta không có đáp án để đưa vào, nên model hỏng ngay. Quy tắc: cột nhãn chỉ nằm trong y, không bao giờ nằm trong X.
 :::
 
 ## Hàng của X phải đi cùng nhãn của chính nó
 
-X và y là **hai nửa của cùng một bảng**. Hàng i của X chỉ có nghĩa khi ghép với y⁽ⁱ⁾. Điều này dễ bị phá vỡ khi ta xáo, lọc, hoặc chia dữ liệu:
+X và y là **hai nửa của cùng một bảng**: hàng i của X chỉ có nghĩa khi ghép với y⁽ⁱ⁾. Điều này dễ bị phá khi ta xáo, lọc hoặc chia dữ liệu:
 
-- Xáo **riêng** X mà không xáo y: mọi cặp (đề, đáp án) bị lệch, model học vẹt vô nghĩa.
+- Xáo **riêng** X mà không xáo y: mọi cặp (đề, đáp án) bị lệch. Ở công cụ trên, luật đơn giản "Glucose ≥ 140 thì đoán 1" đúng **66.7%** trên 24 hàng đầu khi hàng và nhãn khớp, nhưng chỉ còn **41.7%** sau khi xáo lệch: tệ hơn đoán mò, vì không còn quy luật nào để học.
 - Lọc hàng của X nhưng quên lọc y: hai bên khác độ dài hoặc lệch hàng.
 - Chia train/test: phải chia X và y **cùng một cách**. `train_test_split(x, y, ...)` nhận cả hai để đảm bảo điều đó ([[bài:train-test-split]]).
 
 :::ck
-Sau khi xáo ngẫu nhiên các hàng của `x` (nhưng quên xáo `y`), model đạt accuracy 50% trên bộ phân loại hai lớp cân bằng. Điều đó nói lên điều gì?
+Sau khi xáo ngẫu nhiên các hàng của `x` (quên xáo `y`), model đạt accuracy khoảng 50% trên một bộ phân loại hai lớp cân bằng. Điều đó nói lên gì? Và nếu model đạt **100%** thì sao?
 @answer
-Model **không học được gì**: 50% bằng đoán mò. Sau khi xáo riêng, hàng i của x không còn là mẫu có nhãn y⁽ⁱ⁾, nên không có quan hệ nào để học. Luôn xáo x và y **cùng nhau**.
+Accuracy 50% nghĩa là **model không học được gì** (bằng đoán mò): sau khi xáo riêng, x⁽ⁱ⁾ không còn là mẫu có nhãn y⁽ⁱ⁾ nên không có quan hệ nào để học. Còn nếu đạt 100%, hãy nghi ngờ ngay một lỗi **rò rỉ** (ví dụ nhãn lọt vào x). Cả hai con số cực đoan đều là tín hiệu cần kiểm tra quy trình trước khi tin điểm.
 :::
 
-:::slides 11-16 | Slide 11–16: labeled data, X và y
-:::
+## Những hiểu sai thường gặp
+
+- **"y là một bảng một cột."** Thực ra y là vector `(768,)`; với một vài hàm cần `(768, 1)` ta mới `reshape`.
+- **"Feature vector là cả bảng."** Feature vector là **một hàng** của X (một mẫu). Cả bảng feature là **feature matrix**.
+- **"Nhãn chỉ là chữ."** Nhãn có thể là số (0/1, điểm thi) hoặc chữ (dog/cat); điều quan trọng là nó là đáp án.
+- **"Không cần để ý thứ tự hàng."** Thứ tự **không** quan trọng, nhưng **sự khớp giữa x⁽ⁱ⁾ và y⁽ⁱ⁾** thì tuyệt đối quan trọng.
 
 :::card Labeled data
-- **Mẫu có nhãn = feature (đề) + nhãn (đáp án).**
-- **X** là ma trận (số mẫu × số feature); **y** là vector nhãn có độ dài bằng số mẫu. Diabetes: X là 768 × 8, y có 768 phần tử.
-- **x⁽ⁱ⁾, y⁽ⁱ⁾** là mẫu thứ i; hàng i của X luôn đi cùng y⁽ⁱ⁾.
+- **Sample = một hàng; feature = một cột; label (target) = đáp án.** Một mẫu có nhãn = feature vector (input) + label (output).
+- **X** là feature matrix (số mẫu × số feature); **y** là label vector (độ dài bằng số mẫu). Diabetes: X là 768 × 8, y là `(768,)`.
+- **x⁽ⁱ⁾, y⁽ⁱ⁾** là mẫu thứ i; hàng i của X luôn đi cùng y⁽ⁱ⁾ (xáo lệch: luật đúng 66.7% còn 41.7%).
 - **Không để cột nhãn lọt vào X** (rò rỉ dữ liệu); xáo, lọc, chia luôn làm trên X và y cùng lúc.
 :::
 
