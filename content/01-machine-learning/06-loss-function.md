@@ -1,7 +1,7 @@
 ---
 title: Loss Function (Hàm mất mát)
 order: 6
-description: "Loss biến sai số thành một con số máy giảm được; L1 phạt đều, L2 phạt nặng sai số lớn."
+description: "Biến sai số thành một con số máy giảm được: tính tay L1 và L2 trên bảng giá nhà của slide 19, hình dạng của hai loss, và loss khác metric."
 slides: 19-21
 needs: [model-training-pipeline]
 tags: [loss, L1, L2, MAE, MSE, outlier, regression]
@@ -10,53 +10,101 @@ tags: [loss, L1, L2, MAE, MSE, outlier, regression]
 ## Làm sao biến "sai bao nhiêu" thành một con số máy giảm được?
 
 :::intro Mục tiêu bài này
-- Hiểu vì sao cần một con số duy nhất (**loss**) để đo mức sai của model.
-- Phân biệt **L1** (phạt đều) và **L2** (phạt nặng sai số lớn) bằng một ví dụ giá nhà.
+- Hiểu vì sao cần một con số duy nhất (**loss**) để đo mức sai của model trên cả bảng dữ liệu.
+- Tính tay **L1** và **L2** trên bảng giá nhà của slide 19, và so sánh cách chúng đối xử với sai số lớn (slide 20 và 21).
 - Phân biệt **loss** (để model học) với **metric** (để con người đánh giá).
 :::
 
-Model dự đoán giá năm căn nhà (tỉ đồng) và sai ít nhiều khác nhau. Để máy **chỉnh được tham số**, ta cần gói mọi sai số thành **một con số**: càng nhỏ càng tốt. Con số đó là **loss**. Có hai cách gói phổ biến:
+Slide 19 cho một model dự đoán giá nhà ở Việt Nam (đơn vị: **tỉ VND**) từ diện tích, số tầng, thành phố và có ở trong ngõ hay không:
 
-- **L1 (sai số tuyệt đối):** phạt `|ŷ − y|`. Sai gấp đôi thì phạt gấp đôi.
-- **L2 (bình phương sai số):** phạt `(ŷ − y)²`. Sai gấp đôi thì phạt gấp **bốn**.
+| Diện tích | Số tầng | Thành phố | Trong ngõ | **Prediction** | **Label** | Sai số (pred − label) |
+|---|---|---|---|---|---|---|
+| 40 | 6 | HCM | No | 3.45 | 3.75 | −0.30 |
+| 60 | 4 | Hà Nội | No | 3.90 | 4.12 | −0.22 |
+| 120 | 3 | Hải Dương | Yes | 2.12 | 2.20 | −0.08 |
+| 50 | 4 | Huế | No | 2.90 | 2.30 | **+0.60** |
 
-Giá trị trung bình của chúng trên cả bộ dữ liệu gọi là MAE (từ L1) và MSE (từ L2); chi tiết ở [[bài:regression-metrics]].
+Bốn dự đoán, bốn sai số khác nhau. Để máy **chỉnh được tham số** ([[bài:model-training-pipeline]]), ta cần gói bốn sai số thành **một con số**: càng nhỏ càng tốt. Con số đó là **loss**, và slide 19 vẽ nó ở đúng chỗ: prediction và label cùng đi vào **loss**.
 
-:::predict
-Bốn căn nhà bị đoán lệch 0.1 đến 0.3 tỉ. Căn nhà thứ năm bị đoán lệch **3 tỉ**. Với L1 phạt căn này gấp bao nhiêu lần một căn bị lệch 0.3? Với L2 thì sao?
-@answer
-Lệch 3 so với 0.3: gấp **10 lần** (tỉ lệ sai số). L1 phạt gấp **10 lần** (3 / 0.3). L2 phạt gấp **100 lần** (9 / 0.09). Vì vậy L2 làm model "sợ" những sai số lớn hơn nhiều.
+:::slides 19 | Slide 19: ví dụ dự đoán giá nhà ở Việt Nam, prediction và label đi vào loss
 :::
 
-Hãy tự kéo. Năm căn nhà có sai số nhỏ; kéo thanh trượt để căn thứ năm bị đoán lệch thêm và quan sát cột phạt L1 và L2.
+## Hai cách gói sai số: L1 và L2
+
+Slide 20 giới thiệu hai loss phổ biến, mỗi cái có nhiều tên gọi:
+
+| | Công thức | Tên gọi khác |
+|---|---|---|
+| **L1 loss** | Σ \|y_prediction − y_actual\| | Least Absolute Deviations (LAD), Absolute Error, trung bình của các sai số tuyệt đối |
+| **L2 loss** | Σ (y_prediction − y_actual)² | Least Squares (LS), Squared Error, trung bình của các sai số bình phương |
+
+:::steps
+**L1 trên bảng giá nhà:** |−0.30| + |−0.22| + |−0.08| + |+0.60| = **1.20**. Lấy trung bình (chia 4) được **0.30** tỉ đồng.
+@step
+**L2 trên bảng giá nhà:** 0.30² + 0.22² + 0.08² + 0.60² = 0.0900 + 0.0484 + 0.0064 + 0.3600 = **0.5048**. Lấy trung bình được **0.1262**.
+@step
+**So phần đóng góp của căn nhà Huế** (sai số 0.60, lớn nhất): với L1 nó chiếm 0.60 / 1.20 = **50%** tổng loss; với L2 nó chiếm 0.36 / 0.5048 = **71%**. Cùng một sai số, L2 **dồn sự chú ý** vào nó hơn.
+@step
+**Thêm một lần lệch:** nếu căn nhà Huế bị đoán lệch thêm 3 tỉ nữa (sai số 3.6): L1 = 4.2 (căn đó chiếm 86%) còn L2 = 13.105 (căn đó chiếm **98.9%**). L2 gần như chỉ còn nhìn thấy một căn nhà.
+:::
+
+:::slides 20-21 | Slide 20–21: L1 loss và L2 loss, đồ thị so sánh theo sai số từ −1 đến 1
+:::
+
+## Hình dạng của hai loss (slide 21)
+
+Slide 21 vẽ L1 và L2 theo sai số. L1 là hình **chữ V** (đi lên thẳng đều); L2 là **parabol** (cong). Nhìn bảng:
+
+| Sai số | L1 (\|e\|) | L2 (e²) |
+|---|---|---|
+| 0.3 | 0.3 | **0.09** (nhẹ hơn) |
+| 1 | 1 | 1 (bằng nhau) |
+| 3 | 3 | **9** (nặng hơn nhiều) |
+
+Sai số **nhỏ hơn 1**: L2 phạt **nhẹ hơn** L1 (0.09 so với 0.3). Sai số **lớn hơn 1**: L2 phạt **nặng hơn** (9 so với 3). Ghi chú tay trên slide nói đúng điều đó: L1 có xu hướng phạt **đều** các sai lệch; L2 có xu hướng **tập trung vào những sai số lớn** vì chúng đóng góp nhiều nhất vào loss.
+
+:::predict
+Căn nhà thứ tư (Huế) lệch +0.6 tỉ. Nếu model cố làm **loss L2 nhỏ nhất**, nó sẽ ưu tiên sửa căn nhà nào trước, và vì sao so với khi dùng L1?
+@answer
+Với L2, căn nhà **Huế**: nó chiếm 71% loss, nên giảm sai số của nó cho "lời" nhiều nhất. Với L1, mỗi đơn vị sai số đóng góp như nhau, nên model quan tâm đều tới mọi căn nhà hơn. Nói cách khác, **L2 ưu tiên giảm sai số lớn trước**, còn L1 giảm sai số đều tay.
+:::
+
+Hãy tự kéo: công cụ dùng đúng bốn căn nhà của slide 19; kéo thanh trượt để căn nhà Huế bị đoán lệch thêm và xem cột phạt L1 so với L2.
 
 :::widget loss-outlier
+slide
 :::
 
 ## Chọn L1 hay L2?
 
-- **L2** nhạy với outlier: một sai số lớn chiếm gần hết loss, nên model cố sửa nó trước. Tốt khi sai số lớn thật sự đáng sợ; hại khi sai số lớn chỉ là **dữ liệu nhiễu** (model bị kéo lệch để chiều một điểm lỗi).
-- **L1** bền hơn với outlier vì phạt tăng đều.
-- Với L2, đạo hàm mượt, nên tối ưu thường dễ hơn; đây là lý do MSE rất phổ biến.
+- **L2 nhạy với sai số lớn và với outlier:** một sai số lớn chiếm gần hết loss, nên model bị kéo mạnh về phía đó. Tốt khi sai số lớn thật sự đáng sợ; **hại khi sai số lớn chỉ là dữ liệu sai** (nhập thừa một số 0): model bị kéo lệch để chiều một điểm lỗi.
+- **L1 bền hơn** với outlier vì phạt tăng đều.
+- **L2 mượt** (đạo hàm liên tục), nên tối ưu thường dễ hơn; đó là lý do MSE rất phổ biến. L1 có "góc nhọn" tại 0.
+- Slide dùng **tổng** (Σ), thực tế thường dùng **trung bình** (chia cho số mẫu). Chia cho một hằng số không đổi cách chọn tham số tốt nhất, chỉ đổi cỡ của con số.
 
 :::ck
-Dữ liệu giá nhà có vài căn bị nhập sai thêm số 0 (giá thật 3 tỉ ghi thành 30 tỉ). Bạn nghiêng về L1 hay L2, và vì sao?
+Dữ liệu giá nhà có vài căn bị nhập sai thêm số 0 (giá thật 3 tỉ ghi thành 30 tỉ). Bạn nghiêng về L1 hay L2, và bạn nên làm gì trước?
 @answer
-Nghiêng về **L1** (hoặc xử lý các điểm sai trước). L2 sẽ bị kéo mạnh bởi vài giá trị sai vì phạt bình phương; L1 ít bị lệch hơn. Tốt nhất là phát hiện và sửa dữ liệu sai trước ([[bài:missing-values-outliers]]), rồi mới chọn loss.
+Nghiêng về **L1** (bền hơn), nhưng việc đầu tiên là **phát hiện và sửa các điểm sai** ([[bài:missing-values-outliers]]), vì L2 sẽ bị kéo mạnh bởi vài giá trị sai do phạt bình phương. Chọn loss chỉ là giảm nhẹ hậu quả; làm sạch dữ liệu mới giải quyết nguyên nhân.
 :::
 
 ## Loss khác metric
 
-**Loss** là con số máy dùng để **học** (nó cần mượt, có đạo hàm). **Metric** là con số con người dùng để **đánh giá** (nó cần dễ hiểu theo nghiệp vụ). Hai thứ có thể trùng (MSE), nhưng có thể khác (ví dụ ta huấn luyện bằng một loss mượt nhưng báo cáo accuracy). Loss tính trên train để cập nhật; ta so sánh model bằng metric trên dữ liệu chưa thấy ([[bài:train-test-split]]).
+**Loss** là con số máy dùng để **học** (cần mượt, có đạo hàm). **Metric** là con số con người dùng để **đánh giá** (cần dễ hiểu theo nghiệp vụ). Hai thứ có thể trùng (MSE vừa là loss vừa là cách báo cáo), nhưng cũng có thể khác: bài phân loại thường huấn luyện bằng một loss mượt (log loss) nhưng báo cáo accuracy, precision, recall. Loss tính trên **train** để cập nhật; ta so sánh model bằng metric trên dữ liệu **chưa thấy** ([[bài:train-test-split]], [[bài:regression-metrics]]).
 
-:::slides 19-21 | Slide 19–21: loss function
-:::
+## Những hiểu sai thường gặp
+
+- **"Loss càng thấp càng tốt, bất kể ở đâu."** Loss thấp trên **train** có thể là học vẹt; chỉ loss trên dữ liệu chưa thấy mới nói lên khả năng tổng quát.
+- **"L1 và L2 chỉ khác công thức."** Chúng khác về **chính sách**: đối xử với sai số lớn ra sao.
+- **"Loss và metric là một."** Có thể trùng nhưng vai trò khác nhau: loss để học, metric để đánh giá.
+- **"Σ hay trung bình khác nhau nhiều."** Không đổi tham số tối ưu; chỉ đổi cỡ con số, nên khi so loss giữa hai bộ dữ liệu cần dùng trung bình.
 
 :::card Loss function
-- **Loss** gói sai số của cả bộ dữ liệu thành một con số để máy giảm.
-- **L1** = `|ŷ − y|` (phạt đều); **L2** = `(ŷ − y)²` (phạt nặng sai số lớn: sai gấp 10 thì phạt gấp 100).
-- **L2 nhạy outlier**, L1 bền hơn; dọn dữ liệu sai trước khi chọn.
-- **Loss để học; metric để đánh giá**; hai thứ có thể khác nhau.
+- **Loss** gói sai số của cả bảng thành một con số để máy giảm (slide 19: prediction và label vào loss).
+- **L1 = Σ|e|** (LAD, MAE): trên bảng nhà = 1.20 (trung bình 0.30). **L2 = Σe²** (LS, MSE): 0.5048 (trung bình 0.1262).
+- **L2 dồn vào sai số lớn** (căn Huế chiếm 71% L2 nhưng 50% L1); sai số < 1 thì L2 nhẹ hơn, > 1 thì nặng hơn.
+- **L2 nhạy outlier**, L1 bền hơn; làm sạch dữ liệu sai trước khi chọn loss.
+- **Loss để học; metric để đánh giá**; loss thấp trên train chưa chắc tốt.
 :::
 
 ## Câu hỏi tự kiểm tra

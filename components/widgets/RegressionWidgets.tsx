@@ -6,23 +6,25 @@ const mean = (v: number[]) => v.reduce((a, b) => a + b, 0) / v.length;
 const f = (v: number, d = 2) => v.toFixed(d);
 
 /* ---------- 1. Kéo một căn nhà outlier: L1, L2, MAE, RMSE, R² ---------- */
-export function LossOutlier() {
-  const actual = [2.0, 2.5, 3.0, 3.5, 4.0];
-  const base = [2.2, 2.4, 3.3, 3.4, 4.0];
+export function LossOutlier({ props }: { props?: string }) {
+  const slide = (props ?? "").includes("slide");
+  const actual = slide ? [3.75, 4.12, 2.2, 2.3] : [2.0, 2.5, 3.0, 3.5, 4.0];
+  const base = slide ? [3.45, 3.9, 2.12, 2.9] : [2.2, 2.4, 3.3, 3.4, 4.0];
+  const last = actual.length - 1;
   const [e, setE] = useState(0);
-  const pred = base.map((p, i) => (i === 4 ? p + e : p));
+  const pred = base.map((p, i) => (i === last ? p + e : p));
   const err = pred.map((p, i) => p - actual[i]);
   const mae = mean(err.map(Math.abs));
   const mse = mean(err.map((x) => x * x));
   const rmse = Math.sqrt(mse);
   const ma = mean(actual);
   const r2 = 1 - err.reduce((s, x) => s + x * x, 0) / actual.reduce((s, y) => s + (y - ma) ** 2, 0);
-  const maxPen = Math.max(...err.map((x) => x * x), 1);
+  const maxPen = Math.max(...err.map((x) => x * x), 1e-9);
   return (
     <div className="w-box">
-      <div className="reader-label" style={{ margin: 0 }}>Thử: căn nhà thứ 5 bị đoán lệch thêm</div>
+      <div className="reader-label" style={{ margin: 0 }}>Thử: căn nhà cuối bị đoán lệch thêm</div>
       <label className="w-slider">
-        <span>Sai số thêm của căn nhà thứ 5 = <strong>{f(e)}</strong> tỉ đồng (đoán {f(pred[4])} so với thật {f(actual[4])})</span>
+        <span>Sai số thêm của căn nhà cuối = <strong>{f(e)}</strong> tỉ đồng (đoán {f(pred[last])} so với thật {f(actual[last])})</span>
         <input type="range" min={0} max={5} step={0.1} value={e} onChange={(ev) => setE(parseFloat(ev.target.value))} />
       </label>
       <div className="w-table-wrap">

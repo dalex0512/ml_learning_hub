@@ -1,7 +1,7 @@
 ---
 title: Model Training (Huấn luyện mô hình)
 order: 5
-description: "Học là chỉnh tham số theo sai lệch: vòng lặp dự đoán, đo loss, cập nhật, làm tay trên một ví dụ nhỏ."
+description: "Học là chỉnh tham số theo loss: hai sơ đồ của slide 17 và 18, làm tay một vòng cập nhật, và vì sao bước nhảy η quá nhỏ thì chậm, quá lớn thì văng."
 slides: 17-18
 needs: [labeled-data]
 tags: [training, prediction, loss, update]
@@ -10,48 +10,94 @@ tags: [training, prediction, loss, update]
 ## Khi "học", model thay đổi cái gì?
 
 :::intro Mục tiêu bài này
-- Hiểu model là một bộ **tham số**, và học là **chỉnh tham số** để sai lệch nhỏ đi.
-- Theo dõi được vòng lặp: dự đoán, so với đáp án, đo sai lệch, cập nhật.
-- Phân biệt **lúc học** (tham số đổi) và **lúc dùng** (tham số đóng băng).
+- Hiểu model là một bộ **tham số**, và học là **chỉnh tham số** để sai lệch (loss) nhỏ đi.
+- Đọc hai sơ đồ của slide 17 và 18: một mẫu đi qua model, rồi cả bảng đi qua model, và vòng **update**.
+- Tính tay được một vòng cập nhật, và hiểu vì sao **bước nhảy η** quá nhỏ thì chậm, quá lớn thì văng.
 :::
 
-Hãy tưởng tượng một model đơn giản nhất: `ŷ = a · x` với một tham số `a`. Dữ liệu có ba cặp (x, y): (1, 2), (2, 4), (3, 6). Ta không biết `a` nên bắt đầu đoán bừa `a = 1`. Model khi đó dự đoán 1, 2, 3, còn đáp án là 2, 4, 6: **sai hết**. Học là quá trình chỉnh `a` để sai lệch nhỏ đi.
+Hãy tưởng tượng một model đơn giản nhất: `ŷ = a · x`, chỉ có **một tham số `a`**. Dữ liệu có ba cặp (x, y): (1, 2), (2, 4), (3, 6). Ta không biết `a` nên bắt đầu đoán bừa `a = 1`. Model khi đó dự đoán 1, 2, 3, còn đáp án là 2, 4, 6: **sai hết**. Học là quá trình **chỉnh `a`** để sai lệch nhỏ đi. Đó là toàn bộ ý tưởng; phần còn lại của bài chỉ là làm nó chính xác.
+
+## Một mẫu đi qua model (slide 17)
+
+Slide 17 vẽ: **feature vector** đi vào **Model**, ra **prediction**. Prediction được đặt cạnh **label** (đáp án thật), và hai thứ đó đi vào **loss**, cho ra một con số gọi là **loss value**. Con số đó cho biết **model đang sai bao nhiêu** trên mẫu này.
+
+:::slides 17-18 | Slide 17–18: model training, prediction so với label cho ra loss, rồi update model
+:::
+
+## Cả bảng đi qua model, rồi cập nhật (slide 18)
+
+Trong thực tế ta không đưa từng mẫu một mà đưa **cả feature matrix**: model cho ra một **cột prediction**, đặt cạnh **cột label**, và từ đó tính **loss function** (một con số tổng hợp cho cả bảng). Khác biệt quan trọng của slide 18 là mũi tên **update** đi từ loss ngược về Model: **loss không chỉ để đo, mà để chỉnh model**. Một vòng đầy đủ:
+
+1. Model nhận feature matrix, cho ra prediction.
+2. So prediction với label, tính loss ([[bài:loss-function]]).
+3. Dùng loss để **cập nhật tham số** của model.
+4. Lặp lại cho tới khi loss đủ nhỏ.
+
+## Làm tay một vòng cập nhật
 
 :::steps
-**Dự đoán:** với `a = 1`, ŷ = (1, 2, 3).
+**Dự đoán:** với `a = 1`, ŷ = (1, 2, 3) cho x = (1, 2, 3).
 @step
-**So với đáp án:** sai số ŷ − y = (−1, −2, −3). Ta cần **một con số** đo mức tệ: bình phương sai số rồi lấy trung bình, được (1 + 4 + 9) / 3 ≈ **4.667**. Con số này gọi là **loss** (chi tiết ở [[bài:loss-function]]).
+**So với đáp án:** sai số ŷ − y = (−1, −2, −3). Bình phương rồi lấy trung bình: (1 + 4 + 9) / 3 ≈ **4.667**. Đây là **loss** (MSE).
 @step
-**Tìm hướng chỉnh:** loss có độ dốc theo `a`: gradient = −9.333 (âm nghĩa là tăng `a` sẽ làm loss giảm).
+**Tìm hướng chỉnh:** loss có độ dốc theo `a`, gọi là **gradient** = (2/3)·Σ(sai số × x) = (2/3)(−1 − 4 − 9) = **−9.333**. Gradient âm nghĩa là **tăng `a` thì loss giảm**.
 @step
-**Cập nhật:** `a ← a − η · gradient`, với η = 0.05 là bước nhảy: `a = 1 − 0.05 × (−9.333) = 1.467`. Loss mới giảm còn **1.327**.
+**Cập nhật:** `a ← a − η · gradient` với **η = 0.05** (bước nhảy): `a = 1 − 0.05 × (−9.333) = 1.467`. Loss mới giảm còn **1.327**.
 @step
 **Lặp lại:** năm vòng tiếp theo cho `a` = 1.716, 1.848, 1.919, 1.957, 1.977 và loss = 0.378, 0.107, 0.031, 0.009, 0.003. `a` tiến sát **2**, giá trị đúng.
 :::
 
-Máy không đoán mò: nó dùng gradient để biết **nên chỉnh `a` theo hướng nào và bao nhiêu**.
+Hãy tự vặn: kéo `a` bằng tay để thấy loss đổi, hoặc bấm "Một bước cập nhật" để máy tự đi xuống theo gradient.
+
+:::widget param-knob
+:::
 
 :::ck
-Model có hàng triệu tham số thay vì một. Ý tưởng "dự đoán, đo sai lệch, cập nhật tham số" có thay đổi không?
+Model có hàng triệu tham số thay vì một. Ý tưởng "dự đoán, đo loss, cập nhật tham số" có thay đổi không?
 @answer
-**Không đổi về bản chất.** Chỉ khác là gradient trở thành một vector (mỗi tham số một thành phần), và mỗi tham số được chỉnh theo hướng làm loss giảm. Vòng lặp chung giống hệt.
+**Không đổi về bản chất.** Chỉ khác là gradient trở thành một **vector** (mỗi tham số một thành phần) và mỗi tham số được chỉnh theo hướng làm loss giảm. Vòng lặp chung giống hệt; đó cũng là lý do ví dụ một tham số này đủ để hiểu cả mạng nơ-ron.
 :::
+
+## Bước nhảy η: không quá nhỏ, không quá lớn
+
+η (đọc "eta", còn gọi là **learning rate**) quyết định mỗi lần cập nhật nhảy bao xa. Với ví dụ này, mỗi vòng sai số của `a` (so với 2) được nhân với hệ số **1 − η·9.333**. Hệ quả:
+
+| η | Hệ số mỗi vòng | `a` sau 8 vòng (bắt đầu 1) | Nhận xét |
+|---|---|---|---|
+| 0.01 | 0.907 | 1.543 | quá chậm: mới đi được nửa đường |
+| 0.05 | 0.533 | 1.994 | êm, hội tụ tốt |
+| 0.10 | 0.067 | 2.000 | rất nhanh (gần như đến đích sau 4 vòng) |
+| 0.20 | −0.867 | 1.682 (dao động 2.87, 1.25, 2.65...) | nhảy qua lại quanh đích, hội tụ rất chậm |
+| 0.30 | −1.8 | −108.2 | **văng xa**: mỗi vòng sai hơn, loss tăng vô hạn |
+
+:::predict
+Với η = 0.3, mỗi vòng cập nhật làm `a` ở lần kế tiếp **lệch xa 2 hơn** lần trước. Vì sao một bước đi "theo hướng làm loss giảm" lại làm loss tăng?
+@answer
+Vì hướng đúng nhưng **bước quá dài**: ta nhảy **qua** đáy và sang phía bên kia, nơi còn dốc hơn, rồi lần sau lại nhảy qua tiếp, mỗi lần xa hơn. Hệ số 1 − 0.3 × 9.333 = −1.8 có độ lớn lớn hơn 1 nên sai số phình ra. Bước nhảy phải đủ nhỏ so với độ dốc của loss.
+:::
+
+η không phải tham số do model học mà do **ta chọn** trước khi học: loại này gọi là **siêu tham số (hyperparameter)**, và ta chọn chúng bằng validation, không bằng bộ test ([[bài:k-fold-cross-validation]]).
 
 ## Lúc học và lúc dùng
 
-- **Lúc học (training):** dùng dữ liệu có nhãn, vòng lặp ở trên chạy nhiều lần, **tham số thay đổi**.
-- **Lúc dùng (inference):** tham số **đã đóng băng**. Model nhận input mới và chỉ tính ŷ, không so với đáp án (vì chưa có đáp án), không cập nhật gì.
+- **Lúc học (training):** dùng dữ liệu có nhãn, vòng lặp chạy nhiều lần, **[[từ:parameter|tham số]] thay đổi**.
+- **Lúc dùng ([[từ:inference|inference]]):** tham số **đã đóng băng**. Model nhận input mới và chỉ tính ŷ; không so với đáp án (chưa có), không cập nhật.
 
-Vì vậy trong code `model.fit(x_train, y_train)` là lúc học, còn `model.predict(x_new)` chỉ là lúc dùng. Và để đo model học tốt đến đâu, ta chấm trên dữ liệu **chưa từng học** ([[bài:train-test-split]]).
+Trong scikit-learn: `model.fit(x_train, y_train)` là lúc học; `model.predict(x_new)` là lúc dùng. Và vì loss trên dữ liệu **đã học** luôn đẹp hơn thực tế, ta đánh giá bằng dữ liệu **chưa từng học** ([[bài:train-test-split]]).
 
-:::slides 17-18 | Slide 17–18: model training và pipeline huấn luyện
-:::
+## Những hiểu sai thường gặp
+
+- **"Học là nhớ dữ liệu."** Không: học là chỉnh tham số để **khái quát** quy luật. Nhớ thuộc lòng (overfitting) là một dạng học hỏng.
+- **"Loss trên train thấp nghĩa là model tốt."** Chưa: phải xem trên dữ liệu chưa thấy.
+- **"η, số cây, độ sâu cây là tham số của model."** Đó là **siêu tham số**: ta chọn, máy không học. Tham số là thứ máy học (như `a`, các trọng số).
+- **"Gradient chỉ cách tính phức tạp của mạng nơ-ron."** Nó chính là **độ dốc**: ví dụ một tham số ở trên đã đủ.
 
 :::card Model Training
-- **Model = hàm có tham số**; học = chỉnh tham số.
-- **Vòng lặp:** dự đoán → so với đáp án → đo sai lệch (loss) → cập nhật tham số (`a ← a − η · gradient`) → lặp.
-- **Ví dụ:** `ŷ = a·x` trên (1,2), (2,4), (3,6): `a` từ 1 tiến về 2, loss từ 4.667 xuống 0.003 sau vài vòng (η = 0.05).
-- **Lúc dùng**: tham số đóng băng; `fit` là học, `predict` chỉ là dùng.
+- **Model = hàm có tham số; học = chỉnh tham số theo loss.**
+- **Vòng lặp (slide 17–18):** feature → model → prediction; so với label → loss; **update** model; lặp.
+- **Ví dụ:** `ŷ = a·x` trên (1,2), (2,4), (3,6): gradient −9.333, a: 1 → 1.467 → ... → 1.977, loss 4.667 → 0.003 (η = 0.05).
+- **η quá nhỏ thì chậm (0.01), quá lớn thì văng (0.3); η là siêu tham số do ta chọn.**
+- **Lúc dùng:** tham số đóng băng; `fit` là học, `predict` là dùng.
 :::
 
 ## Câu hỏi tự kiểm tra
