@@ -1,79 +1,111 @@
 ---
 title: AI, Machine Learning, Deep Learning và Data Science là gì
 order: 1
-description: "ML là học quy tắc từ ví dụ: vị trí của AI, ML, Deep Learning và Data Science, và sơ đồ input, model, output."
+description: "ML là học quy tắc từ ví dụ: vì sao luật viết tay không đủ, bốn khái niệm AI, ML, Deep Learning, Data Science qua mục tiêu và hình vòng tròn, và sơ đồ input, model, output."
 slides: 3-6
 needs: []
 tags: [ai, ml, dl, data-science]
 ---
 
-## Viết luật bằng tay và học từ ví dụ khác nhau thế nào?
+## Viết luật bằng tay hay học từ ví dụ?
 
 :::intro Mục tiêu bài này
-- Nói được ML làm gì bằng một câu: **học quy tắc từ ví dụ** thay vì ta tự viết quy tắc.
-- Đặt đúng vị trí của AI, Machine Learning, Deep Learning và Data Science.
-- Đọc được sơ đồ **input → model → output** và biết "học" nằm ở đâu trong sơ đồ đó.
+- Giải thích được ML là gì bằng **một ví dụ có số liệu**: vì sao luật viết tay không đủ và máy học quy tắc từ ví dụ khác ở chỗ nào.
+- Phân biệt **AI, Machine Learning, Deep Learning, Data Science** bằng mục tiêu của từng cái (theo slide 5) và hình vòng tròn (slide 4).
+- Đọc sơ đồ **input → model → output** (slide 6) và chỉ ra "học" xảy ra ở đâu.
 :::
 
-Hãy viết một bộ lọc thư rác. Cách thứ nhất: **ta viết luật**: "email chứa chữ *free* thì là spam". Chạy được ngay, nhưng gặp ngay rắc rối: email "free time this weekend?" của bạn bè bị chặn nhầm, còn spam viết "fr33" thì lọt. Mỗi lỗi lại phải thêm một luật, và số luật phình ra không dứt.
-
-Cách thứ hai: **đưa cho máy 10.000 email đã được gán nhãn** spam hoặc không, để nó **tự tìm ra quy tắc** phân biệt. Quy tắc đó không nằm trong code ta viết; nó nằm trong các **tham số** mà máy học được. Đó là Machine Learning.
-
-:::ck
-Một lập trình viên viết 500 câu `if` để nhận ra email spam, mỗi khi có spam lọt qua lại thêm một `if`. Đây có phải Machine Learning không? Vì sao?
-@answer
-**Không.** Quy tắc do người viết ra và không thay đổi khi có thêm dữ liệu. Với ML, ta đưa **dữ liệu có nhãn** và máy tự điều chỉnh các tham số; khi có thêm ví dụ, ta huấn luyện lại thay vì viết thêm luật.
-:::
-
-## AI, ML, Deep Learning và Data Science: ai nằm trong ai?
-
-Bốn cái tên hay bị dùng lẫn lộn. Cách nhớ theo vòng tròn lồng nhau:
-
-- **AI (trí tuệ nhân tạo):** mọi cách làm cho máy hành xử "thông minh", kể cả luật viết tay.
-- **Machine Learning:** *một nhánh của AI* mà máy **học quy tắc từ dữ liệu**.
-- **Deep Learning:** *một nhánh của ML* dùng mạng nơ-ron nhiều tầng.
-- **Data Science:** lĩnh vực dùng dữ liệu để **rút ra hiểu biết và quyết định**. Nó dùng ML như một công cụ, nhưng còn gồm thống kê, trực quan hóa và kỹ thuật dữ liệu; nó **giao** với ML chứ không chỉ chứa trong ML.
-
-:::predict
-Đặt mỗi việc sau vào **vòng nhỏ nhất** có thể: (a) chương trình chơi cờ ca-rô bằng luật cứng, (b) bộ lọc spam học từ email gán nhãn, (c) nhận diện ảnh bằng mạng nơ-ron nhiều tầng, (d) vẽ biểu đồ doanh thu theo tháng để báo cáo.
-@answer
-(a) **AI nhưng không phải ML** (luật cứng, không học). (b) **ML** (học từ dữ liệu). (c) **Deep Learning** (mạng nơ-ron nhiều tầng, thuộc ML, thuộc AI). (d) **Data Science** nhưng không nhất thiết có ML: chỉ là tổng hợp và trực quan hóa dữ liệu.
-:::
-
-:::slides 3-6 | Slide 3–6: AI, Machine Learning, Deep Learning và Data Science
-:::
-
-## Đọc sơ đồ input → model → output
-
-Mọi bài toán ML đều có cùng một hình:
+Giả sử ta cần một bộ lọc thư rác. Cách thứ nhất là **tự viết luật**: "email nào chứa chữ *free* thì là spam". Thử trên 10 email, trong đó thật sự có 5 spam và 5 email thường (số tự soạn):
 
 :::steps
-**Input (x):** thông tin đầu vào, tách thành các cột gọi là **feature**. Ví dụ một email, hoặc 8 phép đo của một bệnh nhân.
+Luật "chứa *free* thì là spam" **chặn 4 email**, trong đó 3 là spam thật và 1 là email của bạn bè ("free time this weekend?").
 @step
-**Model:** một hàm có **tham số** (các "núm vặn"). Lúc đầu tham số chưa tốt, nên model đoán sai.
+Nó **bắt được 3 trong 5 spam** (recall 60%): hai spam viết kiểu "fr33" hoặc "miễn phí" lọt qua.
 @step
-**Output (ŷ):** dự đoán của model: spam hay không, giá nhà bao nhiêu.
+Nó chặn nhầm **1 trong 5** email thường. Trong 4 email bị chặn, 3 là spam thật (precision 75%).
 @step
-**Học:** so ŷ với đáp án thật y, đo sai lệch, rồi **chỉnh tham số** để lần sau đoán tốt hơn. Phần "so và chỉnh" là chủ đề của [[bài:model-training-pipeline]] và [[bài:loss-function]].
+Mỗi lỗi lại thêm một luật (`fr33`, `miễn phí`, `giảm giá`...). Số luật phình ra, các luật đụng nhau, và kẻ gửi spam đổi chữ nhanh hơn ta viết luật.
 :::
 
-Sau khi học xong, ta **đóng băng** tham số và dùng model để đoán dữ liệu mới: lúc đó không còn bước chỉnh nữa.
+Cách thứ hai: **đưa cho máy hàng nghìn email đã gán nhãn** spam hoặc không, để nó tự tìm ra quy tắc phân biệt. Quy tắc đó không nằm trong code ta viết mà nằm trong các **[[từ:parameter|tham số]]** máy học được; khi có thêm ví dụ, ta huấn luyện lại thay vì viết thêm luật. Đó là **Machine Learning**: học quy tắc từ ví dụ.
 
-## Gọi đúng tên một công việc
+:::ck
+Một lập trình viên viết 500 câu `if` để nhận ra spam, và cập nhật mỗi tuần khi có spam mới lọt qua. Đây có phải Machine Learning không? Vì sao?
+@answer
+**Không.** Quy tắc do **người** viết và chỉ đổi khi người sửa. Với ML, ta đưa dữ liệu có nhãn và **máy tự điều chỉnh tham số** để phân biệt; thêm dữ liệu thì huấn luyện lại. Dấu hiệu nhận ra: quy tắc có nằm trong code do người viết, hay nằm trong tham số do máy học?
+:::
 
-Ba câu hỏi giúp phân loại nhanh một công việc:
+## Bốn cái tên, bốn mục tiêu
 
-1. Quy tắc do **người viết** hay do **máy học từ dữ liệu**? (Người viết: không phải ML.)
-2. Nếu máy học, mô hình có phải **mạng nơ-ron nhiều tầng** không? (Có: Deep Learning.)
-3. Mục tiêu là **tự động đưa ra dự đoán** hay **hiểu dữ liệu để người ra quyết định**? (Cái sau nghiêng về Data Science.)
+Bốn thuật ngữ hay bị dùng lẫn. Slide 5 tách chúng bằng **mục tiêu** của mỗi cái:
 
-Bài [[bài:learning-paradigms]] sẽ hỏi câu tiếp theo: máy học từ **loại phản hồi** nào.
+| Khái niệm | Mục tiêu (slide 5) |
+|---|---|
+| **AI** | đưa ra **hành động** từ dữ liệu |
+| **Machine Learning** | **học hỏi** từ dữ liệu |
+| **Deep Learning** | học hỏi từ **RẤT NHIỀU** dữ liệu |
+| **Data Science** | tạo ra **giá trị** từ dữ liệu |
 
-:::card AI, ML, DL, Data Science
-- **ML = học quy tắc từ dữ liệu**; luật viết tay thì không phải ML.
-- **AI ⊃ ML ⊃ Deep Learning**; Data Science giao với ML (nó còn gồm thống kê và trực quan hóa).
-- **Sơ đồ:** input (feature) → model (tham số) → output (dự đoán); học = chỉnh tham số theo sai lệch so với đáp án.
-- **Sau khi học:** tham số đóng băng, model chỉ dùng để dự đoán.
+Hãy bấm từng khái niệm để xem nó nằm ở đâu trong hình, rồi làm năm câu "gọi đúng tên" bên dưới.
+
+:::widget flow-map
+concepts
+:::
+
+:::slides 5 | Slide 5: tổng quan các khái niệm, mục tiêu của AI, ML, Deep Learning và Data Science
+:::
+
+## Vòng tròn lồng nhau và vòng tròn giao nhau
+
+Slide 4 vẽ quan hệ bằng hình Venn. Có hai điều cần nhớ:
+
+1. **AI chứa Machine Learning chứa Deep Learning.** Mọi Deep Learning đều là ML, mọi ML đều là AI, nhưng chiều ngược lại không đúng: một hệ thống AI dùng quy tắc cố định thì không phải ML.
+2. **Data Science giao với cả ba vòng**, không nằm gọn trong vòng nào. Hình Venn thứ hai của slide cho thấy vì sao: Data Science nằm ở **chỗ gặp nhau của ba năng lực**: kiến thức ngành (domain expertise), khoa học máy tính, và toán học (gồm thống kê). ML chỉ là một phần của giao điểm đó.
+
+:::predict
+Đặt mỗi việc vào **vòng nhỏ nhất đúng**: (a) mạng nơ-ron 50 tầng nhận diện ảnh, (b) bộ lọc spam học từ email gán nhãn, (c) bảng báo cáo doanh thu theo vùng kèm lời khuyên mở chi nhánh, (d) bộ điều khiển nhiệt độ theo quy tắc cố định.
+@answer
+(a) **Deep Learning** (cũng là ML và AI). (b) **Machine Learning**. (c) **Data Science**: tạo giá trị từ dữ liệu, có thể không cần ML. (d) **AI** nhưng **không phải ML**: nhận dữ liệu cảm biến và hành động, nhưng quy tắc do người viết. Luôn chọn vòng nhỏ nhất đúng với việc đó.
+:::
+
+## Sơ đồ input, model, output
+
+Mọi bài toán ML đều có cùng một hình (slide 6): **Input (feature vector) → Model → Output (prediction)**.
+
+:::steps
+**Input:** thông tin đầu vào, gọi là một **vector các [[từ:feature|feature]]**. Một email thì có thể là (số lần xuất hiện chữ "free", có đính kèm không, độ dài...). Một bệnh nhân thì là 8 phép đo.
+@step
+**Model:** một hàm có **tham số** ("núm vặn"). Lúc đầu tham số chưa tốt nên model đoán sai.
+@step
+**Output (prediction):** dự đoán của model: spam hay không, giá nhà bao nhiêu.
+@step
+**Học:** đưa input, so output với **[[từ:label|nhãn]]** (đáp án thật), đo sai lệch, rồi chỉnh tham số để lần sau đoán tốt hơn. Phần so và chỉnh là nội dung của [[bài:model-training-pipeline]] và [[bài:loss-function]].
+:::
+
+:::slides 6 | Slide 6: Machine Learning, input (feature vector) → model → output (prediction)
+:::
+
+Sau khi học xong, tham số được **đóng băng**: model chỉ nhận input mới và tính output (gọi là [[từ:inference|inference]]), không còn bước chỉnh. Trong code scikit-learn, `fit` là lúc học còn `predict` là lúc dùng.
+
+## Những hiểu sai thường gặp
+
+- **"ML và AI là một."** Không: ML là một nhánh của AI. Luật viết tay vẫn có thể là AI.
+- **"Deep Learning luôn tốt hơn ML cổ điển."** Không: slide ghi Deep Learning học từ **RẤT NHIỀU** dữ liệu. Với bảng vài trăm hàng như Diabetes, mô hình đơn giản (Logistic) thường ngang hoặc hơn mạng nơ-ron.
+- **"Data Science chỉ là ML."** Không: nó còn gồm thống kê, kiến thức ngành và trực quan hóa. Nhiều dự án Data Science không cần ML.
+- **"Máy hiểu như người."** Model chỉ tìm quy luật thống kê trong dữ liệu; nó giỏi đúng ở loại dữ liệu nó đã học.
+
+:::ck
+Công ty muốn "dùng AI" để dự đoán khách rời đi. Đội dữ liệu bảo đầu tiên cần xem **bảng dữ liệu khách hàng và nhãn "đã rời đi"**. Vì sao họ không bắt đầu bằng việc chọn thuật toán?
+@answer
+Vì ML **học từ dữ liệu có nhãn**: chất lượng và nhãn quyết định giới hạn của mọi thuật toán. Nếu dữ liệu thiếu hoặc nhãn sai, thuật toán nào cũng học ra quy tắc sai. Đây là lý do ML Pipeline bắt đầu bằng **thu thập và hiểu dữ liệu** ([[bài:ml-pipeline]]).
+:::
+
+:::card AI, ML, Deep Learning, Data Science
+- **ML = học quy tắc từ ví dụ**; luật viết tay thì không phải ML (ví dụ luật "free": recall 60%, precision 75%, và phải thêm luật mãi).
+- **Mục tiêu (slide 5):** AI = hành động từ dữ liệu; ML = học từ dữ liệu; DL = học từ RẤT NHIỀU dữ liệu; Data Science = tạo giá trị từ dữ liệu.
+- **Hình (slide 4):** AI chứa ML chứa DL; Data Science giao với cả ba (giao của kiến thức ngành, khoa học máy tính, toán).
+- **Sơ đồ (slide 6):** input (feature vector) → model (tham số) → output (prediction); học = chỉnh tham số theo sai lệch so với nhãn.
+- **Sau khi học:** tham số đóng băng; `fit` là học, `predict` là dùng.
 :::
 
 ## Câu hỏi tự kiểm tra

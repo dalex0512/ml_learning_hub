@@ -1,63 +1,110 @@
 ---
 title: Dataset, Feature và các loại dữ liệu
 order: 2
-description: "Mỗi cột là loại thông tin gì: số đo, nhóm hay mã định danh, và vì sao dtype không nói hết bản chất."
+description: "Đọc bảng dữ liệu như model: mẫu và feature (slide 7), numerical và categorical (slide 8), mã định danh, và vì sao dtype không nói hết bản chất của cột."
 slides: 7-8
 needs: [what-is-ml]
 tags: [dataset, feature, numerical, categorical, ordinal, nominal]
 ---
 
-## Mỗi cột trong bảng là loại thông tin gì?
+## Một bảng dữ liệu nói gì với model?
 
 :::intro Mục tiêu bài này
-- Đọc một bảng dữ liệu như model đọc: hàng là **mẫu**, cột là **feature**.
-- Phân biệt **số đo**, **mã định danh** và **nhóm (categorical)**, kể cả khi kiểu lưu trữ đánh lừa.
-- Biết loại cột quyết định ta được làm gì với nó (tính trung bình, scale, mã hóa).
+- Chỉ đúng **mẫu (sample)** và **feature** trong một bảng, cả Adult dataset (slide 7) lẫn Diabetes.
+- Phân loại feature theo slide 8: **numerical** (integer, float) và **categorical** (nominal, ordinal, boolean), thêm loại **mã định danh**.
+- Hiểu vì sao `dtype` của pandas **không** quyết định bản chất của một cột.
 :::
 
-Một **dataset** là một bảng: mỗi **hàng** là một mẫu (một bệnh nhân, một email), mỗi **cột** là một **feature** (một thông tin mô tả mẫu đó). Với bộ Diabetes: 768 hàng, 8 cột feature và 1 cột nhãn. Model không "hiểu" chữ nghĩa của tên cột; nó chỉ thấy các con số. Vì vậy **ta** phải biết mỗi cột thật sự là gì trước khi quyết định xử lý.
+Trong ML, dữ liệu thường ở dạng bảng (gọi là **tabular data** hay structured data). Mỗi **hàng** là một **mẫu (sample)**: một người, một email, một giao dịch. Mỗi **cột** là một **[[từ:feature|feature]]**: một thông tin mô tả mẫu đó, dùng làm đầu vào cho model. Slide 7 dùng **Adult dataset**: mỗi hàng là một người, các cột là `age`, `workclass`, `education`, `marital-status`, `occupation`, `capital-gain`, `hours-per-week`, `native-country`... và cột cuối `income`. Bộ Diabetes của Project có 768 hàng và 9 cột (8 feature và 1 nhãn).
+
+:::slides 7 | Slide 7: Adult dataset, mỗi hàng một mẫu, mỗi cột một feature
+:::
+
+Model **không hiểu chữ nghĩa của tên cột**: nó chỉ thấy các con số. Vì vậy chính ta phải biết mỗi cột thật sự là gì **trước khi** xử lý, vì cách xử lý phụ thuộc loại cột.
+
+## Hai họ lớn, năm loại cụ thể
+
+Slide 8 chia feature thành hai họ:
+
+| Họ | Loại | Ví dụ trên slide |
+|---|---|---|
+| **Numerical** (số) | **Integer** (số nguyên) | 1, 2, 3, −2, −1, 0, 1, 2 |
+| | **Float** (số thực) | 0.1, 0.2, 0.3 |
+| **Categorical** (phân loại) | **Nominal** (định danh): giá trị khác nhau, không có thứ tự | Red, green, blue; US, Vietnam, Thailand |
+| | **Ordinal** (thứ bậc): có thứ tự | Happy, normal, sad; XS, S, M, L, XL |
+| | **Boolean** (logic) | True, False; Yes, No |
+
+Thêm một loại mà slide không tách riêng nhưng rất hay gặp: **mã định danh** (ID), ví dụ `PatientID` hay số điện thoại: số nguyên nhưng chỉ để **nhận diện**.
+
+:::slides 8 | Slide 8: các loại feature, numerical và categorical
+:::
 
 :::predict
-Bảng có hai cột kiểu số nguyên: `Age` (tuổi) và `PatientID` (mã bệnh nhân, từ 1 đến 768). Tính trung bình của từng cột có ý nghĩa không?
+Bảng có hai cột kiểu số nguyên: `Age` (tuổi) và `PatientID` (mã bệnh nhân từ 1 đến 768). Tính **trung bình** của từng cột có ý nghĩa không?
 @answer
-**Trung bình `Age` có ý nghĩa** (tuổi trung bình của nhóm). **Trung bình `PatientID` vô nghĩa**: mã chỉ để phân biệt người này với người kia, số 400 không "lớn gấp đôi" số 200. Cả hai đều là số nguyên, nhưng một cái là **số đo**, một cái là **mã định danh**.
+**Trung bình `Age` có ý nghĩa** (tuổi trung bình của nhóm). **Trung bình `PatientID` vô nghĩa**: mã chỉ để phân biệt người này với người kia; người số 400 không "lớn gấp đôi" người số 200. Cả hai đều là số nguyên, nhưng một cái là **số đo**, một cái là **mã định danh**.
 :::
 
-## Ba loại cột quan trọng nhất
+## Câu hỏi để phân loại: phép tính trên cột có nghĩa không?
 
-| Loại | Ví dụ | Phép tính có nghĩa | Cách xử lý thường gặp |
-|---|---|---|---|
-| **Số đo** (numerical) | Age, Glucose, BMI | cộng, trừ, trung bình, so lớn nhỏ | scale ([[bài:feature-scaling]]) |
-| **Nhóm có thứ tự** (ordinal) | cỡ áo S, M, L; mức độ hài lòng 1 đến 5 | so lớn nhỏ, nhưng khoảng cách chưa chắc đều | mã hóa theo thứ tự |
-| **Nhóm không thứ tự** (nominal) | màu sắc, thành phố | chỉ "giống" hay "khác" | one-hot ([[bài:categorical-encoding]]) |
-| **Mã định danh** | PatientID, số điện thoại | chỉ để nhận diện | thường **bỏ** khỏi feature |
+Thay vì nhớ danh sách, hãy hỏi một câu duy nhất cho mỗi cột: *các phép tính (cộng, trừ, trung bình, so lớn nhỏ) trên nó có nghĩa không?*
 
-Câu hỏi cốt lõi cho từng cột: *các phép tính (cộng, trung bình, so sánh) trên nó có nghĩa không?* Nếu không, đừng đưa vào model như một con số thường.
+| Loại | Phép có nghĩa | Phép **không** có nghĩa |
+|---|---|---|
+| Số đo | cộng, trừ, trung bình, so lớn nhỏ, tỉ lệ | |
+| Ordinal | so lớn nhỏ, xếp hạng | cộng trừ (khoảng cách giữa bậc chưa chắc đều) |
+| Nominal | so bằng nhau hay khác nhau | so lớn nhỏ, trung bình |
+| Boolean | đúng hay sai, đếm | trung bình theo nghĩa đo lường |
+| Mã định danh | nhận diện duy nhất | mọi phép tính số học |
+
+Hãy thử phân loại tám cột bên dưới (bảy cột của Adult và một cột mã); mỗi lựa chọn có phản hồi và lý do.
+
+:::widget column-peel
+:::
+
+## `dtype` chỉ cho biết cách lưu
+
+Pandas cho biết kiểu **lưu** của mỗi cột bằng `data.dtypes`. Với Diabetes: 7 cột là `int64` (Pregnancies, Glucose, BloodPressure, SkinThickness, Insulin, Age, **Outcome**) và 2 cột là `float64` (BMI, DiabetesPedigreeFunction). Chú ý `Outcome` là `int64` nhưng bản chất là **nhãn boolean** (có hay không có bệnh), không phải số đo. Còn `Pregnancies` là số nguyên đếm và hoàn toàn là số đo.
+
+Ba bẫy hay gặp:
+
+1. **Mã định danh lưu bằng số** (`PatientID`, `ZipCode`): pandas đọc thành `int64` nhưng không phải số đo.
+2. **Nhóm lưu bằng số** (0/1 cho giới tính, 1 đến 5 cho cung chòm sao): số lưu, bản chất nhóm.
+3. **Số lưu bằng chữ** ("1,200", "N/A") nên bị đọc thành `object`.
+
+Luôn đọc tên cột, nhìn vài giá trị, hỏi người hiểu lĩnh vực, rồi mới kết luận.
 
 :::ck
-Cột `ZipCode` (mã vùng) được pandas đọc thành `int64`. Nó là loại cột nào, và nên làm gì?
+Cột `education-num` trong Adult có giá trị 9, 13, 14 (là mã số của các bậc học). Nó là số đo hay ordinal? Tính trung bình cột này có đáng tin không?
 @answer
-Là **nhóm không thứ tự (hoặc mã định danh)**, dù pandas lưu bằng số. Mã vùng 70000 không "lớn hơn" 10000 theo nghĩa nào có ích. Cách làm: mã hóa như categorical (one-hot nếu số vùng ít), hoặc bỏ nếu chỉ là mã. `dtype` cho biết cách **lưu**, không cho biết bản chất **ý nghĩa**.
+Bản chất là **ordinal** (bậc học đã được mã hóa thành số). Trung bình 11.5 không có ý nghĩa rõ ràng vì khoảng cách giữa 9 và 13 (từ HS-grad lên Bachelors) chưa chắc bằng khoảng cách giữa 13 và 17. Slide ghi chú đúng ý này: categorical có thể **số hóa sau này** để xử lý, nhưng số hóa không biến nó thành số đo.
 :::
 
-## Kiểm tra bằng pandas, nhưng đừng tin mỗi `dtype`
+## Loại cột quyết định cách xử lý
 
-```python
-data.dtypes           # kiểu lưu của từng cột
-data.describe()       # thống kê cột số
-data["Outcome"].value_counts()   # đếm giá trị của cột nhóm
-```
+Phân loại đúng ngay từ đầu giúp tránh sai ở mọi bước sau:
 
-Ba bẫy hay gặp: (1) mã định danh lưu bằng số; (2) nhóm lưu bằng số (ví dụ 0/1 cho giới tính); (3) số lưu bằng chữ (ví dụ "1,200" hoặc "N/A") nên bị đọc thành `object`. Luôn đọc tên cột, nhìn vài giá trị, rồi mới kết luận. Bước tiếp theo, tách cột đáp án khỏi bảng, nằm ở [[bài:labeled-data]].
+| Loại | Xử lý thường gặp | Bài |
+|---|---|---|
+| Số đo | scale; điền thiếu bằng median | [[bài:feature-scaling]], [[bài:missing-values-outliers]] |
+| Nominal | one-hot (không đánh số thẳng) | [[bài:categorical-encoding]] |
+| Ordinal | ordinal encoding theo thứ tự | [[bài:categorical-encoding]] |
+| Boolean | 0/1 | |
+| Mã định danh | thường **bỏ** khỏi feature | [[bài:labeled-data]] |
 
-:::slides 7-8 | Slide 7–8: dataset, feature và các loại dữ liệu
-:::
+## Những hiểu sai thường gặp
+
+- **"Cột là số thì là số đo."** Sai: `PatientID`, `ZipCode`, `education-num` đều là số mà không phải số đo.
+- **"Ordinal thì khoảng cách đều."** Không chắc: từ "ít hài lòng" lên "bình thường" có thật sự bằng từ "bình thường" lên "rất hài lòng" không?
+- **"Một cột có hai giá trị thì mã hóa gì cũng được."** Với boolean thật sự thì 0/1 ổn; nhưng một cột hai nhóm trong đó nhóm có ý nghĩa riêng (ví dụ nam, nữ) vẫn phải nhớ đây là nhóm chứ không phải "lớn hơn".
+- **"Bỏ qua việc phân loại, cứ đưa hết vào model."** Model sẽ coi mã định danh như một số đo và tìm quy luật giả.
 
 :::card Dataset và feature
 - **Hàng = mẫu, cột = feature**; model chỉ thấy các con số.
-- **Số đo**: cộng, trừ, trung bình có nghĩa. **Nhóm**: chỉ giống hay khác (ordinal có thêm thứ tự). **Mã định danh**: chỉ để nhận diện, thường bỏ.
-- Hỏi mỗi cột: *các phép tính trên nó có nghĩa không?*
-- **`dtype` chỉ cho biết cách lưu**, không cho biết ý nghĩa: `ZipCode` là `int64` nhưng là nhóm.
+- **Slide 8:** Numerical (integer, float); Categorical (nominal, ordinal, boolean); thêm **mã định danh**.
+- **Câu hỏi cho mỗi cột:** các phép tính trên nó có nghĩa không?
+- **`dtype` chỉ cho biết cách lưu:** `Outcome` là `int64` nhưng là nhãn; `education-num` là số nhưng là bậc học; `PatientID` là số nhưng là mã.
+- **Loại cột quyết định xử lý:** số đo thì scale; nominal thì one-hot; ordinal thì encode theo thứ tự; mã thì bỏ.
 :::
 
 ## Câu hỏi tự kiểm tra

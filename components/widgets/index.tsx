@@ -5,6 +5,8 @@ import FoldVisualizer from "./FoldVisualizer";
 import ConfusionSorter from "./ConfusionSorter";
 import { LossOutlier, CorrDrag, LinearFit, PolyDegree } from "./RegressionWidgets";
 import { RocSweep, LogisticPlay, SvmMargin, Resample } from "./ClassifyWidgets";
+import FlowMap from "./FlowMap";
+import ColumnPeel from "./ColumnPeel";
 import { KnnPlay, GiniCalc, BootstrapVote, SplitBar } from "./ModelWidgets";
 
 /** Đăng ký công cụ tương tác; dùng trong bài bằng  :::widget tên  */
@@ -25,4 +27,6 @@ export const WIDGETS: Record<string, React.ComponentType<{ props?: string }>> = 
   "gini-calc": GiniCalc,
   "bootstrap-vote": BootstrapVote,
   "split-bar": SplitBar,
+  "flow-map": FlowMap,
+  "column-peel": ColumnPeel,
 };
