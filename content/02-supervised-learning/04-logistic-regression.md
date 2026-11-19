@@ -1,7 +1,7 @@
 ---
 title: Hồi quy logistic (Logistic Regression)
 order: 4
-description: "Giữ điểm tuyến tính, đưa qua sigmoid thành xác suất; tính tay xác suất và log loss, và ngưỡng đổi precision, recall."
+description: "Hồi quy logistic (slide 68-69): sigmoid biến điểm tuyến tính thành xác suất, tính tay xác suất và log loss, ngưỡng đổi precision/recall đo trên Diabetes."
 slides: 68-69
 needs: [linear-regression, classification-vs-regression, confusion-matrix, classification-metrics, loss-function]
 tags: [logistic-regression, sigmoid, classification, threshold, log-loss, odds, decision-boundary]
@@ -10,16 +10,35 @@ tags: [logistic-regression, sigmoid, classification, threshold, log-loss, odds, 
 ## Từ dự đoán một con số sang dự đoán một lớp
 
 :::intro Mục tiêu bài này
-- Hiểu vì sao dùng đường thẳng cho nhãn 0/1 là **sai**, và **sigmoid** sửa điều đó thế nào.
-- Tính tay xác suất và **log loss** của một mẫu.
-- Hiểu ngưỡng đổi precision và recall, và đọc được trọng số của model.
+- Hiểu vì sao dùng đường thẳng cho nhãn 0/1 là **sai**, và **sigmoid** (S-curve ở slide 68) sửa điều đó thế nào.
+- Tính tay xác suất và **log loss** của một mẫu; hiểu odds.
+- Hiểu ngưỡng đổi precision và recall (đo thật trên Diabetes), đọc trọng số, và biết ưu nhược của model.
 :::
 
-Dự đoán "đậu hay rớt" từ số giờ học. Nếu dùng hồi quy tuyến tính, đầu ra là một con số bất kỳ, có thể là −0.3 hoặc 1.4: không đọc được như xác suất. Ta giữ ý tưởng **điểm tuyến tính** `z = w·x + b` nhưng đưa nó qua hàm **sigmoid** để ép về khoảng (0, 1):
+## Vấn đề: đường thẳng cho nhãn 0/1
+
+Dự đoán "đậu hay rớt" từ số giờ học. Nếu dùng hồi quy tuyến tính ([[bài:linear-regression]]), đầu ra là một con số bất kỳ, có thể −0.3 hoặc 1.4: không đọc được như xác suất. Ta giữ ý tưởng **điểm tuyến tính** `z = w·x + b` nhưng đưa nó qua hàm **sigmoid** để ép về khoảng (0, 1):
 
 > p = σ(z) = 1 / (1 + e^(−z))
 
 p là **xác suất thuộc lớp 1**. Ta đoán lớp 1 khi p ≥ ngưỡng (mặc định 0.5, tức z ≥ 0).
+
+:::ck
+Vì sao không dùng hồi quy tuyến tính thẳng cho nhãn 0/1, chỉ cắt ở 0.5?
+@answer
+Một điểm **ngoại lai** (ví dụ một người học 100 giờ) kéo cả đường nghiêng đi, làm đổi điểm cắt 0.5 cho những người ở vùng giữa. Đầu ra cũng vượt ngoài [0, 1]. Sigmoid giới hạn đầu ra và log loss không để một điểm xa phá cách phân chia.
+:::
+
+## Đọc slide 68
+
+:::slides 68-69 | Slide 68–69: Logistic Regression, S-curve và ngưỡng, công thức sigmoid, đường phân tách và ưu nhược điểm
+:::
+
+- **S-curve:** các điểm lớp 0 nằm ở y = 0, lớp 1 ở y = 1; đường cong chữ S nối hai mức. **Threshold value** là đường đứt tại **0.5**; các điểm xanh trên đường cong ví dụ y = 0.3 (nằm dưới ngưỡng, đoán lớp 0) và y = 0.8 (trên ngưỡng, đoán lớp 1).
+- **Hàm sigmoid** φ(z) = 1 / (1 + e^(−z)): z rất âm cho gần 0, z = 0 cho đúng 0.5, z rất dương cho gần 1.
+- **Hình phân tán xanh/vàng** (slide 69): hai lớp tách bằng **một đường thẳng**. Đó là ranh giới của Logistic: z = 0.
+
+## Tính tay một dự đoán
 
 :::steps
 Giả sử w = 1.2 và b = −6, x là số giờ học. Điểm z = 1.2·x − 6.
@@ -30,41 +49,64 @@ Giả sử w = 1.2 và b = −6, x là số giờ học. Điểm z = 1.2·x − 
 @step
 **x = 3 giờ:** z = −2.4, p = σ(−2.4) = **0.083**. Học ít: gần như chắc rớt.
 @step
-**Log loss** (loss để học): với sinh viên **đã đậu (y = 1)**, nếu model cho p = 0.917 thì loss = −ln(0.917) = **0.087** (nhỏ, đoán đúng và tự tin); nếu model cho p = 0.083 thì loss = −ln(0.083) = **2.487** (lớn, đoán sai và tự tin). Log loss phạt nặng việc **tự tin mà sai**.
+**Log loss** (loss để học): với sinh viên **đã đậu (y = 1)**, nếu model cho p = 0.917 thì loss = −ln(0.917) = **0.087** (nhỏ, đoán đúng và tự tin); nếu model cho p = 0.083 thì loss = −ln(0.083) = **2.487** (lớn, đoán sai và tự tin). Log loss phạt nặng việc **tự tin mà sai** ([[bài:loss-function]]).
 :::
+
+Một cách nhìn khác: **odds** = p / (1 − p). Với p = 0.8, odds = 4 (khả năng lớp 1 gấp 4 lần lớp 0), và **log-odds = ln 4 = 1.386**. Logistic Regression thực chất giả định log-odds là hàm tuyến tính của feature: chữ "regression" nằm ở chỗ đó, còn đầu ra cuối cùng là xác suất để phân loại.
 
 Hãy tự kéo: `w` làm đường dốc hơn, `b` dịch điểm chuyển, ngưỡng đổi precision và recall.
 
 :::widget logistic-play
 :::
 
+## Ngưỡng đổi precision và recall: số thật trên Diabetes
+
 :::predict
-Ta **hạ** ngưỡng từ 0.5 xuống 0.3. Model sẽ báo "đậu" nhiều hơn hay ít hơn, và recall (bắt được bao nhiêu sinh viên thật sự đậu) đổi thế nào?
+Ta **hạ** ngưỡng từ 0.5 xuống 0.3. Model sẽ báo "bệnh" nhiều hơn hay ít hơn, và recall đổi thế nào?
 @answer
-Báo "đậu" **nhiều hơn**; recall **tăng** (hoặc giữ nguyên) vì bắt thêm sinh viên đậu, còn precision thường **giảm** vì kéo thêm sinh viên rớt vào. Đây là đánh đổi ngưỡng ở [[bài:classification-metrics]]. Hạ ngưỡng khi cần bắt được càng nhiều ca Dương càng tốt.
+Báo **nhiều hơn**; recall **tăng**, còn precision **giảm** vì kéo thêm cả người không bệnh vào. Số đo ngay dưới đây xác nhận.
 :::
+
+Logistic Regression có scale, chia 80/20 (`random_state=42`), bộ test 154 người, mức sàn đoán toàn 0 là 0.643:
+
+| Ngưỡng | Số người báo bệnh | Accuracy | Precision | Recall |
+|---|---|---|---|---|
+| 0.3 | 77 | 0.688 | 0.545 | **0.764** |
+| 0.5 | 57 | 0.753 | 0.649 | 0.673 |
+| 0.7 | 33 | **0.779** | **0.818** | 0.491 |
+
+Hạ ngưỡng xuống 0.3 bắt thêm 20 người (recall 0.673 lên 0.764) nhưng precision tụt 0.649 xuống 0.545. Nâng lên 0.7 thì ngược lại. **Accuracy cao nhất ở 0.7 không có nghĩa là ngưỡng tốt nhất**: nếu bỏ sót ca bệnh đắt hơn báo nhầm, ta chọn ngưỡng thấp ([[bài:classification-metrics]]).
 
 ## Đọc model và dùng nó
 
-- **Trọng số đọc được:** `w > 0` đẩy về lớp 1, `w < 0` đẩy về lớp 0. Sau khi **scale** các cột, so độ lớn trọng số giữa các cột mới có nghĩa. Ở Project Bước 4: Glucose có trọng số lớn nhất (1.071); bệnh nhân đầu tiên của bộ test có z = −0.958 và p = 0.277, nên bị đoán không bệnh.
-- **Đường phân tách là thẳng** (z = 0): Logistic bắt được ranh giới tuyến tính; ranh giới cong cần thêm feature hoặc model khác.
-- **Ưu:** nhanh, cho xác suất, hệ số đọc được. **Nhược:** ranh giới tuyến tính, cần scale, regularization mặc định.
-- **Khác với Linear Regression:** đầu ra là xác suất, loss là log loss, và đây là **phân loại** dù tên có chữ "regression".
+Sau khi scale, trọng số của 8 cột trên Diabetes: Glucose **1.071**, BMI 0.778, Age 0.421, DiabetesPedigreeFunction 0.231, Pregnancies 0.213, SkinThickness 0.046, Insulin −0.201, BloodPressure −0.248; intercept −0.886. `w > 0` đẩy về lớp 1, `w < 0` đẩy về lớp 0; so độ lớn giữa các cột có nghĩa **chỉ khi đã scale** ([[bài:feature-scaling]]). Người đầu tiên của bộ test có z = −0.958, p = 0.277, nên bị đoán không bệnh.
+
+Slide 69 liệt kê ưu và nhược:
+
+- **Ưu:** ít bị overfitting hơn (nhưng vẫn có thể overfit khi số feature rất lớn), hiệu quả khi các lớp **tách tuyến tính**, dễ cài đặt và huấn luyện.
+- **Nhược:** không nên dùng khi **số quan sát ít hơn số feature**; giả định tuyến tính hiếm khi đúng hoàn toàn; chỉ dự đoán được đầu ra **rời rạc** (các lớp), không phải giá trị liên tục.
 
 :::ck
-Vì sao không dùng hồi quy tuyến tính thẳng cho nhãn 0/1, chỉ cắt ở 0.5?
+Hai người có z = 2.4 và z = 0.1. Ai có xác suất lớp 1 cao hơn, và cả hai có cùng nhãn dự đoán ở ngưỡng 0.5 không?
 @answer
-Một điểm **ngoại lai** (ví dụ một người học 100 giờ) kéo cả đường nghiêng đi, làm đổi điểm cắt 0.5 cho những người ở vùng giữa. Đầu ra cũng vượt ngoài [0, 1]. Sigmoid giới hạn đầu ra và log loss không để một điểm xa phá cách phân chia.
+Người z = 2.4 (p = 0.917) cao hơn người z = 0.1 (p ≈ 0.525). Ở ngưỡng 0.5 **cả hai cùng bị đoán lớp 1**, nhưng độ chắc chắn rất khác: xác suất cho thêm thông tin mà nhãn không có.
 :::
 
-:::slides 68-69 | Slide 68–69: Logistic Regression
-:::
+## Những hiểu sai thường gặp
+
+- **"Logistic Regression là hồi quy."** Nó phân loại; đầu ra là xác suất rồi cắt theo ngưỡng.
+- **"p = 0.917 nghĩa là chắc 91.7% đúng."** Đó là xác suất model ước lượng, đáng tin chỉ khi model được hiệu chuẩn tốt.
+- **"Ngưỡng 0.5 là bắt buộc."** Chỉ là mặc định; hãy chọn theo chi phí sai lầm.
+- **"Trọng số lớn nhất là nguyên nhân gây bệnh."** Nó chỉ mô tả quan hệ model học, không phải nhân quả.
+- **"So trọng số khi chưa scale."** Khác đơn vị thì không so được.
+- **"Hơn mức sàn là tốt."** Test accuracy 0.753 chỉ hơn mức sàn 0.643 khoảng 11 điểm.
 
 :::card Logistic Regression
-- **z = w·x + b**, rồi **p = σ(z) = 1 / (1 + e^(−z))**: xác suất lớp 1.
-- **Đoán lớp 1 khi p ≥ ngưỡng**; hạ ngưỡng tăng recall, giảm precision.
+- **z = w·x + b**, rồi **p = σ(z) = 1 / (1 + e^(−z))**: xác suất lớp 1; log-odds là hàm tuyến tính của feature.
+- **Đoán lớp 1 khi p ≥ ngưỡng**; trên Diabetes ngưỡng 0.3 cho recall 0.764, precision 0.545; ngưỡng 0.7 cho recall 0.491, precision 0.818.
 - **Log loss** phạt nặng tự tin mà sai (0.087 so với 2.487 trong ví dụ).
-- **Trọng số đọc được** sau khi scale; ranh giới là một đường thẳng.
+- **Trọng số đọc được** sau khi scale (Glucose 1.071 lớn nhất); ranh giới là một đường thẳng.
+- **Không hợp** khi quan sát ít hơn feature hoặc ranh giới cong.
 :::
 
 ## Câu hỏi tự kiểm tra
