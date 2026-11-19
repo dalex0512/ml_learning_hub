@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./reader.css";
+import "./reader-theory.css";
 import Link from "next/link";
 
 export const metadata: Metadata = {

@@ -1,198 +1,95 @@
 ---
 title: K-fold Cross Validation
 order: 8
-description: "Xoay vòng validation để so sánh cấu hình, đọc điểm trung bình giữa các fold và huấn luyện lại model cuối mà vẫn giữ riêng test."
+description: "Một lần chia dao động theo may rủi; K-fold cho mức điểm và độ dao động, rồi refit model cuối mà vẫn giữ riêng test."
 slides: 23-24
 needs: [train-test-split]
 tags: [cross-validation, k-fold, leakage]
 ---
 
-## Một lần chia có đủ đáng tin?
+## Một con số từ một lần chia có đáng tin không?
 
-:::intro Đọc xong bài này bạn làm được
-- Mô tả một vòng và toàn bộ K-fold.
-- Tính kích thước train/validation và loss trung bình.
-- Giải thích chi phí chọn K và fit tiền xử lý trong từng fold.
+:::intro Mục tiêu bài này
+- Thấy bằng số thật rằng điểm của **một** lần chia train/validation dao động mạnh theo may rủi.
+- Hiểu K-fold: mỗi mẫu làm validation **đúng một lần**, nên ta báo cả trung bình lẫn độ dao động.
+- Biết refit model cuối, đặt scaler trong Pipeline, và chọn K.
 :::
 
-Nền để đọc bài này: [[bài:train-test-split]].
+Ở [[bài:train-test-split]] ta cất một phần dữ liệu để chấm. Nhưng cất **phần nào** cũng là do may rủi: xáo khác đi thì validation khác đi. Hãy đo mức dao động đó.
 
-:::slides 23-24 | Slide gốc — K-fold Cross Validation
+:::predict
+Ta lấy **cùng một model** (Logistic Regression trên bộ Diabetes) và chia 80/20 theo **30 cách khác nhau**. Theo bạn, điểm accuracy nhận được dao động trong khoảng nào?
+@answer
+Từ **73.4% đến 82.5%**: chênh khoảng **9 điểm** chỉ vì may rủi của lần chia, trong khi model và dữ liệu không đổi. Với cây quyết định ở Project Bước 2, khoảng đó còn rộng hơn (65.6% đến 76.6%). Nếu hai model hơn kém nhau 2 điểm, một lần chia **không thể** nói ai hơn.
 :::
 
-K-fold Cross Validation là kỹ thuật giúp **tận dụng dữ liệu tốt hơn** khi
-chia Train/Validation/Test theo cách thông thường — thay vì "hy sinh" một
-phần cố định dữ liệu làm Validation Set duy nhất, ta xoay vòng để mọi mẫu
-dữ liệu đều có cơ hội được dùng làm cả dữ liệu train và dữ liệu validation.
+Muốn có một con số đáng tin hơn, ta cần **nhiều** điểm thay vì một.
 
-> **EN:** K-fold Cross Validation is a technique for **making better use
-> of data** than a standard Train/Validation/Test split — instead of
-> permanently sacrificing one fixed chunk of data as the sole Validation
-> Set, we rotate so that every sample gets a turn being used as both
-> training data and validation data.
-
-## Tận dụng dữ liệu mà vẫn giữ riêng test
-
-Nếu dataset ít dữ liệu, Validation Set (theo cách chia 3 phần thông
-thường) sẽ rất nhỏ. Ví dụ có 100 mẫu dữ liệu, chia Train: 70 / Validation:
-15 / Test: 15 → model chỉ được train trên vỏn vẹn 70 mẫu, khá phí dữ liệu.
-**K-fold giúp tận dụng dữ liệu tốt hơn** bằng cách dùng luân phiên cả phần
-Train lẫn Validation cho việc huấn luyện, chỉ giữ nguyên Test Set tách
-riêng từ đầu.
-
-**Lưu ý quan trọng:** K-fold **chỉ áp dụng cho Train Set và Validation
-Set**. Test Set vẫn được tách riêng và giữ cố định ngay từ đầu, **không**
-tham gia vào quá trình K-fold — và **chỉ được dùng đúng 1 lần duy nhất**
-sau khi đã hoàn tất chọn model.
-
-> **EN:** With little data, the Validation Set from a standard 3-way
-> split ends up very small. E.g. with 100 samples split as Train: 70 /
-> Validation: 15 / Test: 15, the model is trained on only 70 samples —
-> a real waste of data. **K-fold makes better use of the data** by
-> rotating both the Train and Validation roles across the same pool of
-> data, while keeping the Test Set separated from the very start.
->
-> **Important:** K-fold **only applies to the Train Set and Validation
-> Set**. The Test Set stays separated and fixed from the beginning — it
-> does **not** participate in the K-fold process, and it's **used exactly
-> once**, only after the final model has been selected.
-
-Một ví dụ chọn siêu tham số cụ thể: [[bài:polynomial-regression]] dùng CV để chọn bậc đa thức, thay vì chọn bậc có train error nhỏ nhất; Pipeline được fit lại trong từng fold. [[bài:svm]] áp dụng cùng nguyên tắc với GridSearchCV để chọn C và gamma, giữ scaler bên trong từng fold.
-
-[[bài:k-nearest-neighbours]] chọn số láng giềng K bằng CV với Pipeline; K của KNN khác số fold trong K-fold. Không chọn K chỉ vì K=1 có train accuracy cao.
-
-> **EN:** KNN selects its neighbor count by pipeline-based cross-validation; the neighbor count is distinct from the number of folds, and training accuracy alone does not select it.
-
-Ngoài slide: [[bài:decision-tree]] dùng CV chọn max_depth; [[bài:random-forest]] dùng cùng nguyên tắc chọn n_estimators và cân nhắc chi phí. OOB là đánh giá nội bộ hữu ích nhưng không tự xác nhận toàn bộ pipeline hay thay test cuối.
-
-> **EN:** Trees select depth and forests select tree count on development data. OOB evaluation is useful internally, but does not automatically validate preprocessing or replace final testing.
-
-> **EN:** Polynomial Regression provides a concrete example of degree selection by CV; SVM applies the same principle to C and gamma, refitting preprocessing within every fold rather than choosing by training error.
-
-## Xoay validation rồi refit model cuối
-
-**Bước 1 — chọn số K.** Ví dụ chọn K = 4 → chia phần dữ liệu Train+Validation
-thành 4 phần bằng nhau (4 "fold").
-
-**Bước 2 — huấn luyện K mô hình giống hệt nhau, luân phiên đổi fold nào
-làm Validation:**
-- Lần 1: fold 1 làm Validation, 3 fold còn lại (2, 3, 4) làm Train → tính
-  được loss `L1`
-- Lần 2: fold 2 làm Validation, 3 fold còn lại làm Train → tính được
-  `L2`
-- Lần 3: fold 3 làm Validation, 3 fold còn lại làm Train → `L3`
-- Lần 4: fold 4 làm Validation, 3 fold còn lại làm Train → `L4`
-
-Mỗi fold chỉ đóng vai trò Validation **đúng 1 lần**, không lần nào trùng
-lần nào.
-
-**Bước 3 — tính điểm loss trung bình của cả K mô hình:**
-```
-Loss trung bình = (Σ Li từ i=1 đến K) / K
-```
-Đây mới là con số đại diện cho chất lượng thật của model (đáng tin hơn 1
-lần đánh giá đơn lẻ, vì đã được đánh giá trên toàn bộ dữ liệu, không phụ
-thuộc vào việc "may/rủi" chọn đúng fold nào làm validation).
-
-**Bước 4 — huấn luyện lại 1 model cuối cùng trên TOÀN BỘ dữ liệu
-Train+Validation** (không tách fold nữa) — model này mới là model thật sự
-đem đi đánh giá trên Test Set.
-
-> **EN:**
->
-> **Step 1 — choose K.** E.g. K = 4 → split the Train+Validation pool into
-> 4 equal parts ("folds").
->
-> **Step 2 — train K identical models, rotating which fold is the
-> Validation fold:**
-> - Round 1: fold 1 is Validation, the other 3 folds (2, 3, 4) are Train
->   → loss `L1`
-> - Round 2: fold 2 is Validation, the rest are Train → `L2`
-> - Round 3: fold 3 is Validation, the rest are Train → `L3`
-> - Round 4: fold 4 is Validation, the rest are Train → `L4`
->
-> Each fold plays the Validation role **exactly once**, never repeated.
->
-> **Step 3 — average the loss across all K models:**
-> ```
-> Average loss = (Σ Li from i=1 to K) / K
-> ```
-> This is the number that truly represents the model's quality — more
-> trustworthy than a single evaluation, since it's been evaluated across
-> the entire dataset rather than depending on which fold got "lucky" as
-> validation.
->
-> **Step 4 — retrain one final model on the ENTIRE Train+Validation
-> data** (no more folds) — this final model is the one actually evaluated
-> against the Test Set.
-
-## Bốn lượt trên 100 mẫu
-
-:::worked Ví dụ và số liệu đối chiếu
-100 mẫu dữ liệu Train+Validation, chọn K = 4 → mỗi fold có 25 mẫu.
-
-| Vòng | Fold làm Validation | Fold làm Train | Loss |
-|---|---|---|---|
-| 1 | Fold 1 (25 mẫu) | Fold 2, 3, 4 (75 mẫu) | L1 |
-| 2 | Fold 2 (25 mẫu) | Fold 1, 3, 4 (75 mẫu) | L2 |
-| 3 | Fold 3 (25 mẫu) | Fold 1, 2, 4 (75 mẫu) | L3 |
-| 4 | Fold 4 (25 mẫu) | Fold 1, 2, 3 (75 mẫu) | L4 |
-
-→ Loss trung bình = (L1 + L2 + L3 + L4) / 4
-
-So với cách chia 3 phần thông thường (chỉ train trên 70/100 mẫu), ở đây
-mỗi vòng model được train trên 75/100 mẫu, và **toàn bộ 100 mẫu đều đã
-từng được dùng làm Validation** ít nhất 1 lần — tận dụng dữ liệu triệt để
-hơn hẳn.
-
-> **EN:** 100 Train+Validation samples, K = 4 → 25 samples per fold (see
-> table above). Compared to a standard 3-way split (training on only
-> 70/100 samples), here each round trains on 75/100 samples, and **all
-> 100 samples get used as Validation** at least once — a much more
-> thorough use of the data.
+:::slides 23-24 | Slide 23–24: K-fold Cross Validation
 :::
 
-## Lặp fold với model khởi tạo mới
+## K-fold: mỗi mẫu làm validation đúng một lần
+
+Chia dữ liệu train thành **K phần bằng nhau** (gọi là [[từ:fold]]). Lần lượt:
+
+:::steps
+Chia dữ liệu thành K phần. Ví dụ 100 mẫu, K = 5: mỗi phần có **20 mẫu**.
+@step
+**Lượt 1:** lấy phần 1 làm [[từ:validation]], 4 phần còn lại để train. Huấn luyện một model **mới**, chấm trên phần 1, ghi điểm.
+@step
+**Lượt 2 đến 5:** lặp lại, mỗi lượt đổi phần validation. Sau 5 lượt, **mọi mẫu đã làm validation đúng một lần** và đã tham gia train 4 lần.
+@step
+**Báo cáo:** trung bình 5 điểm (mức điểm) và độ lệch chuẩn (độ dao động).
+:::
+
+Hãy tự xoay fold. Công cụ vẽ 100 mẫu minh họa và dùng điểm **thật** của Logistic Regression trên bộ train Diabetes (614 mẫu); bên dưới là so sánh trực tiếp với một lần chia 80/20.
+
+:::widget fold-visualizer
+:::
+
+:::ck
+Ở K = 5 điểm trung bình là 76.5% với độ lệch chuẩn 1.5 điểm; ở K = 10 là 75.9% với độ lệch chuẩn 5.2 điểm. Vì sao độ lệch chuẩn ở K = 10 lớn hơn nhiều?
+@answer
+Với K = 10, mỗi fold chỉ có khoảng **61 mẫu** (614 / 10), nên điểm của từng fold nhiễu hơn (một vài mẫu đổi là điểm đổi). Trung bình vẫn ổn, nhưng từng fold riêng lẻ dao động nhiều hơn so với K = 5 (khoảng 123 mẫu mỗi fold).
+:::
+
+## Điểm CV dùng để làm gì, và model cuối ở đâu?
+
+Điểm CV (trung bình ± độ lệch chuẩn) dùng để **so sánh cấu hình**: model nào, tham số nào, tiền xử lý nào. Khi đã chọn xong:
+
+1. **Refit**: huấn luyện lại cấu hình đã chọn trên **toàn bộ** dữ liệu train. Các model trong từng fold chỉ là công cụ đo, không phải model để dùng.
+2. **Chấm bộ test một lần.** Test chưa từng tham gia chọn, nên là phép thử trung thực.
+
+Điểm CV **không phải** điểm test: nó cho ta mức dự kiến và độ dao động, còn điểm test là một lần đo cuối cùng, độc lập. Ở Project Bước 6 và Bước 8, ta làm đúng quy trình này.
+
+## Làm sao để CV không rò rỉ?
+
+Từng lượt phải **mô phỏng đúng** việc ta làm thật: model mới, và **mọi bước học từ dữ liệu** (scaler, imputer) chỉ được `fit` trên phần train của lượt đó. Nếu ta scale cả bộ dữ liệu trước khi chia fold, thông tin của phần validation đã lọt vào ([[bài:feature-scaling]]). Cách để không thể làm sai là gói các bước vào một **Pipeline**:
 
 ```python
-from sklearn.model_selection import KFold
-import numpy as np
-
-kf = KFold(n_splits=4, shuffle=True, random_state=42)
-losses = []
-
-for train_idx, val_idx in kf.split(X_train_val):
-    X_tr, X_val = X_train_val[train_idx], X_train_val[val_idx]
-    y_tr, y_val = y_train_val[train_idx], y_train_val[val_idx]
-
-    model = train_model(X_tr, y_tr)       # huấn luyện model trên fold train
-    loss = evaluate(model, X_val, y_val)  # đánh giá trên fold validation
-    losses.append(loss)
-
-average_loss = np.mean(losses)
+pipe = Pipeline([("scaler", StandardScaler()), ("model", LogisticRegression())])
+cross_validate(pipe, x_train, y_train, cv=5, scoring="accuracy")
 ```
 
-> **EN:** Loops through K folds, training on each fold's training portion
-> and evaluating on its validation portion, then averages the loss across
-> all K rounds — this average is the final cross-validation score.
+Mỗi lượt, Pipeline tự `fit` lại scaler chỉ trên phần học của lượt đó.
 
-## Đọc điểm CV cùng giới hạn (bổ sung)
-
-:::pitfall Fit lại toàn bộ pipeline trong từng fold
-Model ở các vòng có cùng cấu hình nhưng phải khởi tạo/fit độc lập; không tiếp tục học từ vòng trước. Scaler, imputer, encoder cũng chỉ fit trên phần train của mỗi fold. Báo cáo cả độ dao động giữa các fold; CV không bảo đảm chất lượng triển khai nếu split sai. Ví dụ 70/15/15 và pool 100 mẫu trong bài là hai minh họa khác nhau, không phải so sánh cùng ngân sách test.
+:::ck
+Bạn `fit` StandardScaler trên toàn bộ `x_train`, rồi mới chạy cross-validation trên dữ liệu đã scale. Điểm CV sai ở đâu?
+@answer
+Lúc `fit`, scaler đã nhìn thấy cả phần validation của **mọi** lượt, nên điểm CV lạc quan hơn thực tế. Đúng cách: đặt scaler trong Pipeline để mỗi lượt tự `fit` lại chỉ trên phần train của lượt đó.
 :::
 
-> **EN:** Refit the entire pipeline independently within each fold. Cross-validation measures performance under the chosen splitting assumptions, not guaranteed deployment performance.
+## Chọn K bằng cách nào?
 
-## Tóm tắt 1 phút
+Không có K đúng tuyệt đối; **5 hoặc 10** là hai lựa chọn phổ biến. K lớn: mỗi lượt train trên nhiều dữ liệu hơn (giống tình huống thật hơn), nhưng mỗi fold nhỏ hơn nên điểm từng fold nhiễu hơn, và tốn thời gian hơn (K lần huấn luyện). K nhỏ: nhanh hơn, nhưng mỗi lượt train trên ít dữ liệu hơn nên điểm hơi bi quan. Khi một lớp hiếm, dùng [[bài:stratified-k-fold]] để mỗi fold giữ đúng tỉ lệ nhãn.
 
-:::recap
-- Tách test ra khỏi vòng lựa chọn.
-- Mỗi mẫu trong pool làm validation một lần.
-- Mỗi vòng học model mới trên phần train.
-- Tổng hợp điểm và độ dao động giữa fold.
-- K lớn tăng số lần fit.
-- Chọn xong thì refit trên toàn pool và đánh giá test.
+:::card K-fold Cross Validation
+- **Vấn đề:** điểm của một lần chia dao động theo may rủi (Logistic: 73.4% đến 82.5% qua 30 lần chia).
+- **K-fold:** chia thành K fold; mỗi lượt một fold làm validation, còn lại train; **mọi mẫu làm validation đúng một lần**.
+- **Báo cáo:** trung bình **và** độ lệch chuẩn của K điểm.
+- **Sau khi chọn:** refit cấu hình trên toàn bộ train, rồi chấm test **một lần**.
+- **Không rò rỉ:** model mới mỗi lượt; scaler, imputer nằm trong Pipeline.
+- **Chọn K:** thường 5 hoặc 10; lớp hiếm thì Stratified.
 :::
 
 ## Câu hỏi tự kiểm tra
@@ -265,3 +162,156 @@ Xoay fold chưa đảm bảo mỗi lượt có đủ class cần đánh giá. [[
 
 Thực hành: [[bài:diabetes-evaluate-improve]] — so pipeline trên development với cùng fold, không chọn model bằng test.
 :::
+
+## [sâu] Tận dụng dữ liệu mà vẫn giữ riêng test
+
+Nếu dataset ít dữ liệu, Validation Set (theo cách chia 3 phần thông
+thường) sẽ rất nhỏ. Ví dụ có 100 mẫu dữ liệu, chia Train: 70 / Validation:
+15 / Test: 15 → model chỉ được train trên vỏn vẹn 70 mẫu, khá phí dữ liệu.
+**K-fold giúp tận dụng dữ liệu tốt hơn** bằng cách dùng luân phiên cả phần
+Train lẫn Validation cho việc huấn luyện, chỉ giữ nguyên Test Set tách
+riêng từ đầu.
+
+**Lưu ý quan trọng:** K-fold **chỉ áp dụng cho Train Set và Validation
+Set**. Test Set vẫn được tách riêng và giữ cố định ngay từ đầu, **không**
+tham gia vào quá trình K-fold — và **chỉ được dùng đúng 1 lần duy nhất**
+sau khi đã hoàn tất chọn model.
+
+> **EN:** With little data, the Validation Set from a standard 3-way
+> split ends up very small. E.g. with 100 samples split as Train: 70 /
+> Validation: 15 / Test: 15, the model is trained on only 70 samples —
+> a real waste of data. **K-fold makes better use of the data** by
+> rotating both the Train and Validation roles across the same pool of
+> data, while keeping the Test Set separated from the very start.
+>
+> **Important:** K-fold **only applies to the Train Set and Validation
+> Set**. The Test Set stays separated and fixed from the beginning — it
+> does **not** participate in the K-fold process, and it's **used exactly
+> once**, only after the final model has been selected.
+
+Một ví dụ chọn siêu tham số cụ thể: [[bài:polynomial-regression]] dùng CV để chọn bậc đa thức, thay vì chọn bậc có train error nhỏ nhất; Pipeline được fit lại trong từng fold. [[bài:svm]] áp dụng cùng nguyên tắc với GridSearchCV để chọn C và gamma, giữ scaler bên trong từng fold.
+
+[[bài:k-nearest-neighbours]] chọn số láng giềng K bằng CV với Pipeline; K của KNN khác số fold trong K-fold. Không chọn K chỉ vì K=1 có train accuracy cao.
+
+> **EN:** KNN selects its neighbor count by pipeline-based cross-validation; the neighbor count is distinct from the number of folds, and training accuracy alone does not select it.
+
+Ngoài slide: [[bài:decision-tree]] dùng CV chọn max_depth; [[bài:random-forest]] dùng cùng nguyên tắc chọn n_estimators và cân nhắc chi phí. OOB là đánh giá nội bộ hữu ích nhưng không tự xác nhận toàn bộ pipeline hay thay test cuối.
+
+> **EN:** Trees select depth and forests select tree count on development data. OOB evaluation is useful internally, but does not automatically validate preprocessing or replace final testing.
+
+> **EN:** Polynomial Regression provides a concrete example of degree selection by CV; SVM applies the same principle to C and gamma, refitting preprocessing within every fold rather than choosing by training error.
+
+## [sâu] Xoay validation rồi refit model cuối
+
+**Bước 1 — chọn số K.** Ví dụ chọn K = 4 → chia phần dữ liệu Train+Validation
+thành 4 phần bằng nhau (4 "fold").
+
+**Bước 2 — huấn luyện K mô hình giống hệt nhau, luân phiên đổi fold nào
+làm Validation:**
+- Lần 1: fold 1 làm Validation, 3 fold còn lại (2, 3, 4) làm Train → tính
+  được loss `L1`
+- Lần 2: fold 2 làm Validation, 3 fold còn lại làm Train → tính được
+  `L2`
+- Lần 3: fold 3 làm Validation, 3 fold còn lại làm Train → `L3`
+- Lần 4: fold 4 làm Validation, 3 fold còn lại làm Train → `L4`
+
+Mỗi fold chỉ đóng vai trò Validation **đúng 1 lần**, không lần nào trùng
+lần nào.
+
+**Bước 3 — tính điểm loss trung bình của cả K mô hình:**
+```
+Loss trung bình = (Σ Li từ i=1 đến K) / K
+```
+Đây mới là con số đại diện cho chất lượng thật của model (đáng tin hơn 1
+lần đánh giá đơn lẻ, vì đã được đánh giá trên toàn bộ dữ liệu, không phụ
+thuộc vào việc "may/rủi" chọn đúng fold nào làm validation).
+
+**Bước 4 — huấn luyện lại 1 model cuối cùng trên TOÀN BỘ dữ liệu
+Train+Validation** (không tách fold nữa) — model này mới là model thật sự
+đem đi đánh giá trên Test Set.
+
+> **EN:**
+>
+> **Step 1 — choose K.** E.g. K = 4 → split the Train+Validation pool into
+> 4 equal parts ("folds").
+>
+> **Step 2 — train K identical models, rotating which fold is the
+> Validation fold:**
+> - Round 1: fold 1 is Validation, the other 3 folds (2, 3, 4) are Train
+>   → loss `L1`
+> - Round 2: fold 2 is Validation, the rest are Train → `L2`
+> - Round 3: fold 3 is Validation, the rest are Train → `L3`
+> - Round 4: fold 4 is Validation, the rest are Train → `L4`
+>
+> Each fold plays the Validation role **exactly once**, never repeated.
+>
+> **Step 3 — average the loss across all K models:**
+> ```
+> Average loss = (Σ Li from i=1 to K) / K
+> ```
+> This is the number that truly represents the model's quality — more
+> trustworthy than a single evaluation, since it's been evaluated across
+> the entire dataset rather than depending on which fold got "lucky" as
+> validation.
+>
+> **Step 4 — retrain one final model on the ENTIRE Train+Validation
+> data** (no more folds) — this final model is the one actually evaluated
+> against the Test Set.
+
+## [sâu] Bốn lượt trên 100 mẫu
+
+:::worked Ví dụ và số liệu đối chiếu
+100 mẫu dữ liệu Train+Validation, chọn K = 4 → mỗi fold có 25 mẫu.
+
+| Vòng | Fold làm Validation | Fold làm Train | Loss |
+|---|---|---|---|
+| 1 | Fold 1 (25 mẫu) | Fold 2, 3, 4 (75 mẫu) | L1 |
+| 2 | Fold 2 (25 mẫu) | Fold 1, 3, 4 (75 mẫu) | L2 |
+| 3 | Fold 3 (25 mẫu) | Fold 1, 2, 4 (75 mẫu) | L3 |
+| 4 | Fold 4 (25 mẫu) | Fold 1, 2, 3 (75 mẫu) | L4 |
+
+→ Loss trung bình = (L1 + L2 + L3 + L4) / 4
+
+So với cách chia 3 phần thông thường (chỉ train trên 70/100 mẫu), ở đây
+mỗi vòng model được train trên 75/100 mẫu, và **toàn bộ 100 mẫu đều đã
+từng được dùng làm Validation** ít nhất 1 lần — tận dụng dữ liệu triệt để
+hơn hẳn.
+
+> **EN:** 100 Train+Validation samples, K = 4 → 25 samples per fold (see
+> table above). Compared to a standard 3-way split (training on only
+> 70/100 samples), here each round trains on 75/100 samples, and **all
+> 100 samples get used as Validation** at least once — a much more
+> thorough use of the data.
+:::
+
+## [sâu] Lặp fold với model khởi tạo mới
+
+```python
+from sklearn.model_selection import KFold
+import numpy as np
+
+kf = KFold(n_splits=4, shuffle=True, random_state=42)
+losses = []
+
+for train_idx, val_idx in kf.split(X_train_val):
+    X_tr, X_val = X_train_val[train_idx], X_train_val[val_idx]
+    y_tr, y_val = y_train_val[train_idx], y_train_val[val_idx]
+
+    model = train_model(X_tr, y_tr)       # huấn luyện model trên fold train
+    loss = evaluate(model, X_val, y_val)  # đánh giá trên fold validation
+    losses.append(loss)
+
+average_loss = np.mean(losses)
+```
+
+> **EN:** Loops through K folds, training on each fold's training portion
+> and evaluating on its validation portion, then averages the loss across
+> all K rounds — this average is the final cross-validation score.
+
+## [sâu] Đọc điểm CV cùng giới hạn (bổ sung)
+
+:::pitfall Fit lại toàn bộ pipeline trong từng fold
+Model ở các vòng có cùng cấu hình nhưng phải khởi tạo/fit độc lập; không tiếp tục học từ vòng trước. Scaler, imputer, encoder cũng chỉ fit trên phần train của mỗi fold. Báo cáo cả độ dao động giữa các fold; CV không bảo đảm chất lượng triển khai nếu split sai. Ví dụ 70/15/15 và pool 100 mẫu trong bài là hai minh họa khác nhau, không phải so sánh cùng ngân sách test.
+:::
+
+> **EN:** Refit the entire pipeline independently within each fold. Cross-validation measures performance under the chosen splitting assumptions, not guaranteed deployment performance.

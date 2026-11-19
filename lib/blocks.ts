@@ -26,7 +26,8 @@ export type BoxKind =
   | "ask"
   | "out"
   | "more"
-  | "pop";
+  | "pop"
+  | "card";
 
 export interface QuizItem {
   q: string;
@@ -47,11 +48,13 @@ export type Block =
   | { type: "formula"; md: string }
   | { type: "slides"; from: number; to: number; caption: string }
   | { type: "quiz"; tiers: QuizTier[] }
-  | { type: "exercise"; level: string; title: string; prompt: string; answer: string };
+  | { type: "exercise"; level: string; title: string; prompt: string; answer: string }
+  | { type: "steps"; items: string[] }
+  | { type: "widget"; name: string; props: string };
 
 const BOX_KINDS: BoxKind[] = [
   "intro", "worked", "compare", "pitfall", "recap", "next", "note",
-  "goal", "learn", "code", "see", "en", "check", "ask", "out", "more", "pop",
+  "goal", "learn", "code", "see", "en", "check", "ask", "out", "more", "pop", "card",
 ];
 
 const FENCE_RE = /^\s*(```|~~~)/;
@@ -157,6 +160,15 @@ export function parseBlocks(src: string): Block[] {
       if (r) blocks.push({ type: "slides", from: r.from, to: r.to, caption: (cap.join("|") || bodyText).trim() });
     } else if (name === "quiz") {
       blocks.push({ type: "quiz", tiers: parseQuiz(bodyText) });
+    } else if (name === "steps") {
+      blocks.push({ type: "steps", items: bodyText.split(/^@step\s*$/m).map((t) => t.trim()).filter(Boolean) });
+    } else if (name === "widget") {
+      blocks.push({ type: "widget", name: arg.split(/\s+/)[0] ?? "", props: bodyText });
+    } else if (name === "ck" || name === "predict") {
+      const at = bodyText.search(/^@answer\s*$/m);
+      const prompt = (at >= 0 ? bodyText.slice(0, at) : bodyText).trim();
+      const answer = at >= 0 ? bodyText.slice(at).replace(/^@answer\s*/, "").trim() : "";
+      blocks.push({ type: "exercise", level: name, title: arg, prompt, answer });
     } else if (name === "ex") {
       // :::ex ★ Tiêu đề  —  đề, rồi dòng "@answer", rồi đáp án
       const m = arg.match(/^(★+)?\s*\|?\s*(.*)$/);

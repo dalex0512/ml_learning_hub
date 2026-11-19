@@ -9,6 +9,7 @@ import { parseFormulaLayout } from "@/lib/renderMarkdown";
 import { openSlides } from "./SlideViewer";
 import { CheckList, PopDetail, Prose, ReaderQuiz } from "./ReaderParts";
 import ReaderShell from "./ReaderShell";
+import { WIDGETS } from "./widgets";
 
 interface NavTopic { moduleId: string; topicId: string; title: string }
 
@@ -48,8 +49,52 @@ function Formula({ md }: { md: string }) {
   );
 }
 
+function Reveal({ block }: { block: Extract<Block, { type: "exercise" }> }) {
+  const [open, setOpen] = useState(false);
+  const label = block.level === "predict" ? "Đoán trước" : block.level === "ck" ? "Kiểm hiểu" : "Tự làm";
+  const btn = block.level === "predict" ? "Xem kết quả" : "Xem đáp án";
+  return (
+    <div className={`reader-try ${block.level}`}>
+      <div className="reader-label">{label}{block.title ? ` · ${block.title}` : ""}</div>
+      <Prose md={block.prompt} />
+      {block.answer && (
+        <>
+          <button type="button" className="reader-btn" onClick={() => setOpen((v) => !v)} aria-expanded={open}>{open ? "Ẩn" : btn}</button>
+          {open && <div className="ans"><Prose md={block.answer} /></div>}
+        </>
+      )}
+    </div>
+  );
+}
+
+function Steps({ items }: { items: string[] }) {
+  const [n, setN] = useState(1);
+  return (
+    <div className="reader-steps">
+      <div className="reader-label">Làm tay từng bước · {Math.min(n, items.length)}/{items.length}</div>
+      {items.slice(0, n).map((t, i) => (
+        <div key={i} className="reader-steps-item">
+          <span className="no">{i + 1}</span>
+          <div><Prose md={t} /></div>
+        </div>
+      ))}
+      {n < items.length ? (
+        <button type="button" className="reader-btn" onClick={() => setN(n + 1)}>Bước tiếp theo ↓</button>
+      ) : items.length > 1 ? (
+        <button type="button" className="reader-btn" onClick={() => setN(1)}>Xem lại từ đầu</button>
+      ) : null}
+    </div>
+  );
+}
+
 function BlockView({ block, storeKey }: { block: Block; storeKey: string }) {
   if (block.type === "md") return <Prose md={block.md} />;
+  if (block.type === "exercise") return <Reveal block={block} />;
+  if (block.type === "steps") return <Steps items={block.items} />;
+  if (block.type === "widget") {
+    const W = WIDGETS[block.name];
+    return W ? <W props={block.props} /> : null;
+  }
   if (block.type === "quiz") return <ReaderQuiz tiers={block.tiers} />;
   if (block.type === "formula") return <Formula md={block.md} />;
   if (block.type === "slides") {
@@ -101,6 +146,8 @@ function BlockView({ block, storeKey }: { block: Block; storeKey: string }) {
       );
     case "recap":
       return <div className="reader-recap"><div className="reader-label">Nhớ lại</div><Prose md={block.md} /></div>;
+    case "card":
+      return <div className="reader-card-note"><div className="reader-label">Thẻ nhớ{block.title ? ` · ${block.title}` : ""}</div><Prose md={block.md} /></div>;
     case "next":
       return <div className="reader-next"><div className="reader-label">Nối sang bài sau</div><Prose md={block.md} /></div>;
     case "pop":
@@ -121,7 +168,10 @@ function BlockView({ block, storeKey }: { block: Block; storeKey: string }) {
 
 export default function TheoryLesson({ topicData, moduleId, moduleTitle, moduleOrder, topicOrder, needs, prev, next, backlinks }: Props) {
   const key = storageKey(topicData.topicId);
-  const sections = topicData.sections;
+  const all = topicData.sections;
+  const deepRe = /^\[sâu\]\s*/i;
+  const sections = all.filter((x) => !deepRe.test(x.title));
+  const deep = all.filter((x) => deepRe.test(x.title));
   const [done, setDone] = useState<string[]>([]);
   const [active, setActive] = useState(sections[0]?.id ?? "");
 
@@ -138,7 +188,7 @@ export default function TheoryLesson({ topicData, moduleId, moduleTitle, moduleO
     if (hash) window.setTimeout(() => document.getElementById(hash)?.scrollIntoView(), 50);
     const onScroll = () => {
       let cur = sections[0]?.id ?? "";
-      for (const s of sections) {
+      for (const s of all) {
         const el = document.getElementById(s.id);
         if (el && el.getBoundingClientRect().top <= 140) cur = s.id;
       }
@@ -147,7 +197,7 @@ export default function TheoryLesson({ topicData, moduleId, moduleTitle, moduleO
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
-  }, [sections]);
+  }, [all, sections]);
 
   const toggleDone = (id: string) =>
     setDone((d) => {
@@ -169,6 +219,14 @@ export default function TheoryLesson({ topicData, moduleId, moduleTitle, moduleO
                onClick={(e) => { e.preventDefault(); document.getElementById(s.id)?.scrollIntoView({ behavior: "smooth" }); }}>
               <span className="no">{done.includes(s.id) ? <span className="done">✓</span> : i + 1}</span>
               <span>{s.title}</span>
+            </a>
+          ))}
+          {deep.length > 0 && <div className="reader-label" style={{ padding: ".9rem 0 0 .75rem" }}>Đào sâu</div>}
+          {deep.map((s) => (
+            <a key={s.id} href={`#${s.id}`} aria-current={active === s.id ? "true" : undefined}
+               onClick={(e) => { e.preventDefault(); const el = document.getElementById(s.id) as HTMLDetailsElement | null; if (el) { el.open = true; el.scrollIntoView({ behavior: "smooth" }); } }}>
+              <span className="no">+</span>
+              <span>{s.title.replace(deepRe, "")}</span>
             </a>
           ))}
         </nav>
@@ -215,6 +273,20 @@ export default function TheoryLesson({ topicData, moduleId, moduleTitle, moduleO
               </div>
             </section>
           ))}
+
+          {deep.length > 0 && (
+            <section className="reader-step">
+              <div className="reader-step-no">Đào sâu</div>
+              <h2>Khi bạn muốn đi sâu hơn</h2>
+              <p style={{ color: "var(--r-muted)" }}>Phần lõi ở trên đủ để hiểu bài. Các mục dưới đây là chứng minh đầy đủ, ví dụ làm tay, code và các biến thể; bấm tên mục để mở.</p>
+              {deep.map((section) => (
+                <details key={section.id} id={section.id} className="reader-deep">
+                  <summary>{section.title.replace(deepRe, "")}</summary>
+                  <div>{section.blocks.map((b, i) => <BlockView key={i} block={b} storeKey={`${key}:check:${section.id}`} />)}</div>
+                </details>
+              ))}
+            </section>
+          )}
 
           <div className="reader-step">
             {backlinks.length > 0 && (

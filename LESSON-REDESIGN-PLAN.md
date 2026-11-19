@@ -372,3 +372,28 @@ Không còn cảnh 3D, không hiệu ứng cuộn; trang tải nhanh và đọc 
 - Ngân hàng phỏng vấn (`/phong-van`) vẫn dùng giao diện kem cũ; nên đưa về chế độ đọc ở một đợt riêng.
 - Module 03 đến 05 chưa có nội dung; khi viết, áp dụng ngay khuôn ở file này.
 - Đồng bộ lại `project-brief.md` sau mỗi giai đoạn.
+
+## 10. Tiến độ và cách làm (cập nhật)
+
+**Đã xong (P0 và P1):** nền (khối mới, từ điển tại chỗ, chip nguồn, làn Đào sâu, thẻ nhớ), bốn công cụ tương tác, và bốn bài thí điểm viết lại: **18 Feature scaling, 12 Classification metrics, 11 Confusion matrix, 08 K-fold**.
+
+### Cú pháp khối mới trong bài lý thuyết
+| Khối | Dùng để | Ghi chú |
+|---|---|---|
+| `:::predict` ... `@answer` ... `:::` | Đoán trước rồi mở kết quả | không đặt tiêu đề (nhãn đã có) |
+| `:::ck` ... `@answer` ... `:::` | Kiểm hiểu sau 1 đến 2 nhịp | |
+| `:::steps` ... `@step` ... `:::` | Làm tay từng bước, bấm "Bước tiếp theo" | |
+| `:::widget tên` ... `:::` | Nhúng công cụ tương tác | tên: `threshold-matrix`, `scaler-before-after`, `fold-visualizer`, `confusion-sorter` |
+| `:::card Tên` | Thẻ nhớ cuối phần lõi | tối đa 8 dòng |
+| `[[từ:khoá]]`, `[[từ:khoá|chữ hiện]]` | Từ điển tại chỗ | khoá trong `content/glossary.json` |
+| `[[ngoài slide]]` | Chip nguồn nhỏ | thay cho "(ngoài slide)" trong tiêu đề |
+| `## [sâu] Tên mục` | Mục nằm ở làn **Đào sâu** (gấp lại, có trong mục lục) | giữ nguyên mọi khối cũ bên trong |
+
+### Quy trình đã dùng cho bài thí điểm (lặp lại cho các bài sau)
+1. Viết **lõi** vào một file riêng (5 đến 7 nhịp theo thẻ thiết kế ở mục 4); mọi số tính tay phải kiểm bằng Python; mọi số từ dữ liệu Diabetes phải trùng với Project.
+2. Ghép bài bằng cách giữ **mọi mục cũ còn giá trị** dưới dạng `[sâu]` (không xoá kiến thức), giữ quiz và mục "Nối sang bài sau".
+3. Cần công cụ mới: thêm dữ liệu vào `scripts/make-widget-data.py` (sinh JSON), component trong `components/widgets/`, đăng ký ở `components/widgets/index.tsx`.
+4. `npx tsc --noEmit`, `npm run build`, mở trang xem thật (sáng và tối).
+
+### Còn lại
+Module 01: 01 đến 07, 09, 10, 13 đến 17, 19 đến 23 (và tách đôi 17, 20, 21). Module 02: toàn bộ (cần Sân thử 2D). Thứ tự theo mục 7.

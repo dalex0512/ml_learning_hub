@@ -1,0 +1,20 @@
+{
+  "euclid": { "t": "khoảng cách Euclid", "d": "Khoảng cách thẳng giữa hai mẫu: bình phương chênh lệch từng cột, cộng lại, rồi lấy căn." },
+  "mean": { "t": "mean", "d": "Trung bình: cộng mọi giá trị rồi chia cho số lượng." },
+  "std": { "t": "độ lệch chuẩn", "d": "Độ lệch chuẩn (std): một giá trị thường cách trung bình bao xa. Càng lớn thì dữ liệu càng trải rộng." },
+  "z-score": { "t": "z-score", "d": "(giá trị − trung bình) / độ lệch chuẩn: giá trị đó cách trung bình bao nhiêu độ lệch chuẩn." },
+  "outlier": { "t": "outlier", "d": "Giá trị cực đoan, nằm rất xa phần lớn các giá trị còn lại." },
+  "data-leakage": { "t": "rò rỉ dữ liệu", "d": "Thông tin không có lúc dự đoán thật (ví dụ dữ liệu test) lọt vào bước học, làm điểm đánh giá lạc quan hơn thực tế." },
+  "precision": { "t": "precision", "d": "TP / (TP + FP): khi model báo Dương, bao nhiêu phần thật sự Dương." },
+  "recall": { "t": "recall", "d": "TP / (TP + FN): trong số mẫu thật sự Dương, model bắt được bao nhiêu phần." },
+  "threshold": { "t": "ngưỡng", "d": "Mốc xác suất (hoặc score) để quyết định đoán Dương: đoán Dương khi score lớn hơn hoặc bằng ngưỡng. Mặc định thường là 0.5." },
+  "baseline": { "t": "mức sàn", "d": "Điểm của cách đoán đơn giản nhất (ví dụ luôn đoán lớp đông nhất). Model chỉ đáng giá khi vượt hẳn mức này." },
+  "validation": { "t": "validation", "d": "Tập dữ liệu dùng để chọn model và chỉnh tham số, tách khỏi tập test." },
+  "fold": { "t": "fold", "d": "Một phần trong K phần chia của dữ liệu khi làm cross-validation." },
+  "overfitting": { "t": "overfitting", "d": "Học vẹt: điểm trên dữ liệu đã học rất cao nhưng thấp trên dữ liệu mới." },
+  "tp": { "t": "TP", "d": "True Positive: thật sự Dương và model đoán Dương." },
+  "fp": { "t": "FP", "d": "False Positive: thật sự Âm nhưng model đoán Dương (báo động giả, lỗi loại I)." },
+  "fn": { "t": "FN", "d": "False Negative: thật sự Dương nhưng model đoán Âm (bỏ sót, lỗi loại II)." },
+  "tn": { "t": "TN", "d": "True Negative: thật sự Âm và model đoán Âm." },
+  "positive": { "t": "lớp Dương", "d": "Lớp ta muốn phát hiện (ví dụ có bệnh, là spam). Dương không có nghĩa là tốt." }
+}

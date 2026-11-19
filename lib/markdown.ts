@@ -60,8 +60,25 @@ function lessonIndex() {
  *   [[bài:loss-function|chữ]]    -> link với chữ tùy chọn
  *   [[slide:50]] / [[slide:48-51]] -> nút mở slide
  */
+let glossaryCache: Record<string, { t?: string; d: string }> | null = null;
+function glossary() {
+  if (!glossaryCache) {
+    const fp = path.join(process.cwd(), "content", "glossary.json");
+    glossaryCache = fs.existsSync(fp) ? JSON.parse(fs.readFileSync(fp, "utf-8")) : {};
+  }
+  return glossaryCache!;
+}
+
 function expandLinks(src: string, index: ReturnType<typeof lessonIndex>): string {
   return src
+    .replace(/\[\[ngoài slide\]\]/g, '<span class="src-chip">Ngoài slide</span>')
+    .replace(/\[\[từ:([a-z0-9-]+)(?:\|([^\]]+))?\]\]/g, (_m, key: string, label?: string) => {
+      const g = glossary()[key];
+      const text = (label ?? g?.t ?? key).replace(/</g, "&lt;");
+      if (!g) return text;
+      const def = g.d.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+      return `<span class="gloss" tabindex="0" data-def="${def}">${text}</span>`;
+    })
     .replace(/\[\[bài:([a-z0-9-]+)(?:\|([^\]]+))?\]\]/g, (_m, id: string, label?: string) => {
       const hit = index.get(id);
       if (!hit) return `**${label ?? id}**`;
