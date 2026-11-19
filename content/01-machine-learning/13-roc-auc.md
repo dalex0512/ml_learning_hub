@@ -1,29 +1,36 @@
 ---
 title: ROC curve và AUC
 order: 13
-description: "ROC là kết quả quét ngưỡng; AUC là diện tích dưới đường cong và là xác suất model xếp đúng một cặp Dương, Âm."
+description: "Mỗi ngưỡng một điểm: ROC là kết quả quét ngưỡng với hai trục TPR và FPR của slide 37, AUC vừa là diện tích vừa là xác suất xếp đúng cặp, và số thật trên Diabetes."
 slides: 37
 needs: [classification-metrics]
 tags: [roc, auc, tpr, fpr, precision-recall, threshold]
 ---
 
-## Mỗi ngưỡng cho một bảng nhầm lẫn; ROC cho ta nhìn mọi ngưỡng cùng lúc
+## Một ngưỡng chỉ cho một điểm; ROC cho ta nhìn mọi ngưỡng cùng lúc
 
 :::intro Mục tiêu bài này
-- Hiểu đường **ROC** là kết quả **quét ngưỡng**, mỗi ngưỡng một điểm (FPR, TPR).
-- Hiểu **AUC** vừa là diện tích dưới đường cong, vừa là xác suất model xếp đúng một cặp (Dương, Âm).
-- Biết AUC **không** chọn hộ ngưỡng, và khi nào nên nhìn thêm đường Precision-Recall.
+- Hiểu đường **ROC** là kết quả **quét ngưỡng**: mỗi ngưỡng cho một điểm (FPR, TPR), hai trục của slide 37.
+- Hiểu **AUC** vừa là diện tích dưới đường cong, vừa là xác suất model xếp một ca Dương cao hơn một ca Âm.
+- Biết AUC **không** chọn hộ ngưỡng, cách chọn ngưỡng từ ROC, và khi nào nên nhìn thêm đường Precision-Recall.
 :::
 
-[[bài:classification-metrics]] cho thấy mỗi ngưỡng cho một cặp precision và recall khác nhau. Để so hai model **không phụ thuộc ngưỡng**, ta vẽ kết quả của **mọi ngưỡng** lên một đồ thị. Hai trục:
+[[bài:classification-metrics]] cho thấy mỗi ngưỡng cho một cặp precision và recall khác nhau. Để so hai model **không phụ thuộc ngưỡng**, ta vẽ kết quả của **mọi ngưỡng** lên một đồ thị. Slide 37 đặt hai trục:
 
-- **TPR** (true positive rate) = recall = TP / (TP + FN): bắt được bao nhiêu người Dương thật.
-- **FPR** (false positive rate) = FP / (FP + TN): trong số người Âm thật, bao nhiêu bị **báo nhầm** là Dương.
+| Trục | Công thức | Ý nghĩa |
+|---|---|---|
+| **True Positive Rate (= Recall)** | TP / (TP + FN) | bắt được bao nhiêu người Dương thật |
+| **False Positive Rate** | FP / (FP + TN) | trong số người Âm thật, bao nhiêu bị **báo nhầm** là Dương |
+
+Đường cong kết quả gọi là **ROC** (Receiver Operating Characteristic). Vùng nằm dưới nó là **AUC** (Area Under the Curve). Trên slide còn có hai mốc: **perfect classifier** (ngôi sao ở góc trên trái: TPR = 1, FPR = 0) và **đường chéo** (đoán mò).
+
+:::slides 37 | Slide 37: Receiver Operating Characteristic curve, TPR, FPR, AUC
+:::
 
 :::predict
 Một model cho mỗi mẫu một score. Nếu ta đặt ngưỡng **bằng 0** (mọi mẫu đều bị đoán Dương), TPR và FPR là bao nhiêu? Còn nếu ngưỡng cao hơn mọi score (không mẫu nào bị đoán Dương)?
 @answer
-Ngưỡng 0: bắt được **mọi** người Dương nhưng cũng báo nhầm **mọi** người Âm, nên (FPR, TPR) = **(1, 1)**, góc trên phải. Ngưỡng cao hơn mọi score: không đoán Dương, nên (FPR, TPR) = **(0, 0)**, góc dưới trái. Đường ROC đi từ (0, 0) đến (1, 1) khi hạ ngưỡng dần.
+Ngưỡng 0: bắt được **mọi** người Dương nhưng cũng báo nhầm **mọi** người Âm, nên (FPR, TPR) = **(1, 1)**, góc trên phải. Ngưỡng cao hơn mọi score: không đoán Dương, nên (FPR, TPR) = **(0, 0)**, góc dưới trái. Đường ROC đi từ (0, 0) đến (1, 1) khi hạ ngưỡng dần; model càng tốt thì đường càng ôm góc trên trái.
 :::
 
 ## Quét ngưỡng trên 10 email
@@ -45,12 +52,24 @@ Thứ tự trong ví dụ: spam, spam, thường, spam, spam, thường, spam, t
 **AUC** = diện tích dưới đường này = **0.84**. Nó bằng đúng tỉ lệ các cặp (spam, email thường) mà model xếp spam **cao hơn**: 21 trên 25 cặp = 0.84.
 :::
 
+## Trên dữ liệu thật: Diabetes
+
+Với model Logistic của Project (154 người test: 55 bệnh, 99 khoẻ), ba ngưỡng quen thuộc cho ba điểm trên ROC:
+
+| Ngưỡng | TPR (recall) | FPR | Nhận xét |
+|---|---|---|---|
+| 0.3 | 0.764 | 0.354 | bắt nhiều bệnh, báo nhầm nhiều |
+| 0.5 | 0.673 | 0.202 | mặc định |
+| 0.7 | 0.491 | 0.061 | ít báo nhầm, bỏ sót nhiều |
+
+**AUC của model là 0.815**: nếu bốc ngẫu nhiên một người bệnh và một người khoẻ, model xếp người bệnh cao hơn trong **81.5%** các cặp. Mức đoán mò là 0.5, mức hoàn hảo là 1.
+
 ## Đọc AUC, và những giới hạn
 
 - **AUC = 0.5:** đường chéo, model xếp hạng như đoán mò. **AUC = 1:** xếp mọi Dương cao hơn mọi Âm.
 - **AUC không phụ thuộc ngưỡng**, nên so hai model công bằng. Nhưng nó cũng **không chọn hộ ngưỡng**: model AUC 0.95 vẫn có thể có recall thấp nếu ta chọn ngưỡng sai.
-- **Chọn ngưỡng từ ROC:** một cách là điểm làm **TPR − FPR** lớn nhất (chỉ số Youden). Cách tốt hơn là chọn theo **chi phí** của FP và FN.
-- **Dữ liệu rất lệch:** ROC có thể trông đẹp vì FPR chia cho số lượng Âm rất lớn. Khi lớp Dương hiếm, hãy nhìn thêm đường **Precision-Recall**.
+- **Chọn ngưỡng từ ROC:** một cách là điểm làm **TPR − FPR** lớn nhất (chỉ số Youden J). Với Diabetes: J = 0.513 tại ngưỡng khoảng **0.54** (TPR 0.655, FPR 0.141), gần 0.5. Cách tốt hơn là chọn theo **chi phí** của FP và FN (xem bài tập ở Project Bước 5).
+- **Dữ liệu rất lệch:** FPR chia cho số lượng Âm rất lớn nên ROC có thể trông đẹp dù precision thấp. Khi lớp Dương hiếm, hãy nhìn thêm đường **Precision-Recall**: với Diabetes, tỉ lệ Dương là 35.7% và average precision là 0.716, so mức sàn 0.357.
 
 :::ck
 Model A có AUC = 0.50 trên bộ test. Model B có AUC = 0.80. Nếu hai model cùng dùng ngưỡng 0.5, B chắc chắn có accuracy cao hơn A không?
@@ -58,14 +77,24 @@ Model A có AUC = 0.50 trên bộ test. Model B có AUC = 0.80. Nếu hai model 
 **Không chắc.** AUC đo khả năng **xếp hạng** trên mọi ngưỡng, còn accuracy ở ngưỡng 0.5 phụ thuộc cách model hiệu chỉnh score. B xếp hạng tốt hơn rõ rệt (0.80 so với đoán mò), nhưng ở một ngưỡng cụ thể thì kết quả có thể khác. Muốn nói về accuracy phải tính accuracy.
 :::
 
-:::slides 37 | Slide 37: đường ROC và AUC
+:::ck
+Hai model có cùng AUC = 0.85. Model 1 xếp đúng ở vùng score cao (bắt được các ca rõ nhất), model 2 xếp đúng ở vùng score thấp. Bạn dùng model nào cho bài sàng lọc, nơi bỏ sót là tệ nhất?
+@answer
+Cần nhìn **hình dạng** đường ROC, không chỉ diện tích: sàng lọc cần TPR cao ở FPR thấp-vừa. Hai đường cùng diện tích có thể rất khác ở vùng ta quan tâm. AUC là một con số tóm tắt, không thay cho việc xem đường cong và chọn điểm làm việc theo chi phí.
 :::
 
+## Những hiểu sai thường gặp
+
+- **"AUC cao thì model chắc chắn dùng được."** Nó cho thấy khả năng xếp hạng, không cho thấy ngưỡng nào dùng, và không đảm bảo xác suất chuẩn.
+- **"ROC tốt thì precision cao."** Với lớp Dương hiếm, ROC có thể đẹp mà precision thấp.
+- **"Đường ROC phụ thuộc ngưỡng ta chọn."** Không: nó **là** kết quả của việc quét mọi ngưỡng; ta chọn một điểm trên nó.
+- **"AUC 0.5 nghĩa là model bằng nhau."** Nó nghĩa là xếp hạng không hơn đoán mò.
+
 :::card ROC và AUC
-- **ROC** vẽ (FPR, TPR) cho **mọi ngưỡng**; đi từ (0, 0) đến (1, 1).
-- **TPR = recall**; **FPR = FP / (FP + TN)** (báo nhầm trong số Âm thật).
-- **AUC** = diện tích dưới ROC = xác suất model xếp một Dương cao hơn một Âm (ví dụ 21/25 = 0.84).
-- **AUC 0.5 là đoán mò; không chọn hộ ngưỡng.**
+- **ROC** vẽ (FPR, TPR) cho **mọi ngưỡng**; đi từ (0, 0) đến (1, 1); ngôi sao góc trên trái là perfect classifier, đường chéo là đoán mò (slide 37).
+- **TPR = recall = TP/(TP+FN); FPR = FP/(FP+TN)** (báo nhầm trong số Âm thật).
+- **AUC** = diện tích dưới ROC = xác suất model xếp một Dương cao hơn một Âm (email: 21/25 = 0.84; Diabetes: 0.815).
+- **AUC không chọn hộ ngưỡng**; chọn theo chi phí hoặc Youden J (Diabetes: ngưỡng ~0.54).
 - **Lớp Dương hiếm:** xem thêm Precision-Recall.
 :::
 

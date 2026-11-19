@@ -1,7 +1,7 @@
 ---
 title: Accuracy, Precision, Recall và F1-score
 order: 12
-description: "Mỗi metric là một câu hỏi khác nhau về cùng bảng nhầm lẫn: accuracy, precision, recall, F1, và cách chọn theo cái giá của từng loại sai."
+description: "Mỗi metric là một câu hỏi khác nhau về cùng bảng nhầm lẫn, tính tay trên ví dụ dog/cat của slide 33 đến 36, vì sao F1 là trung bình điều hòa, và chọn theo cái giá của từng loại sai."
 slides: 33-36
 needs: [confusion-matrix]
 tags: [accuracy, precision, recall, f1, threshold, imbalanced, metric]
@@ -10,65 +10,71 @@ tags: [accuracy, precision, recall, f1, threshold, imbalanced, metric]
 ## Bốn con số, nhiều cách gói: ta quan tâm lỗi nào?
 
 :::intro Mục tiêu bài này
-- Nói được **mỗi metric trả lời câu hỏi gì** (Accuracy, Precision, Recall, F1), không cần nhìn công thức.
-- Giải thích vì sao accuracy cao vẫn có thể là một model vô dụng.
-- Chọn metric theo **cái giá của từng loại sai**, và kéo ngưỡng để thấy precision và recall đổi nhau.
+- Nói được **mỗi metric trả lời câu hỏi gì** (Accuracy, Precision, Recall, F1), và tính tay cả bốn trên ví dụ dog/cat của slide 33 đến 36.
+- Giải thích vì sao accuracy cao vẫn có thể là một model vô dụng, và vì sao F1 dùng **trung bình điều hòa**.
+- Kéo ngưỡng để thấy precision và recall đổi nhau, và chọn metric theo **cái giá của từng loại sai**.
 :::
 
-[[bài:confusion-matrix]] cho ta bốn con số: [[từ:tp]], [[từ:fp]], [[từ:fn]], [[từ:tn]]. Bốn con số thì khó so sánh hai model, nên ta **gói** chúng thành một tỉ lệ. Tùy cách gói, tỉ lệ đó trả lời một câu hỏi khác. Xuyên suốt bài ta dùng model Logistic của Project: bộ test có 154 người (99 khoẻ, 55 bệnh), và bảng nhầm lẫn của nó là:
+[[bài:confusion-matrix]] cho ta bốn con số: [[từ:tp]], [[từ:fp]], [[từ:fn]], [[từ:tn]]. Bốn con số thì khó so sánh hai model, nên ta **gói** chúng thành một tỉ lệ; tùy cách gói, tỉ lệ đó trả lời **một câu hỏi khác**. Slide 33 đến 36 xây bảng metric từng dòng một trên chính ví dụ dog/cat với TP = 3, FP = 1, FN = 2, TN = 1 (tổng 7):
 
-| | Đoán Dương | Đoán Âm |
+| Metric | Công thức | Trả lời câu hỏi |
 |---|---|---|
-| **Thật Dương** (bệnh) | TP = 37 | FN = 18 |
-| **Thật Âm** (khoẻ) | FP = 20 | TN = 79 |
+| **Accuracy** | (TP + TN) / All | Trong *tất cả* các lần đoán, đúng bao nhiêu? |
+| **Precision** | TP / (TP + FP) | Khi model *nói là +*, nó đúng bao nhiêu? |
+| **Recall** | TP / (TP + FN) | Trong *những mẫu thật sự là +*, model bắt được bao nhiêu? |
+| **F1 score** | (2 · Pre · Re) / (Pre + Re) | Precision và Recall có *cùng cao* không? |
+
+:::slides 33-36 | Slide 33–36: bảng metric xây dần, Accuracy, Precision, Recall, F1, tính trên ví dụ dog/cat
+:::
+
+:::steps
+**Accuracy** = (TP + TN) / All = (3 + 1) / 7 = **4/7 ≈ 57.1%**. Tử số là hai ô **đúng** (đường chéo); mẫu số là mọi mẫu.
+@step
+**Precision** = TP / (TP + FP) = 3 / (3 + 1) = **75%**. Model đoán "dog" 4 lần (cột trái: 3 + 1); trong đó 3 lần đúng.
+@step
+**Recall** = TP / (TP + FN) = 3 / (3 + 2) = **60%**. Có 5 con chó thật (hàng trên: 3 + 2); model bắt được 3.
+@step
+**F1** = 2 · 0.75 · 0.6 / (0.75 + 0.6) = **0.9 / 1.35 ≈ 66.7%**, khớp với công thức trên slide.
+:::
+
+Chú ý ba con số 57.1%, 75%, 60% đều tính từ **cùng một bảng**, nhưng nói ba điều khác nhau: model đúng chung chỉ hơn nửa, khi nó báo "chó" thì khá đáng tin, nhưng nó bỏ sót 40% số chó.
 
 :::predict
-Một "model" lười luôn trả lời **"không bệnh"** cho cả 154 người. Accuracy của nó là bao nhiêu, và nó tìm được bao nhiêu người bệnh trong 55 người?
+Một "model" lười luôn trả lời **"không bệnh"** cho cả 154 người test của bộ Diabetes (99 khoẻ, 55 bệnh). Accuracy của nó là bao nhiêu, và nó tìm được bao nhiêu người bệnh?
 @answer
 Accuracy = 99 / 154 = **64.3%**, nhưng nó tìm được **0 trong 55** người bệnh. Model lười có accuracy trông tạm ổn mà hoàn toàn vô dụng: đó là lý do một con số duy nhất là không đủ.
 :::
 
-:::slides 33-36 | Slide 33–36: bảng metric xây dần, từng dòng tính trên ví dụ dog/cat
-:::
-
 ## Accuracy: đúng chung, và vì sao dễ đánh lừa
 
-**Accuracy** trả lời: *trong tất cả các lần đoán, đúng bao nhiêu phần?* Tử số là hai ô đúng (đường chéo), mẫu số là tất cả.
+Accuracy đối xử với **mọi loại sai như nhau** và không quan tâm lớp nào hiếm. Điều đó vừa dễ hiểu vừa nguy hiểm. Ví dụ cực đoan: một bệnh hiếm gặp ở 1 trong 100 người. Model luôn đoán "khoẻ" đạt accuracy **99%** mà không cứu được ai.
 
-> Accuracy = (TP + TN) / (TP + FP + FN + TN) = (37 + 79) / 154 = **75.3%**
-
-Con số này dễ hiểu nhưng đối xử với mọi loại sai **như nhau** và không quan tâm lớp nào hiếm. Ví dụ cực đoan: một bệnh hiếm gặp ở 1 trong 100 người. Model luôn đoán "khoẻ" đạt accuracy **99%** mà không cứu được ai.
-
-Với bộ Diabetes, mức sàn (đoán toàn Âm) là 64.3%, nên 75.3% chỉ hơn khoảng 11 điểm. Accuracy chỉ có nghĩa khi **so với mức sàn** và khi các lớp không quá lệch.
+Với Diabetes của Project, bảng nhầm lẫn của model Logistic là TP = 37, FP = 20, FN = 18, TN = 79: accuracy = (37 + 79) / 154 = **75.3%**, trong khi mức sàn (đoán toàn Âm) là 64.3%. Accuracy chỉ có nghĩa khi **so với mức sàn** và khi các lớp không quá lệch.
 
 :::ck
-Một bộ lọc gian lận có 1 giao dịch gian lận trong 1000. Model A đạt accuracy 99.9%. Bạn có kết luận được là A tốt không?
+Một bộ lọc gian lận có 1 giao dịch gian lận trong 1000. Model A đạt accuracy 99.9%. Bạn có kết luận được A tốt không?
 @answer
-**Không.** Luôn đoán "không gian lận" cũng đạt 99.9%. Cần xem recall (bắt được bao nhiêu giao dịch gian lận) và precision (báo gian lận thì đáng tin đến đâu).
+**Không.** Luôn đoán "không gian lận" cũng đạt 99.9%. Cần xem **recall** (bắt được bao nhiêu giao dịch gian lận) và **precision** (báo gian lận thì đáng tin đến đâu), tính trên lớp hiếm.
 :::
 
-## Precision và recall: hai câu hỏi về hai nhóm người khác nhau
+## Precision và recall: hai câu hỏi về hai nhóm khác nhau
 
-Cùng một tử số (TP), nhưng hai **mẫu số khác nhau**, nên hai câu hỏi khác nhau:
+Cùng một tử số (TP), nhưng hai **mẫu số khác nhau** nên hai câu hỏi khác nhau:
 
-- **[[từ:precision|Precision]]** hỏi *khi model báo Dương, đáng tin đến đâu?* Mẫu số là mọi lần model **đoán Dương** (cột trái: TP + FP).
-- **[[từ:recall|Recall]]** hỏi *trong số người thật sự Dương, model bắt được bao nhiêu?* Mẫu số là mọi người **thật sự Dương** (hàng trên: TP + FN).
+- **[[từ:precision|Precision]]** hỏi *khi model báo Dương, đáng tin đến đâu?* Mẫu số là mọi lần model **đoán Dương** (cột trái: TP + FP). Precision thấp nghĩa là nhiều **báo động giả**.
+- **[[từ:recall|Recall]]** hỏi *trong số người thật sự Dương, model bắt được bao nhiêu?* Mẫu số là mọi người **thật sự Dương** (hàng trên: TP + FN). Recall thấp nghĩa là nhiều **bỏ sót**. (Slide gọi recall là "độ bao phủ"; chính xác hơn là bao phủ các mẫu thật sự Dương. Nó còn có tên *sensitivity* hoặc *true positive rate*, sẽ gặp lại ở [[bài:roc-auc]].)
 
-:::steps
-Với bảng ở đầu bài: model đoán Dương cho **37 + 20 = 57** người, và có **37 + 18 = 55** người thật sự bệnh.
-@step
-**Precision** = TP / (TP + FP) = 37 / 57 = **64.9%**. Trong 57 người bị báo bệnh, khoảng 65% thật sự bệnh; 20 người còn lại bị **báo nhầm** (FP).
-@step
-**Recall** = TP / (TP + FN) = 37 / 55 = **67.3%**. Trong 55 người bệnh thật, model bắt được khoảng 67%; 18 người còn lại bị **bỏ sót** (FN).
-@step
-**F1** là trung bình điều hòa của hai số: 2 × 0.649 × 0.673 / (0.649 + 0.673) = **66.1%**. F1 chỉ cao khi **cả hai** cùng cao; nếu một trong hai thấp, F1 bị kéo xuống.
-:::
+Với Diabetes: model đoán Dương cho 37 + 20 = 57 người và có 37 + 18 = 55 người bệnh thật; **precision = 37/57 = 64.9%**, **recall = 37/55 = 67.3%**, F1 = 66.1%.
 
 :::ck
-Precision thấp nghĩa là model mắc loại sai nào nhiều? Recall thấp nghĩa là loại sai nào?
+Precision thấp nghĩa là model mắc loại sai nào nhiều? Recall thấp nghĩa là loại sai nào? Làm sao nhớ?
 @answer
-Precision thấp: nhiều **FP** (báo động giả). Recall thấp: nhiều **FN** (bỏ sót). Nhớ bằng mẫu số: precision chia cho "số lần báo Dương" nên bị FP làm giảm; recall chia cho "số người thật sự Dương" nên bị FN làm giảm.
+Precision thấp: nhiều **FP** (báo động giả). Recall thấp: nhiều **FN** (bỏ sót). Nhớ bằng **mẫu số**: precision chia cho "số lần báo Dương" nên bị FP làm giảm; recall chia cho "số người thật sự Dương" nên bị FN làm giảm.
 :::
+
+## F1: vì sao trung bình điều hòa?
+
+F1 gộp precision và recall thành một con số, nhưng **không** lấy trung bình cộng. Với dog/cat: trung bình cộng của 0.75 và 0.6 là 0.675, F1 là 0.667: khá gần. Khác biệt lộ ra khi một trong hai quá thấp: precision 100% nhưng recall chỉ 10% (model chỉ báo đúng một vài ca chắc chắn nhất). Trung bình cộng cho **55%**, trông tạm ổn; F1 cho **18.2%**, phản ánh đúng việc model bỏ sót gần hết. **F1 chỉ cao khi cả hai cùng cao**; một bên thấp kéo F1 xuống gần bên đó.
 
 ## Kéo ngưỡng: precision và recall đổi nhau thế nào?
 
@@ -80,12 +86,12 @@ Ta **hạ** ngưỡng từ 0.5 xuống 0.3 (dễ báo "bệnh" hơn). Recall và
 **Recall tăng, precision giảm.** Với bộ Diabetes: ở ngưỡng 0.5, recall 67.3% và precision 64.9%; ở 0.3, recall lên **76.4%** nhưng precision tụt xuống **54.5%**; ở 0.7, recall chỉ **49.1%** còn precision lên **81.8%**. Báo Dương dễ hơn thì bắt được nhiều người bệnh hơn, nhưng cũng kéo thêm người khoẻ vào.
 :::
 
-Hãy tự kéo. Công cụ có hai bộ dữ liệu: 10 email để thấy từng mẫu một, và 154 bệnh nhân của Project. Chuyển sang Diabetes rồi đặt ngưỡng 0.5, bạn sẽ thấy đúng bảng ở đầu bài.
+Hãy tự kéo. Công cụ có hai bộ dữ liệu: 10 email để thấy từng mẫu một, và 154 bệnh nhân của Project. Chuyển sang Diabetes rồi đặt ngưỡng 0.5, bạn sẽ thấy đúng bảng nhầm lẫn ở trên.
 
 :::widget threshold-matrix
 :::
 
-Hai điều đáng nhớ: **không có ngưỡng đúng tuyệt đối** (nó phụ thuộc cái giá của từng loại sai, xem mục sau), và precision với recall thường **đổi chác** nhau, nên F1 hữu ích khi ta cần cả hai.
+Hai điều đáng nhớ: **không có ngưỡng đúng tuyệt đối** (nó phụ thuộc cái giá của từng loại sai), và precision với recall thường **đổi chác** nhau. Để nhìn mọi ngưỡng cùng lúc, ta vẽ đường ROC ở [[bài:roc-auc]]; slide 37 đã giới thiệu hai trục của nó: TPR (chính là recall) và FPR = FP / (FP + TN).
 
 ## Chọn metric theo cái giá của từng loại sai
 
@@ -95,22 +101,30 @@ Chọn metric là chọn câu hỏi ta quan tâm, và câu hỏi đó đến t�
 |---|---|---|
 | Sàng lọc bệnh nặng | Bỏ sót người bệnh (FN) | **Recall** (báo nhầm còn có thể xét nghiệm lại) |
 | Lọc thư rác | Đẩy email công việc vào thư rác (FP) | **Precision** |
-| Phát hiện gian lận, 1 trong 1000 | Cả hai, và accuracy vô nghĩa | **Precision, recall, F1** trên lớp hiếm |
+| Phát hiện gian lận, 1 trên 1000 | Cả hai, và accuracy vô nghĩa | **Precision, recall, F1** trên lớp hiếm |
 | Chấm bài tự động | Tùy chính sách | Hỏi chi phí thật |
 
 :::ck
 Hệ thống tự động khóa tài khoản nghi gian lận. Khóa nhầm khách tốt (FP) làm họ bỏ đi; bỏ sót gian lận (FN) mất tiền. Bạn chọn metric nào, và hỏi gì trước?
 @answer
-Chưa chọn được ngay: phải **hỏi chi phí thật** của một FP và một FN (mất khách đắt hay mất tiền đắt hơn). Nếu hai cái ngang nhau thì F1; nếu FN đắt gấp mấy lần FP thì ưu tiên recall và hạ ngưỡng, theo chi phí tổng. Đây cũng là cách trả lời tốt trong phỏng vấn: nêu chi phí trước, metric sau.
+Chưa chọn được ngay: phải **hỏi chi phí thật** của một FP và một FN (mất khách đắt hay mất tiền đắt hơn). Nếu hai cái ngang nhau thì dùng F1; nếu FN đắt gấp mấy lần FP thì ưu tiên recall và hạ ngưỡng, theo chi phí tổng. Đây cũng là cách trả lời tốt trong phỏng vấn: nêu chi phí trước, metric sau.
 :::
 
+## Những hiểu sai thường gặp
+
+- **"Accuracy cao nghĩa là model tốt."** Chỉ khi lớp cân bằng và so với mức sàn.
+- **"Precision và recall là một."** Hai mẫu số khác nhau, hai kiểu sai khác nhau.
+- **"F1 là trung bình cộng."** Là trung bình **điều hòa**: bên thấp kéo F1 xuống mạnh.
+- **"Ngưỡng 0.5 là chuẩn."** Chỉ là mặc định; đổi ngưỡng đổi precision và recall.
+- **"Metric tốt nhất tồn tại."** Không: chọn theo chi phí của từng loại sai.
+
 :::card Accuracy, Precision, Recall, F1
-- **Accuracy** = (TP + TN) / tất cả: đúng chung. Chỉ có nghĩa khi so với mức sàn và các lớp không quá lệch.
-- **Precision** = TP / (TP + FP): *báo Dương thì đáng tin đến đâu* (nhìn cột "đoán Dương").
-- **Recall** = TP / (TP + FN): *bắt được bao nhiêu người Dương thật* (nhìn hàng "thật Dương").
-- **F1** = trung bình điều hòa của precision và recall: cao khi cả hai cùng cao.
-- **Ngưỡng** đổi precision và recall ngược chiều; chọn theo cái giá của FP và FN.
-- **Bẫy lớn nhất:** tin accuracy khi dữ liệu lệch (đoán toàn Âm vẫn ra 64% đến 99%).
+- **Accuracy** = (TP + TN) / All: đúng chung (dog/cat: 4/7 = 57.1%). Chỉ có nghĩa khi so với mức sàn và các lớp không quá lệch.
+- **Precision** = TP / (TP + FP): báo Dương thì đáng tin đến đâu (nhìn cột "đoán Dương"; dog/cat: 75%).
+- **Recall** = TP / (TP + FN): bắt được bao nhiêu mẫu Dương thật (nhìn hàng "thật Dương"; dog/cat: 60%).
+- **F1** = 2·P·R / (P + R): trung bình điều hòa, chỉ cao khi cả hai cùng cao (66.7%).
+- **Ngưỡng** đổi precision và recall ngược chiều (Diabetes: 0.3 cho recall 76.4% precision 54.5%; 0.7 cho recall 49.1% precision 81.8%).
+- **Chọn metric theo cái giá của FP và FN**; bẫy lớn nhất là tin accuracy khi dữ liệu lệch.
 :::
 
 ## Câu hỏi tự kiểm tra
