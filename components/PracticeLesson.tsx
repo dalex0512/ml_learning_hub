@@ -2,20 +2,14 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Check, X } from "lucide-react";
+import { Check } from "lucide-react";
 import type { TopicData } from "@/lib/markdown";
-import type { Block, QuizTier } from "@/lib/blocks";
-import { renderMarkdown } from "@/lib/renderMarkdown";
+import type { Block } from "@/lib/blocks";
 import { parseStepTitle, practiceStorageKey } from "@/lib/practice";
-import { handleMarkdownClick } from "./MarkdownContent";
+import { CheckList, PopDetail, Prose, ReaderQuiz } from "./ReaderParts";
 import ReaderShell from "./ReaderShell";
 
 interface NavTopic { moduleId: string; topicId: string; title: string }
-
-function Prose({ md }: { md: string }) {
-  const html = useMemo(() => renderMarkdown(md, { copyButtons: "lang" }), [md]);
-  return <div className="practice-prose" onClick={handleMarkdownClick} dangerouslySetInnerHTML={{ __html: html }} />;
-}
 
 function Exercise({ block }: { block: Extract<Block, { type: "exercise" }> }) {
   const [open, setOpen] = useState(false);
@@ -35,84 +29,9 @@ function Exercise({ block }: { block: Extract<Block, { type: "exercise" }> }) {
   );
 }
 
-function PopDetail({ title, md }: { title: string; md: string }) {
-  const [open, setOpen] = useState(false);
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", onKey);
-    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); };
-  }, [open]);
-  return (
-    <>
-      <button type="button" className="reader-pop-btn" onClick={() => setOpen(true)}>
-        <span aria-hidden>＋</span> Giải thích chi tiết: {title}
-      </button>
-      {open && (
-        <div className="reader-modal-overlay" onClick={() => setOpen(false)} role="dialog" aria-modal="true" aria-label={title}>
-          <div className="reader-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="reader-modal-head">
-              <strong>{title}</strong>
-              <button type="button" onClick={() => setOpen(false)} aria-label="Đóng"><X size={20} /></button>
-            </div>
-            <div className="reader-modal-body"><Prose md={md} /></div>
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
-
-function CheckList({ md, storeKey }: { md: string; storeKey: string }) {
-  const items = useMemo(() => md.split("\n").map((l) => l.replace(/^[-*]\s*(\[[ xX]\]\s*)?/, "").trim()).filter(Boolean), [md]);
-  const [done, setDone] = useState<Record<number, boolean>>({});
-  useEffect(() => {
-    try { const raw = localStorage.getItem(storeKey); if (raw) setDone(JSON.parse(raw)); } catch {}
-  }, [storeKey]);
-  const toggle = (i: number) =>
-    setDone((d) => {
-      const n = { ...d, [i]: !d[i] };
-      try { localStorage.setItem(storeKey, JSON.stringify(n)); } catch {}
-      return n;
-    });
-  return (
-    <div>
-      {items.map((t, i) => (
-        <button key={i} type="button" className="reader-check" onClick={() => toggle(i)}>
-          <span className={`box ${done[i] ? "on" : ""}`}>{done[i] && <Check size={13} />}</span>
-          <span>{t}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function PracticeQuiz({ tiers }: { tiers: QuizTier[] }) {
-  return (
-    <div>
-      {tiers.map((tier) => (
-        <div key={tier.key} style={{ marginTop: "1.6rem" }}>
-          <div className="reader-label">{tier.title}</div>
-          {tier.items.map((it, i) => (
-            <details key={i} className="reader-q">
-              <summary>{it.q.replace(/^\*\*B\d+\.\*\*\s*/, "")}</summary>
-              <div>
-                <Prose md={it.a} />
-                {it.en && <Prose md={`> ${it.en}`} />}
-              </div>
-            </details>
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function BlockView({ block, storeKey }: { block: Block; storeKey: string }) {
   if (block.type === "md") return <Prose md={block.md} />;
-  if (block.type === "quiz") return <PracticeQuiz tiers={block.tiers} />;
+  if (block.type === "quiz") return <ReaderQuiz tiers={block.tiers} />;
   if (block.type === "exercise") return <Exercise block={block} />;
   if (block.type !== "box") return null;
   switch (block.kind) {

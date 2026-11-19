@@ -1,17 +1,11 @@
 import React from "react";
-import fs from "fs";
-import path from "path";
 import { notFound } from "next/navigation";
 import { getRoadmap, getModule, getAdjacentTopics } from "@/lib/roadmap";
 import { getTopicContent, getBacklinks, getLessonLookup } from "@/lib/markdown";
 import TopicBreadcrumb from "@/components/TopicBreadcrumb";
-import TopicTOC from "@/components/TopicTOC";
-import DynamicTopicPanels from "@/components/DynamicTopicPanels";
-import TopicNavigation from "@/components/TopicNavigation";
-import LessonMap from "@/components/LessonMap";
-import { SlideButton, SlideLightbox } from "@/components/SlideViewer";
-import { TopicHeroIllustration } from "@/components/TopicIllustrations";
+import { SlideLightbox } from "@/components/SlideViewer";
 import PracticeLesson from "@/components/PracticeLesson";
+import TheoryLesson from "@/components/TheoryLesson";
 
 interface PageProps {
   params: {
@@ -98,9 +92,6 @@ export default function TopicPage({ params }: PageProps) {
     );
   }
 
-  const hasIllustration = fs.existsSync(
-    path.join(process.cwd(), "public", "illustrations", `${topicItem.id}.png`)
-  );
   const backlinks = getBacklinks(topicId);
   const needs = getLessonLookup(topicData.needs);
   const toItem = (x: { module: { id: string }; topic: { id: string; title: string } } | null) =>
@@ -122,70 +113,19 @@ export default function TopicPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen pb-20">
-      {/* Top Breadcrumb & Progress bar */}
-      <TopicBreadcrumb
+    <div className="min-h-screen">
+      <SlideLightbox />
+      <TheoryLesson
+        topicData={topicData}
         moduleId={currentModule.id}
         moduleTitle={currentModule.title}
-        topicTitle={topicItem.title}
-        currentOrder={topicOrderInModule + 1}
-        totalTopics={totalTopicsInModule}
+        moduleOrder={currentModule.order}
+        topicOrder={topicOrderInModule + 1}
+        needs={needs}
+        prev={toItem(prev)}
+        next={toItem(next)}
+        backlinks={backlinks}
       />
-
-      <SlideLightbox />
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10">
-        {/* Title Block theo Bản F */}
-        <div className="mb-10 max-w-3xl">
-          {/* Eyebrow Caveat đỏ */}
-          {/* Eyebrow Patrick Hand đỏ */}
-          <div className="flex items-center gap-2 mb-2">
-            <span className="font-hand text-accent-red text-xl sm:text-2xl font-bold transform -rotate-1">
-              Module {String(currentModule.order).padStart(2, "0")} · {currentModule.title} · Bài {String(topicOrderInModule + 1).padStart(2, "0")}
-            </span>
-          </div>
-
-          {/* H1 Topic Title */}
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-text-main font-sans">
-            {topicItem.title}
-          </h1>
-
-          {/* Subhead in nghiêng */}
-          <p className="text-sm sm:text-base text-text-muted italic font-sans mt-2 leading-relaxed">
-            {topicData.description}
-          </p>
-
-          <div className="mt-4 space-y-3">
-            <LessonMap
-              needs={needs}
-              prev={toItem(prev)}
-              current={topicItem.title}
-              next={toItem(next)}
-              backlinks={backlinks}
-            />
-            {topicData.slides && <SlideButton from={topicData.slides.from} to={topicData.slides.to} />}
-          </div>
-
-          <div className="mt-5">
-            {hasIllustration && <TopicHeroIllustration topicId={topicItem.id} />}
-          </div>
-        </div>
-
-        {/* 2-Column Layout theo Bản F */}
-        <div className="flex items-start gap-8 lg:gap-10">
-          {/* Left Column: 190px Sticky TOC with Scrollspy */}
-          <TopicTOC sections={topicData.sections} />
-
-          {/* Right Column: Sections from lesson content */}
-          <div className="flex-1 min-w-0">
-            <DynamicTopicPanels topicData={topicData} />
-
-            {/* Bottom Prev / Next Navigation with 3D Page Flip */}
-            <TopicNavigation prev={prev} next={next} />
-            <a href="/phong-van" className="block mt-6 text-center font-hand text-accent-red text-xl underline decoration-dashed underline-offset-4">Ôn lại trong ngân hàng phỏng vấn →</a>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
-

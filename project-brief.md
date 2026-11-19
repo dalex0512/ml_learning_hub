@@ -384,3 +384,9 @@ không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-res
   quy trình xác minh bằng `scripts/practice_verify.py`, hình bằng `scripts/make-practice-plots.py`). Thay thế
   `codex-prompt-practice-diabetes.md`.
 - Giao diện: chế độ đọc (`layout: practice`): `app/reader.css`, `ReaderShell`, `PracticeLesson`, `PracticeRoadmap`.
+
+## 18. Đợt 11 — Bài lý thuyết dùng chế độ đọc
+- Mọi bài không có `layout: practice` giờ dùng `components/TheoryLesson.tsx` (cùng `ReaderShell`, `app/reader.css`, sáng/tối):
+  mục lục trái, mỗi loại khối có kiểu riêng (intro, worked, compare, pitfall, note, recap, next, formula, slides, quiz).
+  Slide mở bằng lightbox sẵn có. Trang module (`/02-supervised-learning`…) cũng dùng chế độ đọc, hiện "Cần biết trước" dưới mỗi bài.
+- Mảnh dùng chung: `components/ReaderParts.tsx`. Nội dung markdown của bài lý thuyết không đổi.

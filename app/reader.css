@@ -96,3 +96,43 @@ html.reader-mode[data-reader-theme="dark"] .practice-prose img[src$="-light.png"
 .reader-modal-head button:hover { color: var(--r-fg); }
 .reader-modal-body { padding: 1.25rem 1.5rem 2rem; font-size: 16.5px; line-height: 1.8; }
 .reader-modal-body .practice-prose h3 { margin-top: 1.6em; }
+
+/* ===== Bài lý thuyết ===== */
+.reader-toc-long { max-height: calc(100vh - 6rem); overflow-y: auto; padding-right: 0.5rem; }
+.reader-trail { display: flex; flex-wrap: wrap; gap: 0.35rem 1.6rem; font-size: 14px; line-height: 1.7; color: var(--r-muted); margin: 0 0 2.2rem; }
+.reader-trail a { color: var(--r-fg); text-decoration: underline; text-decoration-color: var(--r-line); text-underline-offset: 3px; }
+.reader-trail a:hover { text-decoration-color: var(--r-accent); }
+.reader-trail-label { margin-right: 0.5rem; }
+.reader-intro { margin: 0 0 1.8rem; padding: 1.1rem 1.3rem; background: var(--r-soft); border-radius: 10px; }
+.reader-intro .practice-prose > :last-child { margin-bottom: 0; }
+.reader-worked { margin: 1.6rem 0; padding: 0.2rem 0 0.2rem 1.2rem; border-left: 3px solid var(--r-line); }
+.reader-compare { margin: 1.6rem 0; }
+.reader-pitfall { margin: 1.6rem 0; padding: 0.2rem 0 0.2rem 1.2rem; border-left: 3px solid var(--r-accent); }
+.reader-pitfall .reader-label { color: var(--r-accent); }
+.reader-note { margin: 1.4rem 0; padding: 0.9rem 1.1rem; border: 1px dashed var(--r-line); border-radius: 8px; color: var(--r-muted); font-size: 15.5px; }
+.reader-note .practice-prose > :last-child { margin-bottom: 0; }
+.reader-next { margin: 1.8rem 0 0; padding-top: 1rem; border-top: 1px solid var(--r-line); }
+.reader-slide-btn { display: flex; align-items: center; gap: 0.8rem; width: 100%; text-align: left; margin: 1.2rem 0; padding: 0.6rem 1rem; font-family: inherit; font-size: 14.5px; color: var(--r-muted); background: none; border: 1px solid var(--r-line); border-radius: 8px; cursor: pointer; }
+.reader-slide-btn:hover { border-color: var(--r-accent); color: var(--r-fg); }
+.reader-slide-no { color: var(--r-accent); font-weight: 600; white-space: nowrap; }
+.reader-slide-btn span:nth-child(2) { flex: 1; }
+.reader-formula { margin: 1.6rem 0; padding: 1.1rem 1.3rem; border: 1px solid var(--r-line); border-radius: 10px; }
+.reader-formula-item + .reader-formula-item { margin-top: 1.4rem; padding-top: 1.2rem; border-top: 1px dashed var(--r-line); }
+.reader-formula-name { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 0.8rem; margin-bottom: 0.5rem; }
+.reader-formula-name span { color: var(--r-muted); font-size: 14px; }
+.reader-formula-code { margin: 0 0 0.5rem; padding: 0.85rem 1rem; background: var(--r-code); border: 1px solid var(--r-line); border-radius: 8px; overflow-x: auto; font-family: var(--font-jetbrains-mono), "JetBrains Mono", monospace; font-size: 14.5px; line-height: 1.65; }
+.reader-formula-code code { background: none; padding: 0; font-size: inherit; }
+.reader-formula-note { margin: 0 0 0.6rem; color: var(--r-accent); font-size: 15px; }
+
+/* Nội dung markdown cũ: chip liên kết, khối EN, ảnh nền trắng */
+.practice-prose a.lesson-chip { display: inline; padding: 0; border: none; background: none; font-size: inherit; text-decoration: underline; text-decoration-color: var(--r-accent); text-underline-offset: 3px; }
+.practice-prose a.lesson-chip::before { content: none; }
+.practice-prose button.slide-chip { font-family: inherit; font-size: 0.9em; color: var(--r-accent); background: none; border: 1px solid var(--r-line); border-radius: 999px; padding: 0 0.6rem; cursor: pointer; }
+.practice-prose button.slide-chip:hover { border-color: var(--r-accent); }
+.practice-prose button.slide-chip::before { content: none; }
+.practice-prose blockquote.en-block { border-left-color: var(--r-line); font-size: 15px; }
+.practice-prose .en-badge { font-family: var(--font-jetbrains-mono), monospace; font-size: 11px; letter-spacing: 0.12em; color: var(--r-muted); border: 1px solid var(--r-line); border-radius: 4px; padding: 0 0.35rem; margin-right: 0.4rem; }
+.practice-prose blockquote.answer-block { border-left-color: var(--r-accent); color: var(--r-fg); }
+.practice-prose img:not([src*="-light.png"]):not([src*="-dark.png"]) { background: #fff; padding: 10px; border-radius: 8px; border: 1px solid var(--r-line); }
+.practice-prose hr { border: none; border-top: 1px solid var(--r-line); margin: 2rem 0; }
+.practice-prose h4 { font-weight: 700; margin: 1.4em 0 0.5em; }
