@@ -88,6 +88,28 @@ Dữ liệu giá nhà có vài căn bị nhập sai thêm số 0 (giá thật 3 
 Nghiêng về **L1** (bền hơn), nhưng việc đầu tiên là **phát hiện và sửa các điểm sai** ([[bài:missing-values-outliers]]), vì L2 sẽ bị kéo mạnh bởi vài giá trị sai do phạt bình phương. Chọn loss chỉ là giảm nhẹ hậu quả; làm sạch dữ liệu mới giải quyết nguyên nhân.
 :::
 
+## Tự cài lại bằng NumPy
+
+Chạy lại đúng bộ số giá nhà ở trên để thấy mỗi con số tự ra:
+
+```python
+import numpy as np
+pred = np.array([3.45, 3.9, 2.12, 2.9])
+actual = np.array([3.75, 4.12, 2.2, 2.3])
+e = pred - actual
+l1 = np.sum(np.abs(e))
+l2 = np.sum(e ** 2)
+print("L1:", l1)                       # 1.2
+print("L2:", l2)                       # 0.5048
+print("MAE:", l1 / len(e))             # 0.3
+print("RMSE:", np.sqrt(l2 / len(e)))   # 0.3552...
+delta = 0.5                            # Huber
+huber = np.where(np.abs(e) <= delta, 0.5 * e**2, delta * (np.abs(e) - 0.5 * delta))
+print("Huber:", huber.sum())           # 0.2474
+y = np.array([1, 2, 3, 100])           # hằng số tốt nhất: L1 là median, L2 là mean
+print(np.mean(y), np.median(y))        # 26.5  2.5
+```
+
 ## Loss khác metric
 
 **Loss** là con số máy dùng để **học** (cần mượt, có đạo hàm). **Metric** là con số con người dùng để **đánh giá** (cần dễ hiểu theo nghiệp vụ). Hai thứ có thể trùng (MSE vừa là loss vừa là cách báo cáo), nhưng cũng có thể khác: bài phân loại thường huấn luyện bằng một loss mượt (log loss) nhưng báo cáo accuracy, precision, recall. Loss tính trên **train** để cập nhật; ta so sánh model bằng metric trên dữ liệu **chưa thấy** ([[bài:train-test-split]], [[bài:regression-metrics]]).
@@ -149,149 +171,3 @@ WANT: Bạn có checklist chẩn đoán có hệ thống, bắt đầu từ vi�
 :::next
 Loss mới chỉ **đo** sai số trên dữ liệu model đã thấy. Muốn biết model đoán tốt trên dữ liệu **chưa thấy** thì phải chia dữ liệu cẩn thận — đó là nội dung của [[bài:train-test-split]].
 :::
-
-## [sâu] Phần mở đầu gốc
-
-:::intro Đọc xong bài này bạn làm được
-- Giải thích bằng lời thường: loss là gì, vì sao model **cần** nó để học.
-- Tính tay L1 và L2 loss, và nói được vì sao L2 "nhạy outlier" hơn.
-- Chọn L1 hay L2 cho một bài toán có dữ liệu nhiễu, và biện luận được lựa chọn đó.
-:::
-
-Ở bài [[bài:model-training-pipeline]], model nhận feature vector và nhả ra một
-`prediction`. Nhưng chỉ có prediction thì chưa biết model đang đoán **tốt hay dở**.
-Ta cần một **con số duy nhất** nói "sai bao nhiêu" — con số đó là **loss**.
-Loss nhỏ nghĩa là prediction gần label; loss lớn nghĩa là xa. Đây cũng là
-tín hiệu để model biết cần chỉnh tham số theo hướng nào.
-
-> **EN:** A prediction alone doesn't tell you whether a model is doing well. A
-> **loss** is a single number measuring how wrong the predictions currently are:
-> smaller means closer to ground truth. It is also the signal the model uses to
-> decide which direction to adjust its parameters.
-
-:::slides 19-21 | Slide 19–21: ví dụ giá nhà, L1/L2 và đồ thị hai hàm loss
-:::
-
-## [sâu] Loss nằm ở đâu trong vòng huấn luyện
-
-```
-feature matrix → [Model] → prediction ─┐
-                                         ├──> so sánh ──> loss
-                              label ────┘
-                                         │
-                    update  <───────────┘
-```
-
-- `prediction` vs `label`: model đoán, còn `label` là giá trị thật đã biết trong tập huấn luyện.
-- `loss`: hàm nhận (prediction, label), trả về **một con số** đo sai lệch.
-- `update`: loss được dùng để chỉnh lại tham số của model. Lặp lại nhiều vòng → loss giảm dần → model "học".
-
-Quan trọng: loss là thước đo **model dùng để tự học**, khác với metric (accuracy, MAE…) là thước đo **con người dùng để đánh giá**.
-Hai thứ thường trùng nhau trong regression nhưng không bắt buộc — xem câu hỏi phỏng vấn B2.
-
-> **EN:** Features flow through the model to produce a `prediction`, which is compared
-> with the known `label` to compute the `loss`. That value drives the parameter `update`
-> — the core training loop. A loss is what the *model* optimizes; a metric is what
-> *humans* use to judge it.
-
-## [sâu] L1 và L2 — hai cách phạt sai lệch
-
-:::formula
-**L1 loss** (Least Absolute Deviations / Absolute Error):
-```
-L1 = Σ |y_prediction − y_actual|
-```
-<!-- note: bậc 1 → phạt đều -->
-Cộng đều trị tuyệt đối các sai lệch — không khuếch đại sai lệch lớn. Model có
-xu hướng sửa đều ở nhiều điểm thay vì dồn sức vào một điểm sai nặng.
-
-**L2 loss** (Least Square Errors / Squared Error):
-```
-L2 = Σ (y_prediction − y_actual)²
-```
-<!-- note: bậc 2 → phạt nặng outlier -->
-Bình phương sai lệch → sai lệch lớn bị khuếch đại mạnh. Model nhạy với outlier
-hơn, ưu tiên sửa điểm sai nhiều nhất trước.
-:::
-
-> **EN:** L1 sums absolute errors, so no single error is amplified. L2 sums squared
-> errors, so large deviations dominate the total — the model becomes far more
-> sensitive to outliers and chases the worst-predicted points first.
-
-### Chia trung bình thì sao?
-
-Slide dùng tổng (`Σ`). Trong thực tế người ta thường chia cho số mẫu `n` để loss không phụ thuộc vào việc dữ liệu có bao nhiêu dòng:
-
-| Dạng | Công thức | Tên thường gặp |
-|---|---|---|
-| L1 trung bình | `(1/n) Σ \|ŷ − y\|` | MAE (Mean Absolute Error) |
-| L2 trung bình | `(1/n) Σ (ŷ − y)²` | MSE (Mean Squared Error) |
-| Căn của MSE | `√MSE` | RMSE — cùng đơn vị với label, dễ đọc hơn |
-
-Chia cho `n` không đổi hướng tối ưu, chỉ đổi thang đo. Hai metric MAE/RMSE sẽ được dùng lại ở bài [[bài:regression-metrics]].
-
-Ứng dụng cụ thể ở module 02: [[bài:linear-regression]] học hệ số bằng cách tối thiểu tổng bình phương residual (OLS).
-
-> **EN:** In module 02, Linear Regression applies squared loss to learn coefficients by ordinary least squares.
-
-### Vì sao L2 "dễ học" hơn về mặt toán
-
-Model học bằng cách đi ngược hướng đạo hàm của loss. Đạo hàm L2 theo sai lệch `e` là `2e`: sai nhỏ thì bước chỉnh nhỏ → hội tụ êm quanh điểm đúng. Đạo hàm L1 là `±1` không đổi và **không xác định tại 0** → bước chỉnh luôn cùng độ lớn, dễ dao động quanh đáy. Đó là lý do L2 phổ biến khi huấn luyện, còn L1 phổ biến khi cần **chống outlier**.
-
-### Một phương án dung hòa: Huber loss
-
-Huber dùng dạng bình phương khi sai lệch nhỏ (êm như L2) và chuyển thành tuyến tính khi sai lệch lớn (bền như L1), với ngưỡng `δ`:
-
-```
-Huber(e) = 1/2 e²              nếu |e| ≤ δ
-         = δ (|e| − δ/2)     nếu |e| > δ
-```
-
-:::pitfall Nhầm lẫn hay gặp
-- "Loss nhỏ = model tốt": chỉ đúng nếu loss tính trên **dữ liệu chưa thấy** (test). Loss trên train nhỏ mà test lớn là overfitting (sẽ gặp ở bài [[bài:train-test-split]]).
-- So sánh L1 và L2 bằng **con số**: 1.20 và 0.5048 không so sánh được với nhau, vì khác thang đo. Chỉ so sánh cùng loại loss giữa hai model.
-- Quên rằng loss **tổng** tăng theo số dòng; muốn so giữa hai tập dữ liệu khác kích thước thì phải chia `n`.
-:::
-
-## [sâu] Ví dụ tay: dự đoán giá nhà
-
-:::worked Giá nhà (tỉ VND) — đúng bộ số trên slide 19
-| Diện tích | Thành phố | Prediction | Label | Sai lệch (pred − label) |
-|---|---|---|---|---|
-| 40 | HCM | 3.45 | 3.75 | −0.30 |
-| 60 | Hà Nội | 3.9 | 4.12 | −0.22 |
-| 120 | Hải Dương | 2.12 | 2.2 | −0.08 |
-| 50 | Huế | 2.9 | 2.3 | **+0.60** (outlier) |
-
-- L1 = 0.30 + 0.22 + 0.08 + 0.60 = **1.20** → MAE = 1.20 / 4 = **0.30**
-- L2 = 0.30² + 0.22² + 0.08² + 0.60² = 0.09 + 0.0484 + 0.0064 + 0.36 = **0.5048** → MSE = **0.1262**, RMSE ≈ **0.3552**
-- Huber (δ = 0.5) = 0.045 + 0.0242 + 0.0032 + 0.175 = **0.2474**
-
-Nhìn riêng dòng Huế: nó đóng góp 0.60/1.20 = **50%** vào L1, nhưng 0.36/0.5048 ≈ **71%** vào L2. Một điểm sai nặng "chiếm sóng" L2 nhiều hơn hẳn.
-:::
-
-## [sâu] Code: tự cài lại
-
-```python
-import numpy as np
-
-pred = np.array([3.45, 3.9, 2.12, 2.9])
-actual = np.array([3.75, 4.12, 2.2, 2.3])
-e = pred - actual
-
-l1 = np.sum(np.abs(e))
-l2 = np.sum(e ** 2)
-print("L1:", l1)                       # 1.2
-print("L2:", l2)                       # 0.5048
-print("MAE:", l1 / len(e))             # 0.3
-print("RMSE:", np.sqrt(l2 / len(e)))   # 0.3552...
-
-# Huber, delta = 0.5
-delta = 0.5
-huber = np.where(np.abs(e) <= delta, 0.5 * e**2, delta * (np.abs(e) - 0.5 * delta))
-print("Huber:", huber.sum())           # 0.2474
-
-# Điểm khác biệt cốt lõi: hằng số "tốt nhất" cho L1 là median, cho L2 là mean
-y = np.array([1, 2, 3, 100])
-print(np.mean(y), np.median(y))        # 26.5  2.5
-```
