@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { Check, X } from "lucide-react";
 import type { TopicData } from "@/lib/markdown";
 import type { Block, QuizTier } from "@/lib/blocks";
 import { renderMarkdown } from "@/lib/renderMarkdown";
@@ -32,6 +32,36 @@ function Exercise({ block }: { block: Extract<Block, { type: "exercise" }> }) {
         </>
       )}
     </div>
+  );
+}
+
+function PopDetail({ title, md }: { title: string; md: string }) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); };
+  }, [open]);
+  return (
+    <>
+      <button type="button" className="reader-pop-btn" onClick={() => setOpen(true)}>
+        <span aria-hidden>＋</span> Giải thích chi tiết: {title}
+      </button>
+      {open && (
+        <div className="reader-modal-overlay" onClick={() => setOpen(false)} role="dialog" aria-modal="true" aria-label={title}>
+          <div className="reader-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="reader-modal-head">
+              <strong>{title}</strong>
+              <button type="button" onClick={() => setOpen(false)} aria-label="Đóng"><X size={20} /></button>
+            </div>
+            <div className="reader-modal-body"><Prose md={md} /></div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -92,6 +122,8 @@ function BlockView({ block, storeKey }: { block: Block; storeKey: string }) {
       return <div className="reader-out"><Prose md={block.md} /></div>;
     case "recap":
       return <div className="reader-recap"><div className="reader-label">Nhớ lại</div><Prose md={block.md} /></div>;
+    case "pop":
+      return <PopDetail title={block.title} md={block.md} />;
     case "more":
       return (
         <details className="reader-more">

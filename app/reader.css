@@ -85,3 +85,14 @@ html.reader-mode[data-reader-theme="dark"] .practice-prose img[src$="-light.png"
 .reader-card:hover { border-color: var(--r-accent); }
 .reader-flow { display: flex; flex-wrap: wrap; gap: 0.4rem 0.6rem; align-items: center; font-size: 14px; color: var(--r-muted); margin: 0 0 2.5rem; }
 .reader-flow span.chip { padding: 0.15rem 0.65rem; border: 1px solid var(--r-line); border-radius: 999px; color: var(--r-fg); }
+
+/* ===== Nút và hộp chi tiết (pop up) ===== */
+.reader-pop-btn { display: inline-flex; align-items: center; gap: 0.4rem; margin: 0.2rem 0 1.4rem; padding: 0.3rem 0.8rem; font-family: inherit; font-size: 14px; line-height: 1.5; color: var(--r-accent); background: none; border: 1px solid var(--r-line); border-radius: 999px; cursor: pointer; }
+.reader-pop-btn:hover { border-color: var(--r-accent); }
+.reader-modal-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(0, 0, 0, 0.55); display: flex; align-items: flex-start; justify-content: center; padding: 3vh 1rem; overflow-y: auto; }
+.reader-modal { width: 100%; max-width: 46rem; background: var(--r-bg); color: var(--r-fg); border: 1px solid var(--r-line); border-radius: 12px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45); }
+.reader-modal-head { position: sticky; top: 0; display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 0.9rem 1.25rem; background: var(--r-bg); border-bottom: 1px solid var(--r-line); border-radius: 12px 12px 0 0; z-index: 1; }
+.reader-modal-head button { background: none; border: none; color: var(--r-muted); cursor: pointer; display: flex; }
+.reader-modal-head button:hover { color: var(--r-fg); }
+.reader-modal-body { padding: 1.25rem 1.5rem 2rem; font-size: 16.5px; line-height: 1.8; }
+.reader-modal-body .practice-prose h3 { margin-top: 1.6em; }

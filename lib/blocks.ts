@@ -25,7 +25,8 @@ export type BoxKind =
   | "check"
   | "ask"
   | "out"
-  | "more";
+  | "more"
+  | "pop";
 
 export interface QuizItem {
   q: string;
@@ -50,7 +51,7 @@ export type Block =
 
 const BOX_KINDS: BoxKind[] = [
   "intro", "worked", "compare", "pitfall", "recap", "next", "note",
-  "goal", "learn", "code", "see", "en", "check", "ask", "out", "more",
+  "goal", "learn", "code", "see", "en", "check", "ask", "out", "more", "pop",
 ];
 
 const FENCE_RE = /^\s*(```|~~~)/;

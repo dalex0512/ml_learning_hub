@@ -281,6 +281,60 @@ Cách sửa là **StandardScaler**: đổi mỗi cột thành "lệch bao nhiêu
 
 Ví dụ (số tự soạn): một cột có trung bình 120 và độ lệch chuẩn 30, thì giá trị 150 thành (150 − 120) / 30 = 1. Mọi cột đều thành cùng một thước: 0 là trung bình, 1 là cao hơn một độ lệch chuẩn.
 
+:::pop Độ lệch chuẩn (std) tính như thế nào
+Độ lệch chuẩn đo **một giá trị thường cách trung bình bao xa**. Công thức qua 4 bước:
+
+1. Tính trung bình: `mean = (x1 + x2 + … + xn) / n`.
+2. Với mỗi giá trị, lấy hiệu so với trung bình: `x − mean`.
+3. Bình phương từng hiệu, cộng lại rồi chia cho `n`. Kết quả gọi là **phương sai** (variance).
+4. Lấy căn bậc hai của phương sai. Đó là std.
+
+> std = √( [ (x1 − mean)² + (x2 − mean)² + … + (xn − mean)² ] / n )
+
+### Ví dụ làm tay (số tự soạn)
+
+Glucose của 3 người: `100, 120, 140`. Trung bình là 120.
+
+| Giá trị | x − mean | Bình phương |
+|---|---|---|
+| 100 | −20 | 400 |
+| 120 | 0 | 0 |
+| 140 | +20 | 400 |
+| | | **Tổng = 800** |
+
+- Phương sai = 800 / 3 = 266.67
+- std = √266.67 = **16.33**
+
+Đọc kết quả: "một người trong nhóm này thường cách trung bình khoảng 16 đơn vị". Hai người cách 20, một người cách 0, nên 16.33 nằm giữa là hợp lý.
+
+### Hai câu hỏi hay gặp
+
+**Vì sao bình phương rồi mới căn?** Hiệu −20 và +20 nếu cộng thẳng sẽ triệt tiêu thành 0, dù hai người đều cách xa trung bình. Bình phương làm mọi hiệu thành số dương. Căn ở cuối đưa đơn vị về như ban đầu (mg/dL chứ không phải mg²/dL²). Bình phương còn phạt giá trị xa nặng hơn: người cách 40 đóng góp 1600, gấp 4 lần người cách 20.
+
+**Chia cho `n` hay `n − 1`?**
+
+| Phiên bản | Chia cho | Với ví dụ trên | Dùng ở |
+|---|---|---|---|
+| Std tổng thể (population) | `n` | 16.33 | `StandardScaler`, `numpy.std` |
+| Std mẫu (sample) | `n − 1` | 20.00 | `pandas .std()` mặc định |
+
+Với hàng trăm dòng, hai cách chênh rất ít. `StandardScaler` chia cho `n`, nên nếu so `x_train["Glucose"].std()` của pandas với `scaler.scale_[1]` sẽ lệch nhẹ ở chữ số cuối. Để khớp chính xác, dùng `std(ddof=0)`.
+
+### Kiểm tra bằng code
+
+```python
+from sklearn.preprocessing import StandardScaler
+g = np.array([100, 120, 140])
+print(g.mean(), round(g.std(), 2), g.std(ddof=1))
+print(round(np.sqrt(((g - g.mean()) ** 2).mean()), 2))     # tự làm đúng 4 bước
+print(round(x_train["Glucose"].std(ddof=0), 2), round(StandardScaler().fit(x_train).scale_[1], 2))
+```
+
+### Vì sao scaler chia cho std
+
+Sau bước `x − mean`, mọi cột đều xoay quanh 0 nhưng độ rộng vẫn khác nhau (Glucose trải khoảng ±32, Insulin khoảng ±116). Chia cho std của chính cột đó đưa mọi cột về cùng độ rộng: "một đơn vị = một bước chân điển hình của cột". Vì vậy sau chuẩn hoá, std của mọi cột bằng đúng 1.
+:::
+
 Anh thợ may làm hai việc riêng biệt: **đo** người mặc, rồi **cắt vải** theo số đo. Scaler cũng vậy:
 
 ```python
@@ -307,6 +361,88 @@ print(x_test_s.mean(axis=0).round(2))
 Train có trung bình 0 và độ lệch chuẩn 1 cho mọi cột, đúng như thiết kế. Test thì **không** có trung bình đúng 0 (ví dụ 0.15 ở cột đầu), và đó là điều đúng: test được cắt theo số đo của train.
 
 Vì sao test không được tham gia bước **đo**? Bộ test đóng vai bệnh nhân mới sẽ đến sau này. Khi triển khai thật, bạn không có sẵn những bệnh nhân đó để tính trung bình. Nếu lúc thử bạn đo cả bộ test, bạn đã dùng thông tin mà đời thực không bao giờ có, và điểm thu được lạc quan hơn sự thật. Đó là rò rỉ dữ liệu. Quy tắc: `fit` chỉ trên train, test chỉ `transform`.
+
+:::pop fit, transform và vì sao test không được tham gia
+### 1. Scaler là một cuốn sổ ghi số đo
+
+Sau `scaler.fit(x_train)`, scaler chỉ giữ hai dãy số, mỗi cột một số:
+
+| Cột | `mean_` (trung bình) | `scale_` (độ lệch chuẩn) |
+|---|---|---|
+| Pregnancies | 3.74 | 3.31 |
+| Glucose | 120.86 | 32.01 |
+| BloodPressure | 69.42 | 18.50 |
+| SkinThickness | 20.40 | 15.42 |
+| Insulin | 81.44 | 116.14 |
+| BMI | 31.98 | 7.73 |
+| DiabetesPedigreeFunction | 0.47 | 0.34 |
+| Age | 32.91 | 11.49 |
+
+```python
+print(pd.DataFrame({"mean_": scaler.mean_, "scale_": scaler.scale_}, index=x.columns).round(2))
+```
+
+Hai bảng 8 số này là **toàn bộ kiến thức** của scaler. `fit` chưa đổi dữ liệu nào, giống anh thợ may đã ghi số đo vào sổ nhưng chưa cắt vải.
+
+- **Mean** là "người điển hình", trung tâm của cột: Glucose điển hình trong train là 120.86.
+- **Std** là "một bước chân dài bao nhiêu": Glucose thường cách trung tâm khoảng 32 đơn vị, Insulin khoảng 116. Insulin có bước chân dài gấp 3.6 lần Glucose, nên cùng chênh 32 đơn vị thì Glucose là "một bước" còn Insulin chỉ là "0.28 bước".
+
+### 2. `transform` đổi đơn vị sang "số bước chân"
+
+Công thức: **z = (giá trị − mean) / std**. Làm tay với bệnh nhân đầu tiên của train (Glucose = 84):
+
+> z = (84 − 120.86) / 32.01 = −1.15
+
+Nghĩa là "thấp hơn người điển hình 1.15 bước chân". Với Insulin = 579 (giá trị cao nhất của bộ test):
+
+> z = (579 − 81.44) / 116.14 = 4.28
+
+Nghĩa là "xa người điển hình hơn 4 bước chân", rất bất thường. Mọi cột dùng chung một thang, nên mô hình so sánh công bằng được. `transform` không tính lại gì, chỉ dùng số đo trong sổ; vì thế hai dòng `transform` (train và test) dùng **cùng một bộ số đo**.
+
+### 3. Vì sao ba dòng `print` ra kết quả đó
+
+- **Train ra 0 và 1 là tất yếu.** Số đo lấy từ chính nhóm này rồi áp lại cho chính nó, giống lấy chiều cao trung bình của lớp rồi hỏi "trung bình của lớp so với trung bình của lớp" thì dĩ nhiên bằng 0.
+- **Test ra 0.15, 0.01, −0.08… là bình thường.** Test là 154 người khác, không bắt buộc trùng trung bình với train. Cột đầu 0.15 nghĩa là test có số lần mang thai nhỉnh hơn train 0.15 bước chân.
+- **Nếu test ra đúng 0 thì đáng nghi**: có thể bạn đã `fit` trên test, hoặc `fit` cả bộ rồi mới tách.
+- Dòng `+ 0.0` chỉ để máy in `0.` thay vì `-0.` (số 0 âm do làm tròn).
+
+### 4. Thợ may, đối chiếu từng chi tiết
+
+| Thợ may | Scaler |
+|---|---|
+| Đo người, ghi số vào sổ | `fit`: tính mean và std, lưu vào `mean_`, `scale_` |
+| Cắt vải theo số đo | `transform`: áp công thức |
+| Khách mới đến, lấy sổ ra cắt tiếp | `transform` dữ liệu mới, không `fit` lại |
+
+Điểm mấu chốt: **cuốn sổ chỉ được cập nhật bằng bài tập (train), không được cập nhật bằng bài thi (test).**
+
+### 5. Vì sao test không được tham gia bước đo
+
+**Tình huống thật.** Bạn xây hệ thống cho phòng khám. Hôm nay có 614 bệnh nhân cũ để học. Từ ngày mai, bệnh nhân mới đến từng người một và mỗi người được đổi bằng sổ số đo đã chốt: `scaler.transform(bệnh_nhân_mới)`. Bạn không thể chờ mọi bệnh nhân tương lai đến đủ rồi mới tính trung bình.
+
+**Bộ test phải mô phỏng đúng điều đó.** Nó đóng vai bệnh nhân tương lai. Nếu lúc thử bạn đo cả test, hệ thống đã biết trước thông tin về những người "chưa đến". Phép thử thành gian lận: điểm trông tốt nhưng đời thật không đạt được.
+
+Số liệu thật, với người test có Insulin = 579:
+
+| Đo bằng | Mean Insulin | Std Insulin | z của 579 |
+|---|---|---|---|
+| **Đúng:** chỉ train | 81.44 | 116.14 | **4.284** |
+| **Sai:** cả bộ dữ liệu | 79.80 | 115.17 | 4.335 |
+
+Scaler đã "thấy" cả những người test nên số đo xê dịch. Với 614 người, thêm 154 người làm số đo đổi rất ít, nên rò rỉ **nhỏ**, nhưng nó có hướng: mô hình đã được chuẩn bị cho dữ liệu mà lẽ ra nó chưa biết.
+
+### 6. Khi nào rò rỉ lớn, khi nào nhỏ
+
+Nếu bạn cố tình `fit` trên toàn bộ dữ liệu, accuracy ở bài này vẫn là 0.7532, y hệt cách đúng. Vì scaler chỉ học 16 con số, và thêm test gần như không làm mean và std đổi. Nhưng với các bước **học nhiều hơn** (điền giá trị thiếu theo nhóm, chọn feature theo tương quan với nhãn, mã hoá category theo trung bình của nhãn) rò rỉ có thể làm điểm tăng giả tạo rất nhiều. Dữ liệu nhỏ hoặc có outlier cũng làm scaler rò rỉ mạnh hơn. Vì vậy quy tắc phải thành phản xạ: **mọi thứ "học từ dữ liệu" chỉ được học từ train.**
+
+### 7. Ba cách dễ phạm lỗi
+
+1. **`fit_transform` trên toàn bộ `x` rồi mới chia.** Lỗi phổ biến nhất. Cách tránh: chia trước, `fit` sau.
+2. **`scaler.fit_transform(x_test)`.** Code chạy không báo gì nhưng test bị đo bằng thước của chính nó (mean ra đúng 0).
+3. **Chạy lại ô scale hai lần khi ghi đè `x_train`.** Dữ liệu bị chuẩn hoá hai lần mà không báo lỗi. Đó là lý do bài dùng tên mới `x_train_s`.
+
+Pipeline giải quyết cả ba: `pipe.fit(x_train, y_train)` tự `fit` scaler chỉ trên train, `pipe.predict(x_test)` tự `transform` test.
+:::
 
 Kiểm tra xem scaler đã sửa vấn đề ban đầu chưa:
 
