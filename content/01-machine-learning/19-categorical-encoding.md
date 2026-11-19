@@ -1,7 +1,7 @@
 ---
 title: Step 3.3 — Mã hóa categorical features (Ordinal, One-hot, Hash, Embedding)
 order: 19
-description: "Đổi chữ thành số mà không bịa ra thứ tự: ordinal, one-hot, hash và embedding, và quy tắc fit trên train."
+description: "Đổi chữ thành số mà không bịa ra thứ tự: ordinal với categories (slide 48), one-hot, hash và word embedding (slide 49) kèm ưu nhược, và quy tắc fit trên train."
 slides: 48-49
 needs: [feature-and-data-types, feature-scaling]
 tags: [encoding, one-hot, ordinal, hash, embedding, cardinality]
@@ -11,11 +11,11 @@ tags: [encoding, one-hot, ordinal, hash, embedding, cardinality]
 
 :::intro Mục tiêu bài này
 - Hiểu vì sao đánh số thẳng cho nhóm không thứ tự tạo ra **thứ tự và khoảng cách giả**.
-- Chọn giữa **ordinal**, **one-hot**, **hash** và **embedding**.
-- Làm đúng quy tắc: encoder `fit` trên train và xử lý được nhóm lạ ở test.
+- Chọn giữa **ordinal** (slide 48), **one-hot**, **hash** và **word embedding** (slide 49), nêu ưu nhược của từng cách.
+- Làm đúng quy tắc: encoder `fit` trên train, chỉ rõ thứ tự khi ordinal, và xử lý được nhóm lạ ở test.
 :::
 
-Model chỉ làm việc với số, nên cột chữ như `Color = Red, Green, Blue` phải đổi sang số. Cách "hiển nhiên" là đánh số: Red = 0, Green = 1, Blue = 2. Cách này ngầm nói một điều mà dữ liệu không hề nói.
+Model chỉ làm việc với số, nên cột chữ như `Color = Red, Green, Blue, Black` phải đổi sang số. Cách "hiển nhiên" là đánh số: Red = 0, Green = 1, Blue = 2, Black = 3. Cách này ngầm nói một điều mà dữ liệu không hề nói.
 
 :::predict
 Với Red = 0, Green = 1, Blue = 2, một model dùng khoảng cách sẽ coi **Red xa Blue** gấp mấy lần **Red xa Green**? Điều đó có đúng với màu sắc không?
@@ -23,37 +23,62 @@ Với Red = 0, Green = 1, Blue = 2, một model dùng khoảng cách sẽ coi **
 Khoảng cách Red đến Blue là 2, Red đến Green là 1: model coi **Red xa Blue gấp đôi** Red xa Green. Điều đó **không đúng**: ba màu không có thứ tự, không cái nào "ở giữa". Đánh số thẳng đã tự bịa ra một thứ tự và khoảng cách không có trong dữ liệu.
 :::
 
-## Ordinal: khi nhóm thật sự có thứ tự
+## Ordinal: khi nhóm thật sự có thứ tự (slide 48)
 
-Cỡ áo S < M < L hay mức hài lòng "thấp < vừa < cao" có thứ tự thật. Mã hóa theo thứ tự (S = 0, M = 1, L = 2) là hợp lý, với `OrdinalEncoder` và danh sách thứ tự chỉ rõ. Lưu ý: khoảng cách giữa các mức **chưa chắc đều** (từ S lên M có thật bằng từ M lên L không?), nên đây vẫn là một giả định.
+Cỡ áo XS < S < M < L < XL có thứ tự thật. Slide 48 dùng `OrdinalEncoder` và **chỉ rõ thứ tự bằng `categories`**:
 
-## One-hot: mỗi nhóm một cột 0/1
+```python
+scaler = OrdinalEncoder(categories=[["XS", "S", "M", "L", "XL"]])
+after = scaler.fit_transform(before)    # XL -> 4, L -> 3, M -> 2, S -> 1, XS -> 0
+```
 
-:::steps
-Cột `Color` có ba giá trị. Tạo **ba cột mới**, mỗi cột ứng với một màu.
-@step
-Mỗi hàng chỉ có đúng **một cột bằng 1**: Red thành (1, 0, 0); Green thành (0, 1, 0); Blue thành (0, 0, 1).
-@step
-Khoảng cách giữa hai màu bất kỳ đều bằng √2 ≈ **1.414**: mọi cặp cách đều nhau, không còn thứ tự giả.
-@step
-Nhược điểm: số cột tăng theo số nhóm. Cột `Thành phố` có 1000 giá trị sẽ thành 1000 cột, phần lớn là 0.
+Phần `categories` **rất quan trọng**. Nếu bỏ nó đi, scikit-learn tự sắp theo **bảng chữ cái**: L = 0, M = 1, S = 2, XL = 3, XS = 4: kết quả sai, vì lúc đó XL (3) nhỏ hơn XS (4). Với danh sách `['XL','L','S','M','XS']`, cách mặc định cho `[3, 0, 2, 1, 4]` còn cách chỉ rõ thứ tự cho `[4, 3, 1, 2, 0]`. Lưu ý thêm: khoảng cách giữa các bậc **chưa chắc đều** (từ S lên M có thật bằng từ L lên XL không?), nên ordinal vẫn là một giả định.
+
+:::slides 48 | Slide 48: OrdinalEncoder cho ordinal features, chỉ rõ thứ tự bằng categories
 :::
 
-## Hash và embedding: khi có quá nhiều nhóm
+## Các cách mã hóa nominal (slide 49)
 
-- **Hash encoding:** dùng một hàm băm để đưa mỗi nhóm vào **một trong số cột cố định** (ví dụ 16 cột). Số cột không tăng theo số nhóm, nhưng có **va chạm** (hai nhóm cùng vào một cột).
-- **Embedding:** mỗi nhóm là một **vector học được**; các nhóm giống nhau (về ngữ nghĩa) có vector gần nhau. Dùng cho từ ngữ và nhóm rất nhiều. Độ gần đo bằng **cosine similarity**: hai vector (1, 0) và (0.8, 0.6) có cosine = 0.8 (khá giống); (1, 0) và (0, 1) có cosine = 0 (không liên quan).
+Với nhóm **không thứ tự** (nominal), slide 49 đưa ba cách, kèm ưu nhược:
+
+| Cách | Ví dụ trên slide | Ưu | Nhược |
+|---|---|---|---|
+| **One-hot** | Color: Red → 1,0,0,0; Green → 0,1,0,0; Blue → 0,0,1,0; Black → 0,0,0,1 | đơn giản | dữ liệu **thưa** (nhiều số 0), số cột tăng theo số nhóm |
+| **Hash** | Country: USA → 1,0,0; UK → 0,0,1; Korea → 0,1,0; **Russia → 1,0,0** | đơn giản, ít thưa hơn | **va chạm** (USA và Russia cùng mã), không suy ngược được |
+| **Word embedding** | Animal: Dog → 0.27, −0.31, −0.53; Lion → −0.7, 0.61, 0.42; ... | tiết kiệm bộ nhớ, **học được quan hệ** | cần model như word2vec, có thể cần nhiều chiều |
+
+:::slides 49 | Slide 49: các cách mã hóa nominal features, one-hot, hash, word embedding
+:::
+
+Hãy tự thử với hai cột Color và Size; xem mã số và bảng khoảng cách giữa các giá trị.
+
+:::widget encode-table
+:::
+
+:::steps
+**One-hot:** cột `Color` có 4 giá trị nên tạo **4 cột**, mỗi cột ứng một màu. Mỗi hàng đúng **một cột bằng 1**. (scikit-learn sắp cột theo bảng chữ cái nên thứ tự cột có thể khác slide, ý nghĩa như nhau.)
+@step
+Khoảng cách giữa hai màu bất kỳ đều là √2 ≈ **1.414**: mọi cặp cách đều nhau, không còn thứ tự giả.
+@step
+Nhược điểm: cột `Thành phố` có 1000 giá trị sẽ thành 1000 cột, phần lớn là 0. Khi đó cân nhắc hash hoặc embedding.
+@step
+**Hash:** dùng một hàm băm đưa mỗi nhóm vào **một trong số cột cố định** (ví dụ 3 cột). Với hàm băm minh họa "tổng mã ký tự chia 3 lấy dư": USA → 2, UK → 1, Korea → 0, Russia → 1, nên **UK và Russia va chạm** (cùng cột). Số cột không đổi dù có thêm hàng nghìn nước, đổi lại là chấp nhận va chạm.
+:::
+
+## Embedding: khoảng cách mang ý nghĩa
+
+Mỗi nhóm là một **vector học được**, các nhóm giống nhau về ngữ nghĩa nằm gần nhau. Độ gần đo bằng **cosine similarity** (gần 1 là cùng hướng, gần −1 là ngược hướng). Với vector trên slide: **Lion và Tiger có cosine 0.999** (hai loài mèo lớn, gần như cùng hướng), trong khi Dog và Lion có cosine −0.879 (khác hẳn). Đó là điều one-hot không làm được: trong one-hot, Lion cách Tiger và cách Dog **như nhau**.
+
+## Chọn cách nào, và quy tắc fit
 
 | Tình huống | Chọn |
 |---|---|
-| Nhóm có thứ tự rõ | Ordinal |
+| Nhóm có thứ tự rõ | Ordinal, **chỉ rõ `categories`** |
 | Ít nhóm, không thứ tự | One-hot |
 | Rất nhiều nhóm, cần số cột cố định | Hash |
-| Từ ngữ, nhóm cần mang ngữ nghĩa | Embedding |
+| Từ ngữ, nhóm rất nhiều cần mang ngữ nghĩa | Embedding |
 
-## Fit trên train, và nhóm lạ ở test
-
-Encoder cũng **học từ dữ liệu** (danh sách nhóm), nên `fit` chỉ trên train. Nếu test có một nhóm train chưa từng thấy (ví dụ màu Purple), encoder không có cột cho nó: với `OneHotEncoder` hãy đặt `handle_unknown="ignore"` để cột one-hot toàn 0 thay vì báo lỗi.
+Encoder cũng **học từ dữ liệu** (danh sách nhóm), nên `fit` chỉ trên train. Nếu test có một nhóm train chưa từng thấy (ví dụ màu Purple), `OneHotEncoder` sẽ báo lỗi trừ khi đặt `handle_unknown="ignore"` (cột one-hot toàn 0).
 
 :::ck
 Cột `Gender` có hai giá trị Male, Female. Bạn đổi Male = 0, Female = 1. Có vấn đề gì không? Còn cột `City` có 5 giá trị?
@@ -61,13 +86,24 @@ Cột `Gender` có hai giá trị Male, Female. Bạn đổi Male = 0, Female = 
 Với **hai** giá trị thì không có thứ tự giả đáng kể (chỉ một khoảng cách), nên 0/1 ổn; đây cũng chính là one-hot rút gọn một cột. Với **City 5 giá trị**, đánh số 0 đến 4 tạo thứ tự và khoảng cách giả, nên dùng **one-hot**.
 :::
 
-:::slides 48-49 | Slide 48–49: Ordinal, One-hot, Hash và Embedding
+:::ck
+Bạn dùng `OrdinalEncoder()` mặc định cho cột `["XL", "L", "S", "M", "XS"]` và không chỉ định `categories`. Model nhận được mã nào cho XL và XS, và điều đó sai thế nào?
+@answer
+Mặc định sắp theo chữ cái: **XL = 3, XS = 4**. Model sẽ coi XS lớn hơn XL, ngược hoàn toàn với thực tế. Phải truyền `categories=[["XS","S","M","L","XL"]]`.
 :::
 
+## Những hiểu sai thường gặp
+
+- **"Đánh số là mã hóa."** Đánh số chỉ đúng khi nhóm thật sự có thứ tự (và bạn chỉ rõ thứ tự đó).
+- **"One-hot luôn tốt nhất."** Nó thưa và phình số cột khi nhiều nhóm.
+- **"Hash không mất gì."** Có va chạm (hai nhóm cùng mã) và không đảo ngược được.
+- **"Mã hóa xong là dùng được ngay."** Phải `fit` trên train, và xử lý nhóm lạ ở test.
+- **"Cây cũng cần one-hot."** Cây xử lý được mã số theo thứ tự rất tốt, nhưng thứ tự giả vẫn có thể đánh lừa; nhiều thư viện cây có xử lý nhóm riêng.
+
 :::card Mã hóa categorical
-- **Đánh số thẳng** cho nhóm không thứ tự tạo thứ tự và khoảng cách giả.
-- **Ordinal** cho nhóm có thứ tự; **one-hot** (mọi cặp cách đều √2) cho ít nhóm; **hash** khi quá nhiều nhóm; **embedding** khi cần ngữ nghĩa.
-- **One-hot** làm tăng số cột theo số nhóm.
+- **Đánh số thẳng** cho nhóm không thứ tự tạo thứ tự và khoảng cách giả (Red = 0, Green = 1, Blue = 2: Red xa Blue gấp đôi Green).
+- **Ordinal (slide 48)** cho nhóm có thứ tự; **luôn chỉ rõ `categories`** (mặc định theo chữ cái cho XL = 3, XS = 4: sai).
+- **One-hot** (mọi cặp cách đều √2): đơn giản nhưng thưa; **hash** (có va chạm); **embedding** (học được quan hệ: cosine Lion–Tiger 0.999).
 - **Encoder `fit` trên train**; `handle_unknown="ignore"` cho nhóm lạ ở test.
 :::
 
