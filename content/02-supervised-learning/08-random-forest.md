@@ -1,7 +1,7 @@
 ---
 title: "Rừng ngẫu nhiên (Random Forest)"
 order: 8
-description: "Nhiều cây đa dạng (bootstrap, feature ngẫu nhiên) bỏ phiếu ổn định hơn một cây; OOB và số cây."
+description: "Random Forest (slide 78-80): nhiều cây học tập dữ liệu bootstrap rồi bỏ phiếu; tính xác suất đa số, OOB, và đo số cây trên Diabetes."
 slides: 78-80
 needs: [decision-tree, k-fold-cross-validation]
 tags: [random-forest, bagging, bootstrap, ensemble, oob, feature-importance, classification, regression]
@@ -10,26 +10,43 @@ tags: [random-forest, bagging, bootstrap, ensemble, oob, feature-importance, cla
 ## Vì sao kết hợp nhiều cây?
 
 :::intro Mục tiêu bài này
-- Hiểu **Random Forest**: nhiều cây khác nhau bỏ phiếu, ổn định hơn một cây.
-- Hiểu hai nguồn ngẫu nhiên tạo sự **đa dạng**: **bootstrap** và chọn feature ngẫu nhiên.
-- Tính được xác suất bỏ phiếu đa số và hiểu **out-of-bag (OOB)**.
+- Đọc ba slide Random Forest (78 đến 80): một cây so với cả rừng, mỗi cây học một tập dữ liệu, bỏ phiếu đa số.
+- Hiểu hai nguồn ngẫu nhiên tạo sự **đa dạng**: **bootstrap** và chọn feature ngẫu nhiên; tính được xác suất bỏ phiếu đa số.
+- Hiểu **out-of-bag (OOB)** và đọc số đo thật: bao nhiêu cây là đủ, rừng hơn cây đơn bao nhiêu trên Diabetes.
 :::
 
-Hỏi ý kiến **một người** hay **một hội đồng**? Một cây quyết định hay thay đổi và hay học thuộc. Nếu ta huấn luyện nhiều cây và cho chúng **bỏ phiếu**, lỗi riêng của từng cây có thể bù trừ nhau. Hãy tính: năm cây, mỗi cây đúng 70%, và (giả định) mắc lỗi **độc lập**. Đa số (ít nhất 3 trong 5 cây) đúng với xác suất:
+## Đọc slide 78 đến 80
 
-> P = C(5,3)·0.7³·0.3² + C(5,4)·0.7⁴·0.3 + 0.7⁵ = 0.309 + 0.360 + 0.168 = **0.837**
+:::slides 78-80 | Slide 78–80: Random Forest, một cây so với cả rừng, mỗi cây học tập dữ liệu riêng, bỏ phiếu đa số
+:::
 
+- **Slide 78:** bên trái là **một Decision Tree**; bên phải là **cả rừng** gồm nhiều cây nhỏ, mỗi cây có màu riêng và tự đưa ra lớp của mình (ghi Class 1, Class 2...). Ý chính: thay một cây lớn bằng **nhiều cây khác nhau**.
+- **Slide 79:** sơ đồ quy trình. Training Set tách thành **Training Data 1, 2, …, n**; mỗi tập huấn luyện một **Decision Tree** riêng; các cây đi vào ô **Voting (averaging)** rồi ra **Prediction**. Test Set đi qua cùng rừng đó.
+- **Slide 80:** một **Instance** (một quả) đi qua các cây: Tree-1 nói Class A (táo), Tree-2 nói Class A, Tree-n nói Class B (chuối); **Majority-Voting** chọn A, nên **Final-Class** là táo. Đúng bằng đếm phiếu: A thắng 2 so với 1.
+
+## Vì sao bỏ phiếu giúp được
+
+Hỏi ý kiến **một người** hay **một hội đồng**? Một cây quyết định hay thay đổi và hay học thuộc ([[bài:decision-tree]]). Nếu huấn luyện nhiều cây và cho chúng **bỏ phiếu**, lỗi riêng từng cây có thể bù trừ nhau. Hãy tính: năm cây, mỗi cây đúng 70%, và (giả định) mắc lỗi **độc lập**. Đa số (ít nhất 3 trong 5 cây) đúng với xác suất:
+
+:::steps
+Chính xác 3 cây đúng: C(5,3)·0.7³·0.3² = 10 × 0.343 × 0.09 = **0.309**.
+@step
+Chính xác 4 cây đúng: C(5,4)·0.7⁴·0.3 = 5 × 0.2401 × 0.3 = **0.360**.
+@step
+Cả 5 cây đúng: 0.7⁵ = **0.168**. Cộng lại: 0.309 + 0.360 + 0.168 = **0.837**.
+@step
 Từ 70% lên **83.7%** chỉ nhờ bỏ phiếu. Nhưng điều kiện quyết định là **độc lập**: nếu năm cây giống hệt nhau, bỏ phiếu không giúp gì (vẫn 70%).
+:::
 
 :::predict
 Nếu ta cho **cả năm cây học trên toàn bộ dữ liệu train như nhau**, với cùng thuật toán tham lam, các cây sẽ khác nhau nhiều không? Bỏ phiếu giúp được bao nhiêu?
 @answer
-Các cây sẽ **gần như giống hệt nhau**: cùng dữ liệu, cùng cách chia tham lam. Bỏ phiếu giữa các cây giống nhau **gần như không cải thiện gì** so với một cây. Muốn cải thiện, các cây phải **khác nhau**: đó là lý do phải làm cho mỗi cây học từ một góc nhìn khác.
+Các cây sẽ **gần như giống hệt nhau**: cùng dữ liệu, cùng cách chia tham lam. Bỏ phiếu giữa các cây giống nhau **gần như không cải thiện gì** so với một cây. Muốn cải thiện, các cây phải **khác nhau**: đó là lý do mỗi cây học từ một góc nhìn khác (Training Data 1, 2, …, n ở slide 79).
 :::
 
 ## Hai nguồn ngẫu nhiên để các cây khác nhau
 
-1. **Bootstrap (bagging):** mỗi cây học trên một **mẫu bốc có hoàn lại** từ dữ liệu train (cùng kích thước n). Mẫu nào không được chọn gọi là **out-of-bag (OOB)**.
+1. **Bootstrap (bagging):** mỗi cây học trên một **mẫu bốc có hoàn lại** từ dữ liệu train (cùng kích thước n). Mẫu nào không được chọn gọi là **out-of-bag (OOB)**. Đây chính là "Training Data 1, 2, …, n" của slide 79.
 2. **Chọn feature ngẫu nhiên:** ở **mỗi lần chia**, cây chỉ xét một tập con feature ngẫu nhiên (mặc định `sqrt` số feature cho phân loại trong sklearn), nên các cây không đều chọn cùng feature mạnh nhất.
 
 Hãy thử cả hai: bấm "Lấy mẫu mới" để xem bootstrap, và kéo số cây để xem bỏ phiếu.
@@ -37,28 +54,51 @@ Hãy thử cả hai: bấm "Lấy mẫu mới" để xem bootstrap, và kéo s�
 :::widget bootstrap-vote
 :::
 
-Một mẫu **không** được chọn trong n lần bốc với xác suất (1 − 1/n)ⁿ, tiến tới 1/e ≈ **36.8%** khi n lớn; nên mỗi cây thấy khoảng **63.2%** mẫu khác nhau, và 36.8% còn lại là OOB. Vì OOB chưa được cây đó thấy, nó dùng được như một **validation miễn phí** (`oob_score=True`), nhưng vẫn nên giữ bộ test cuối.
+Một mẫu **không** được chọn trong n lần bốc với xác suất (1 − 1/n)ⁿ: 0.349 khi n = 10, 0.366 khi n = 100, tiến tới 1/e ≈ **0.368**. Nên mỗi cây thấy khoảng **63.2%** mẫu khác nhau, và khoảng 36.8% còn lại là OOB. Vì OOB chưa được cây đó thấy, nó dùng như một **validation miễn phí** (`oob_score=True`), nhưng vẫn nên giữ bộ test cuối.
 
-## Chọn số cây và đọc kết quả
+## Số đo thật trên Diabetes
 
-- **Nhiều cây hơn** thường ổn định hơn nhưng lợi ích giảm dần, tốn thời gian và bộ nhớ; thêm cây không gây overfit thêm, nhưng cây quá sâu trên dữ liệu nhiễu vẫn có thể. Chọn bằng cross-validation.
-- **Một cây và cả rừng:** ở Project (CV 5-fold), accuracy trung bình của Tree là **0.704**, của Forest **0.770**: rừng cao hơn và ổn định hơn cây không giới hạn.
-- **Feature importance** cho biết cột nào giảm độ không thuần nhiều nhất qua các cây; đừng đọc như quan hệ nhân quả, và nó thiên về feature có nhiều giá trị.
-- **Không cần scale**; ít cần tinh chỉnh; nặng hơn và khó giải thích hơn một cây; vẫn **không ngoại suy**.
+CV 5-fold có phân tầng (`random_state=42`), `RandomForestClassifier(random_state=0)`; độ lệch là độ lệch chuẩn giữa các fold:
+
+| Số cây | CV accuracy | Độ lệch |
+|---|---|---|
+| 1 | 0.668 | 0.033 |
+| 5 | 0.728 | 0.023 |
+| 25 | 0.750 | 0.013 |
+| 100 | 0.762 | 0.025 |
+| 300 | 0.763 | 0.030 |
+| (một Decision Tree đầy đủ) | 0.700 | |
+
+Đọc: rừng 100 cây hơn một cây khoảng **6 điểm** (0.762 so với 0.700). Lợi ích **giảm dần**: 25 lên 100 cây thêm 0.012, còn 100 lên 300 chỉ thêm 0.001, nằm trong dao động giữa các fold. Thêm cây tốn thời gian và bộ nhớ nhưng không làm xấu đi nhiều.
+
+Trên chia 80/20 (`random_state=42`, 300 cây): **điểm OOB 0.777** (ước lượng không cần test), test **0.747**, train **1.000**. Cả cây đơn lẫn rừng đều chạm train 1.000 vì mỗi cây vẫn sâu hết cỡ; khác biệt nằm ở độ ổn định chứ không phải độ khớp train. Mỗi cây riêng trong rừng chỉ đúng **0.674** trên test (từ 0.519 đến 0.773), vậy mà cả rừng cho 0.747: đúng là "yếu nhưng khác nhau thì bỏ phiếu mạnh". Trên bộ test chỉ 154 mẫu, chênh lệch vài điểm chưa kết luận được, nên số CV đáng tin hơn.
+
+**Feature importance** (độ giảm độ không thuần trung bình): Glucose 0.251, BMI 0.163, Age 0.145, DiabetesPedigreeFunction 0.123, BloodPressure 0.091, Pregnancies 0.080, Insulin 0.075, SkinThickness 0.070. Cùng thứ hạng đầu (Glucose, BMI, Age) với trọng số Logistic ở [[bài:logistic-regression]], nhưng đừng đọc như quan hệ nhân quả; nó cũng thiên về feature có nhiều giá trị khác nhau.
 
 :::ck
 Một đồng nghiệp bảo "thêm cây mãi thì Random Forest sẽ không bao giờ overfit". Đúng hay sai?
 @answer
-**Đúng một nửa.** Thêm cây **giảm phương sai** và thường không làm overfit nặng hơn, nhưng nếu mỗi cây quá sâu trên dữ liệu nhiễu, rừng vẫn có thể bám nhiễu; và nếu feature rò rỉ nhãn, rừng vẫn rò rỉ. Thêm cây không chữa được lỗi dữ liệu.
+**Đúng một nửa.** Thêm cây **giảm phương sai** và thường không làm overfit nặng hơn (100 lên 300 cây gần như không đổi), nhưng nếu mỗi cây quá sâu trên dữ liệu nhiễu, rừng vẫn có thể bám nhiễu (train vẫn 1.000); và nếu feature rò rỉ nhãn, rừng vẫn rò rỉ. Thêm cây không chữa được lỗi dữ liệu.
 :::
 
-:::slides 78-80 | Slide 78–80: Random Forest, bỏ phiếu đa số
-:::
+## Thực hành
+
+- **Không cần scale**, ít cần tinh chỉnh; nặng hơn và khó giải thích hơn một cây; vẫn **không ngoại suy**.
+- Chọn số cây và độ sâu bằng cross-validation ([[bài:k-fold-cross-validation]]); đặt `random_state` để tái lập.
+- So với các mô hình khác trên cùng bảng: [[bài:supervised-algorithms]] (Logistic 0.775 và Forest 0.769 ngang nhau).
+
+## Những hiểu sai thường gặp
+
+- **"Nhiều cây giống nhau thì bỏ phiếu tốt hơn."** Phải khác nhau; nhờ bootstrap và chọn feature ngẫu nhiên.
+- **"Bỏ phiếu luôn nâng 70% lên 83.7%."** Chỉ khi lỗi độc lập, hiếm khi đạt đủ.
+- **"Mỗi cây chỉ dùng một phần dữ liệu nên bỏ phí phần còn lại."** Phần OOB dùng làm validation.
+- **"Random Forest không bao giờ overfit."** Chỉ ổn hơn một cây; dữ liệu rò rỉ hay nhiễu vẫn là vấn đề.
+- **"Importance là nguyên nhân."** Nó chỉ nói cột nào mô hình dùng nhiều.
 
 :::card Random Forest
-- **Nhiều cây bỏ phiếu**; 5 cây độc lập, mỗi cây đúng 70% cho đa số đúng **83.7%**; cây giống nhau thì vote vô nghĩa.
+- **Nhiều cây bỏ phiếu** (slide 79 và 80); 5 cây độc lập, mỗi cây đúng 70% cho đa số đúng **83.7%**; cây giống nhau thì vote vô nghĩa.
 - **Đa dạng** từ bootstrap (mỗi cây thấy ~63.2% mẫu; 36.8% là OOB) và chọn feature ngẫu nhiên mỗi lần chia.
-- **Số cây:** chọn bằng CV; lợi ích giảm dần.
+- **Số đo Diabetes:** một cây CV 0.700, rừng 100 cây 0.762; từ 100 cây trở đi thêm cây gần như không đổi.
 - **Không cần scale**; nặng, khó giải thích hơn một cây; importance không phải nhân quả.
 :::
 
