@@ -1,7 +1,7 @@
 ---
 title: K láng giềng gần nhất (K-Nearest Neighbours — KNN)
 order: 6
-description: "Hỏi K mẫu gần nhất rồi bỏ phiếu: K và thang đo đổi cả người hàng xóm; KNN là lazy learner."
+description: "KNN (slide 75): đo khoảng cách, lấy K gần nhất, bỏ phiếu; chọn K và scale đo trên Diabetes; lazy learner."
 slides: 75
 needs: [feature-scaling, train-test-split, k-fold-cross-validation, classification-metrics, logistic-regression]
 tags: [knn, k-nearest-neighbours, lazy-learning, distance, euclidean, curse-of-dimensionality, classification, instance-based]
@@ -10,17 +10,26 @@ tags: [knn, k-nearest-neighbours, lazy-learning, distance, euclidean, curse-of-d
 ## Không học một đường, chỉ hỏi những người gần nhất?
 
 :::intro Mục tiêu bài này
-- Hiểu ba bước của KNN: **đo khoảng cách, lấy K hàng xóm gần nhất, bỏ phiếu**.
-- Thấy **K** và **thang đo** đổi dự đoán như thế nào.
+- Hiểu ba bước của KNN: **đo khoảng cách, lấy K hàng xóm gần nhất, bỏ phiếu** (slide 75).
+- Thấy **K** và **thang đo** đổi dự đoán thế nào, bằng số đo thật trên Diabetes.
 - Hiểu KNN là **lazy learner**: gần như không học, mọi công sức nằm ở lúc dự đoán.
 :::
 
+## Đọc slide 75
+
+:::slides 75 | Slide 75: K-Nearest Neighbour, trước và sau khi chạy K-NN
+:::
+
+Hình trái ("Before K-NN"): hai nhóm, **Category A** (chấm xanh lục, dưới trái) và **Category B** (chấm cam, trên phải), cùng một **new data point** (chấm xanh dương) chưa có nhãn, nằm gần nhóm A. Mũi tên "K-NN" dẫn sang hình phải ("After K-NN"): điểm mới được gán vào nhóm gần nó nhất (slide ghi "Category 1", tức nhóm xanh lục A) và đổi thành màu của nhóm đó.
+
 Bạn vừa chuyển đến khu mới và muốn đoán một quán thuộc nhóm giá rẻ hay đắt: hỏi **K quán gần nhất** rồi lấy nhóm đông nhất. KNN làm đúng vậy: để đoán một mẫu mới, nó tìm **K mẫu đã biết nhãn gần nhất** (theo khoảng cách) và cho họ bỏ phiếu. Không có đường hay trọng số nào được học.
+
+## Tính tay một dự đoán
 
 :::steps
 Điểm cần đoán q = (4, 4). Năm mẫu đã biết: P1 (4, 5) lớp 0; P2 (6, 4) lớp 1; P3 (4, 1.5) lớp 1; P4 (0.5, 4) lớp 0; P5 (8, 4) lớp 1.
 @step
-**Đo khoảng cách Euclid** từ q: P1 = **1**, P2 = **2**, P3 = **2.5**, P4 = **3.5**, P5 = **4**.
+**Đo khoảng cách Euclid** từ q (căn của tổng bình phương độ lệch): P1 = **1**, P2 = **2**, P3 = **2.5**, P4 = **3.5**, P5 = **4**.
 @step
 **K = 1:** hàng xóm gần nhất là P1 (lớp 0), nên đoán **lớp 0**.
 @step
@@ -38,27 +47,48 @@ Gần như **chỉ theo cột thang lớn** (nhiễu), vì chênh lệch của n
 :::widget knn-play
 :::
 
-## K, thang đo và chi phí
+## Số thật trên Diabetes: chọn K và scale
 
-- **K nhỏ:** nhạy nhiễu, ranh giới răng cưa (K = 1 gần như học thuộc). **K lớn:** mượt hơn, nhưng có thể bỏ lỡ chi tiết. Chọn K bằng **cross-validation**, không bằng điểm train (K = 1 luôn đạt 100% trên train vì mẫu là hàng xóm của chính nó).
-- **Phải scale** ([[bài:feature-scaling]]): thang đo quyết định ai là hàng xóm.
-- **Lazy learning:** `fit` chỉ lưu dữ liệu; mỗi lần `predict` phải tính khoảng cách tới **mọi** mẫu, nên chậm và tốn bộ nhớ khi dữ liệu lớn.
-- **Nhiều feature không liên quan** làm mọi mẫu gần như cách đều nhau, hàng xóm kém ý nghĩa (curse of dimensionality).
-- KNN cũng làm hồi quy: lấy **trung bình** target của K hàng xóm; nó **không ngoại suy** ngoài vùng dữ liệu.
+Cùng một bảng 768 hàng; CV 5-fold có phân tầng (`random_state=42`); "train" đo trên 614 mẫu train (chia 80/20). Thang các cột rất khác nhau: Insulin 0 đến 846, còn DiabetesPedigreeFunction chỉ 0.1 đến 2.4.
+
+| K | Train | CV (có scale) | CV (không scale) |
+|---|---|---|---|
+| 1 | **1.000** | 0.704 | 0.680 |
+| 3 | 0.863 | 0.721 | 0.695 |
+| 5 | 0.806 | 0.728 | 0.698 |
+| 9 | 0.801 | 0.747 | 0.740 |
+| 15 | 0.792 | 0.749 | **0.752** |
+| 25 | 0.770 | 0.741 | 0.745 |
+| 51 | 0.764 | **0.760** | 0.732 |
+
+Đọc: **K = 1 có train 1.000** (mỗi mẫu là hàng xóm của chính nó) nhưng CV chỉ 0.704: học thuộc. K tăng thì train giảm dần còn CV tăng, rồi cả hai tiến lại gần nhau: K lớn **mượt hơn**. Scale giúp rõ ở K nhỏ (K = 5: 0.728 so với 0.698) nhưng không đều ở mọi K (K = 15 không scale lại nhỉnh hơn), vì Insulin và Glucose vừa to thang vừa liên quan tới nhãn. Chênh lệch dưới 0.02 giữa các cấu hình gần nhau chưa đủ kết luận. Quy trình đúng: chọn K bằng CV, đặt scaler trong Pipeline ([[bài:feature-scaling]], [[bài:k-fold-cross-validation]]).
 
 :::ck
 Bạn chọn K bằng cách thử K = 1 đến 30 và lấy K có điểm cao nhất **trên tập train**. Vì sao sai, và K nào sẽ thắng?
 @answer
-**K = 1 sẽ thắng** (100% trên train, mỗi mẫu là hàng xóm của chính nó), nhưng đó là học thuộc. Phải chọn K bằng điểm trên **validation hoặc cross-validation**.
+**K = 1 sẽ thắng** (100% trên train, mỗi mẫu là hàng xóm của chính nó), nhưng đó là học thuộc (CV chỉ 0.704). Phải chọn K bằng điểm trên **validation hoặc cross-validation**.
 :::
 
-:::slides 75 | Slide 75: K-Nearest Neighbours
-:::
+## K, thang đo và chi phí
+
+- **K nhỏ:** nhạy nhiễu, ranh giới răng cưa. **K lớn:** mượt hơn, nhưng có thể bỏ lỡ chi tiết. Dùng K **lẻ** cho bài hai lớp để tránh hòa phiếu.
+- **Phải scale:** thang đo quyết định ai là hàng xóm.
+- **Lazy learning:** `fit` chỉ lưu dữ liệu; mỗi lần `predict` phải tính khoảng cách tới **mọi** mẫu, nên chậm và tốn bộ nhớ khi dữ liệu lớn.
+- **Nhiều feature không liên quan** làm mọi mẫu gần như cách đều nhau, hàng xóm kém ý nghĩa (curse of dimensionality).
+- KNN cũng làm hồi quy: lấy **trung bình** target của K hàng xóm; nó **không ngoại suy** ngoài vùng dữ liệu.
+
+## Những hiểu sai thường gặp
+
+- **"KNN học một mô hình."** Nó chỉ lưu dữ liệu; mọi tính toán nằm ở lúc dự đoán.
+- **"K = 1 chính xác nhất vì train 100%."** Đó là học thuộc; CV chỉ 0.704.
+- **"Khoảng cách không phụ thuộc đơn vị."** Phụ thuộc; không scale thì cột thang lớn át cột thang nhỏ.
+- **"Đa số phiếu là chắc chắn."** K = 3 thắng 2 so với 1 không nói gì về độ chắc; đổi K có thể đổi lớp.
+- **"Thêm feature luôn giúp KNN."** Feature nhiễu làm hàng xóm kém ý nghĩa.
 
 :::card KNN
 - **Ba bước:** đo khoảng cách, lấy K gần nhất, bỏ phiếu (trung bình cho hồi quy).
-- **Đổi K có thể đổi lớp** (ví dụ K = 1 đoán 0, K = 3 đoán 1); chọn K bằng CV.
-- **Scale bắt buộc:** thang đo quyết định người hàng xóm.
+- **Đổi K có thể đổi lớp** (ví dụ K = 1 đoán 0, K = 3 đoán 1); chọn K bằng CV, không bằng train (K = 1 có train 1.000, CV 0.704).
+- **Scale:** thang đo quyết định người hàng xóm (K = 5: 0.728 có scale so với 0.698 không scale).
 - **Lazy:** `fit` chỉ lưu dữ liệu; `predict` chậm; nhiều feature nhiễu làm hàng xóm kém ý nghĩa.
 :::
 
