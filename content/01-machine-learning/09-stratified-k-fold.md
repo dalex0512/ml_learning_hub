@@ -69,8 +69,8 @@ from sklearn.model_selection import StratifiedKFold
 skf = StratifiedKFold(n_splits=4, shuffle=True, random_state=42)
 losses = []
 for train_idx, val_idx in skf.split(X_train_val, y_train_val):
-    X_tr, X_val = X_train_val[train_idx], X_train_val[val_idx]
-    y_tr, y_val = y_train_val[train_idx], y_train_val[val_idx]
+    X_tr, X_val = X_train_val.iloc[train_idx], X_train_val.iloc[val_idx]
+    y_tr, y_val = y_train_val.iloc[train_idx], y_train_val.iloc[val_idx]
     model = train_model(X_tr, y_tr)
     losses.append(evaluate(model, X_val, y_val))
 ```

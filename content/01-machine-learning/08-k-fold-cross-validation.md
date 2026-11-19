@@ -91,8 +91,8 @@ import numpy as np
 kf = KFold(n_splits=4, shuffle=True, random_state=42)
 losses = []
 for train_idx, val_idx in kf.split(X_train_val):
-    X_tr, X_val = X_train_val[train_idx], X_train_val[val_idx]
-    y_tr, y_val = y_train_val[train_idx], y_train_val[val_idx]
+    X_tr, X_val = X_train_val.iloc[train_idx], X_train_val.iloc[val_idx]
+    y_tr, y_val = y_train_val.iloc[train_idx], y_train_val.iloc[val_idx]
     model = train_model(X_tr, y_tr)       # model mới, huấn luyện trên fold train
     loss = evaluate(model, X_val, y_val)  # chấm trên fold validation
     losses.append(loss)

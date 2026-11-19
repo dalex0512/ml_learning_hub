@@ -128,8 +128,8 @@ ct = ColumnTransformer([
     ("onehot", OneHotEncoder(sparse_output=False, handle_unknown="ignore"), ["Que"]),
     ("bool", OrdinalEncoder(categories=[["Không", "Có"]]), ["KTX"]),
 ])
+print(ct.fit_transform(students))   # khớp bảng trên (phải fit trước)
 print(ct.get_feature_names_out())   # ['ordinal__HocLuc' 'onehot__Que_Huế' 'onehot__Que_Hà Nội' ...]
-print(ct.fit_transform(students))   # khớp bảng trên
 ```
 
 `ColumnTransformer` mã hóa nhiều cột cùng lúc, mỗi cột một cách. Nếu dùng `drop="first"` cho Quê thì bỏ cột đầu, còn 4 cột: Huế được hiểu là "cả hai cột còn lại bằng 0".
