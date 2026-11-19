@@ -77,6 +77,20 @@ Giá trị `10` ra **1** sau MinMax nhưng ra **1.863** sau Standard. Hai con s�
 MinMax nói "10 là **giá trị lớn nhất** trong cột, nên đứng ở đầu khoảng 0 đến 1". Standard nói "10 cách trung bình 5 một khoảng **1.863 bước chân**". MinMax cho **vị trí trong khoảng min–max**; Standard cho **khoảng cách so với trung tâm tính theo độ rộng điển hình của cột**.
 :::
 
+## Chạy code của slide 47 trên cột Pregnancies
+
+Slide 47 chạy hai scaler của scikit-learn trên cột `Pregnancies` của Diabetes và in từng cặp **Before / After**. Cột này có min = 0, max = 17, mean = 3.845052, std (chia n) = 3.367384. Đối chiếu một vài giá trị:
+
+| Before | MinMaxScaler: (x − 0) / (17 − 0) | StandardScaler: (x − 3.845) / 3.367 |
+|---|---|---|
+| 0 | 0.000000 | −1.141852 |
+| 1 | 0.058824 | −0.844885 |
+| 6 | **0.352941** | **0.639947** |
+| 8 | 0.470588 | 1.233880 |
+| 17 | 1.000000 | 3.906578 |
+
+Chú ý hai điều: MinMax luôn nằm trong [0, 1] (0 là min, 17 là max), còn Standard **không bị chặn**: giá trị lớn nhất 17 cách mean tới 3.9 độ lệch chuẩn. Phần "Đào sâu" có bản đọc từng dòng code của slide.
+
 ## MinMax hay Standard? Outlier quyết định
 
 Thêm một giá trị cực đoan vào cột trên: `2, 4, 4, 5, 100`.
@@ -147,6 +161,14 @@ Một đồng nghiệp chạy `fit_transform` trên toàn bộ dữ liệu rồi
 @answer
 Con số gần nhau **không làm cho quy trình đúng**. Mean và std đã tính cả hàng test, nên test không còn là "bệnh nhân chưa từng gặp"; điểm đo được lạc quan hơn thực tế dù ít hay nhiều. Làm lại: chia trước, `fit` trên train, `transform` test, hoặc dùng Pipeline để không thể làm sai.
 :::
+
+## Những hiểu sai thường gặp
+
+- **"Scale để model chính xác hơn."** Scale giúp model **dùng khoảng cách hoặc trọng số** học công bằng; với cây và forest nó không đổi gì.
+- **"StandardScaler làm dữ liệu thành phân phối chuẩn."** Không: nó chỉ dời và co giãn (mean 0, std 1), **hình dạng phân phối giữ nguyên**; dữ liệu lệch vẫn lệch.
+- **"Scale cả cột nhãn."** Không: với phân loại, nhãn 0/1 là tên lớp, không scale.
+- **"Scale rồi mới chia train/test cho tiện."** Đó là rò rỉ dữ liệu; chia trước, `fit` trên train.
+- **"Scale xong thì outlier biến mất."** Outlier vẫn còn, chỉ đổi thang; MinMax còn bị nén vì outlier.
 
 :::card Feature scaling
 - **Vấn đề:** cột có số lớn lấn át khoảng cách (Insulin chiếm khoảng 57% khoảng cách trung bình, DPF gần 0%).
