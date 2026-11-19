@@ -16,6 +16,7 @@ import DescribeTable from "./DescribeTable";
 import MissingOutlier from "./MissingOutlier";
 import EncodeTable from "./EncodeTable";
 import VizChooser from "./VizChooser";
+import RegexTester from "./RegexTester";
 import { KnnPlay, GiniCalc, BootstrapVote, SplitBar } from "./ModelWidgets";
 
 /** Đăng ký công cụ tương tác; dùng trong bài bằng  :::widget tên  */
@@ -47,4 +48,5 @@ export const WIDGETS: Record<string, React.ComponentType<{ props?: string }>> = 
   "missing-outlier": MissingOutlier,
   "encode-table": EncodeTable,
   "viz-chooser": VizChooser,
+  "regex-tester": RegexTester,
 };

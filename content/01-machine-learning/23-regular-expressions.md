@@ -1,7 +1,7 @@
 ---
 title: Regular Expression — tìm và làm sạch dữ liệu chuỗi với Python re
 order: 23
-description: "Regex mô tả hình dạng của chuỗi: bộ ký hiệu cốt lõi, search, match, fullmatch, greedy và lazy với re của Python."
+description: "Regex mô tả hình dạng của chuỗi: ký hiệu cốt lõi, search, match, fullmatch, nhóm, greedy và lazy, và làm sạch cột chuỗi trong pandas; có ô thử pattern."
 slides: null
 needs: [feature-and-data-types]
 tags: [regex, python, text-cleaning, pattern, validation]
@@ -10,12 +10,12 @@ tags: [regex, python, text-cleaning, pattern, validation]
 ## Ta cần tìm khuôn mẫu nào trong chuỗi?
 
 :::intro Mục tiêu bài này
-- Hiểu **regular expression (regex)** là cách mô tả **hình dạng** của chuỗi cần tìm.
-- Đọc được bộ ký hiệu cốt lõi và phân biệt `search`, `match`, `fullmatch`.
-- Biết khác biệt **greedy** và **lazy**, và dùng `re` của Python để tìm, trích, kiểm, thay.
+- Hiểu **regular expression (regex)** là cách mô tả **hình dạng** của chuỗi cần tìm, thay cho hàng chục câu `if`.
+- Đọc bộ ký hiệu cốt lõi, phân biệt `search`, `match`, `fullmatch`, và dùng **nhóm** để trích dữ liệu.
+- Biết khác biệt **greedy** và **lazy**, và làm sạch một cột chuỗi trong pandas bằng regex.
 :::
 
-Dữ liệu thật thường có cột chữ lộn xộn: số điện thoại, email, ngày tháng, khoảng trắng thừa. Thay vì viết hàng chục `if`, ta mô tả **hình dạng** cần tìm bằng một **pattern**, ví dụ "ba chữ số, dấu gạch, bốn chữ số":
+Dữ liệu thật thường có cột chữ lộn xộn: số điện thoại viết nhiều kiểu, email lẫn trong câu, khoảng trắng thừa, ngày tháng lẫn trong ghi chú. Thay vì viết hàng chục `if`, ta mô tả **hình dạng** cần tìm bằng một **pattern**, ví dụ "ba chữ số, dấu gạch, bốn chữ số":
 
 ```python
 import re
@@ -23,53 +23,100 @@ re.findall(r"\d{3}-\d{4}", "Gọi 555-1234 hoặc 555-9876")
 # ['555-1234', '555-9876']
 ```
 
+Hãy tự thử pattern trên các chuỗi mẫu, rồi tự sửa pattern và chuỗi:
+
+:::widget regex-tester
+:::
+
 ## Bộ ký hiệu đủ dùng
 
 | Ký hiệu | Nghĩa |
 |---|---|
 | `\d`, `\w`, `\s` | một chữ số / một ký tự chữ-số-gạch dưới / một khoảng trắng |
-| `.` | một ký tự bất kỳ (trừ xuống dòng) |
-| `[abc]`, `[a-z]` | một ký tự trong tập |
+| `\D`, `\W`, `\S` | phủ định của ba cái trên |
+| `.` | một ký tự bất kỳ (**trừ xuống dòng**) |
+| `[abc]`, `[a-z]`, `[^abc]` | một ký tự trong tập / ngoài tập |
 | `+`, `*`, `?` | một hoặc nhiều / không hoặc nhiều / không hoặc một |
 | `{3}`, `{2,4}` | đúng 3 / từ 2 đến 4 lần |
 | `^`, `$` | đầu chuỗi / cuối chuỗi |
 | `( )`, `\|` | nhóm để trích / hoặc |
+| `\.` | dấu chấm **thật** (cần "thoát" ký tự đặc biệt) |
+
+Ví dụ: `a.c` khớp `abc` nhưng với `a.c` bạn phải viết `a\.c` nếu muốn đúng dấu chấm. Trên chuỗi `"abc a\nc"`, `a.c` chỉ khớp `abc` vì `.` không khớp xuống dòng (trừ khi bật cờ `re.S`).
 
 :::predict
 Pattern `\d+` được dùng với `search`, `match` và `fullmatch` trên chuỗi `"abc123"`. Hàm nào tìm thấy, hàm nào không?
 @answer
-`re.search(r"\d+", "abc123")` **tìm thấy** (quét cả chuỗi, thấy "123"). `re.match(r"\d+", "abc123")` **không** (chỉ khớp từ **đầu** chuỗi, mà đầu chuỗi là chữ). `re.fullmatch(r"\d+", "abc123")` **không** (cả chuỗi phải khớp). Còn `re.fullmatch(r"\d+", "123")` thì **có**.
+`re.search(r"\d+", "abc123")` **tìm thấy** (quét cả chuỗi, thấy "123"). `re.match(r"\d+", "abc123")` **không** (chỉ khớp từ **đầu** chuỗi, mà đầu chuỗi là chữ). `re.fullmatch(r"\d+", "abc123")` **không** (cả chuỗi phải khớp). Còn `re.fullmatch(r"\d+", "123")` thì **có**, và `re.fullmatch(r"\d+", "123a")` thì **không**.
 :::
 
 ## Tìm, trích, kiểm, thay
 
-- **`re.findall(p, s)`:** liệt kê mọi phần khớp. Ví dụ trích email: `re.findall(r"[\w.]+@[\w.]+\.\w+", "an@mail.com, binh.k@corp.vn")` cho `['an@mail.com', 'binh.k@corp.vn']`.
-- **`re.fullmatch(p, s)`:** kiểm cả chuỗi có đúng khuôn không (xác nhận định dạng).
+- **`re.findall(p, s)`:** liệt kê mọi phần khớp. Trích email: `re.findall(r"[\w.]+@[\w.]+\.\w+", "an@mail.com, binh.k@corp.vn")` cho `['an@mail.com', 'binh.k@corp.vn']`.
+- **`re.fullmatch(p, s)`:** kiểm cả chuỗi có đúng khuôn không (xác nhận định dạng). Số điện thoại `0\d{9}`: `"0912345678"` đúng, `"912345678"` sai.
 - **`re.sub(p, thay, s)`:** thay mọi phần khớp. `re.sub(r"\s+", " ", "a   b \t c")` cho `'a b c'` (gộp khoảng trắng).
+- **`re.split(p, s)`:** cắt theo pattern: `re.split(r"[,;]\s*", "a, b;c,  d")` cho `['a', 'b', 'c', 'd']`.
+
+### Nhóm `( )`: lấy từng phần của phần khớp
+
+```python
+m = re.search(r"(\d{4})-(\d{2})-(\d{2})", "Ngày 2024-11-19 giờ 08:30")
+m.groups()      # ('2024', '11', '19')
+m.group(0)      # '2024-11-19' (toàn bộ phần khớp)
+m = re.search(r"(?P<y>\d{4})-(?P<m>\d{2})-(?P<d>\d{2})", "2024-11-19")
+m.groupdict()   # {'y': '2024', 'm': '11', 'd': '19'}
+```
+
+Mỗi cặp ngoặc là một nhóm, đánh số từ 1; nhóm có tên dùng `(?P<tên>...)` (cú pháp riêng của Python).
 
 ## Greedy và lazy: khớp tham lam hay vừa đủ
 
 Mặc định `+` và `*` **tham lam**: lấy nhiều nhất có thể. Thêm `?` thì thành **lazy**: lấy ít nhất có thể.
 
-```python
-re.findall(r"<.+>",  "<a><b>")   # ['<a><b>']       greedy: nuốt cả hai thẻ
-re.findall(r"<.+?>", "<a><b>")   # ['<a>', '<b>']   lazy: từng thẻ một
-```
+:::steps
+Chuỗi `"<a><b>"`. Pattern `<.+>`: `<` khớp ở đầu, `.+` ban đầu nuốt **hết** phần còn lại, rồi lùi dần cho tới khi gặp `>` cuối cùng.
+@step
+Kết quả **greedy**: `re.findall(r"<.+>", "<a><b>")` cho `['<a><b>']`: một phần khớp duy nhất, nuốt cả hai thẻ.
+@step
+Pattern `<.+?>` (lazy): `.+?` lấy **ít nhất có thể** rồi dừng ở `>` đầu tiên. Kết quả `['<a>', '<b>']`: từng thẻ một.
+@step
+Cách khác không cần lazy: `<[^>]+>` (mọi ký tự trừ `>`). Với `"<b>đậm</b> và <i>nghiêng</i>"` cho `['<b>', '</b>', '<i>', '</i>']`.
+:::
 
 :::ck
 Bạn muốn lấy từng thẻ HTML riêng trong chuỗi `"<b>đậm</b> và <i>nghiêng</i>"`. Dùng `<.+>` có đúng không? Dùng gì thay?
 @answer
-**Không đúng**: `<.+>` tham lam sẽ nuốt từ `<b>` đầu đến `</i>` cuối thành **một** phần khớp. Dùng `<.+?>` (lazy) hoặc `<[^>]+>` (mọi ký tự trừ `>`) để lấy từng thẻ.
+**Không đúng**: `<.+>` tham lam sẽ nuốt từ `<b>` đầu đến `</i>` cuối thành **một** phần khớp. Dùng `<.+?>` (lazy) hoặc `<[^>]+>`.
 :::
 
-Hai lời khuyên: dùng **chuỗi thô** `r"..."` để không phải nhân đôi dấu gạch chéo; và nhớ regex của mỗi nơi (Python, JavaScript, công cụ web) có thể khác nhau chút ít, nên kiểm tra pattern bằng **đúng engine** bạn sẽ dùng.
+## Làm sạch cột chuỗi trong pandas
+
+Regex là công cụ chính khi làm sạch dữ liệu chuỗi trong Step 2 và 3 của pipeline ([[bài:ml-pipeline]]). pandas có các hàm `str` nhận regex:
+
+```python
+s = pd.Series(["(028) 3822-1234", "0912.345.678", "+84 912 345 678"])
+s.str.replace(r"\D", "", regex=True).tolist()
+# ['02838221234', '0912345678', '84912345678']      # chỉ giữ chữ số
+pd.Series(["Order #123 ok", "Order #4567", "none"]).str.extract(r"#(\d+)")[0].tolist()
+# ['123', '4567', nan]                                # trích số sau dấu #
+```
+
+`\D` là "ký tự **không** phải chữ số", nên thay chúng bằng chuỗi rỗng chỉ còn lại chữ số. `str.extract` trả `NaN` khi không khớp, và `NaN` đó là dữ liệu thiếu thật ([[bài:missing-values-outliers]]).
+
+## Những hiểu sai thường gặp
+
+- **"`.` khớp mọi thứ."** Không khớp xuống dòng (trừ khi bật `re.S`); và muốn khớp dấu chấm thật phải viết `\.`.
+- **"`match` và `search` như nhau."** `match` chỉ khớp từ **đầu** chuỗi; `search` quét cả chuỗi.
+- **"Regex hoàn hảo cho mọi thứ."** Không dùng regex để phân tích HTML hoặc email đầy đủ theo chuẩn; pattern đơn giản chỉ bắt được các trường hợp thường gặp.
+- **"Viết pattern một lần là xong."** Luôn thử trên cả ví dụ **sẽ khớp** lẫn **không nên khớp**.
+- **"Regex mọi nơi giống nhau."** Python, JavaScript, công cụ web có khác biệt nhỏ; kiểm tra bằng **đúng engine** bạn sẽ dùng, và dùng chuỗi thô `r"..."` trong Python để khỏi phải nhân đôi dấu gạch chéo.
 
 :::card Regular expression
 - **Pattern mô tả hình dạng** của chuỗi cần tìm: `\d{3}-\d{4}`.
-- **Ký hiệu cốt lõi:** `\d \w \s . [] + * ? {n} ^ $ () |`.
-- **`search`** quét cả chuỗi; **`match`** chỉ từ đầu; **`fullmatch`** cả chuỗi phải khớp.
-- **Greedy** (`.+`) lấy nhiều nhất, **lazy** (`.+?`) lấy ít nhất.
-- **Dùng `r"..."`**; kiểm tra bằng đúng engine.
+- **Ký hiệu cốt lõi:** `\d \w \s . [] + * ? {n} ^ $ () |`; thoát dấu chấm bằng `\.`.
+- **`search`** quét cả chuỗi; **`match`** chỉ từ đầu; **`fullmatch`** cả chuỗi phải khớp; **`findall`, `sub`, `split`**; **nhóm `( )`** để trích từng phần.
+- **Greedy** (`.+`) lấy nhiều nhất, **lazy** (`.+?`) lấy ít nhất (`<.+>` so với `<.+?>`).
+- **Trong pandas:** `str.replace(r"\D", "", regex=True)`, `str.extract(r"#(\d+)")`.
 :::
 
 ## Câu hỏi tự kiểm tra

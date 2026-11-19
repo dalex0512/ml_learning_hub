@@ -1,0 +1,13 @@
+import re, pandas as pd
+print(re.findall(r"\d{3}-\d{4}", "Gọi 555-1234 hoặc 555-9876"))
+print([bool(re.search(r"\d+", "abc123")), bool(re.match(r"\d+", "abc123")), bool(re.fullmatch(r"\d+", "123")), bool(re.fullmatch(r"\d+", "123a"))])
+m = re.search(r"(\d{4})-(\d{2})-(\d{2})", "Ngày 2024-11-19 giờ 08:30"); print(m.groups(), m.group(0))
+m = re.search(r"(?P<y>\d{4})-(?P<m>\d{2})-(?P<d>\d{2})", "2024-11-19"); print(m.groupdict())
+print(re.sub(r"\s+", " ", "a   b \t c"), re.split(r"[,;]\s*", "a, b;c,  d"))
+print(re.findall(r"<.+>", "<a><b>"), re.findall(r"<.+?>", "<a><b>"), re.findall(r"<[^>]+>", "<b>đậm</b> và <i>nghiêng</i>"))
+print(re.findall(r"[\w.]+@[\w.]+\.\w+", "liên hệ an@mail.com, binh.k@corp.vn"))
+print(re.fullmatch(r"0\d{9}", "0912345678") is not None, re.fullmatch(r"0\d{9}", "912345678") is not None)
+print(re.findall(r"a.c", "abc a\nc"), re.findall(r"a.c", "abc a\nc", re.S), re.findall(r"a\.c", "a.c abc"))
+s = pd.Series(["(028) 3822-1234", "0912.345.678", "+84 912 345 678"])
+print(s.str.replace(r"\D", "", regex=True).tolist())
+print(pd.Series(["Order #123 ok", "Order #4567", "none"]).str.extract(r"#(\d+)")[0].tolist())
