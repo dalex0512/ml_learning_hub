@@ -16,8 +16,8 @@ export default function ReaderShell({
   title,
   children,
 }: {
-  backHref: string;
-  backLabel: string;
+  backHref?: string;
+  backLabel?: string;
   title: string;
   children: React.ReactNode;
 }) {
@@ -60,9 +60,10 @@ export default function ReaderShell({
     <div className="reader">
       <div className="reader-bar">
         <div className="reader-bar-inner">
-          <Link href={backHref}>← {backLabel}</Link>
+          {backHref ? <Link href={backHref}>← {backLabel}</Link> : <Link href="/" style={{ color: "var(--r-fg)", fontWeight: 600 }}>ml learning hub</Link>}
           <span style={{ flex: 1, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{title}</span>
-          <Link href="/">Trang chủ</Link>
+          {backHref && <Link href="/">Trang chủ</Link>}
+          <Link href="/phong-van">Phỏng vấn</Link>
           <button type="button" onClick={toggle} aria-label={theme === "dark" ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"} title="Sáng / tối">
             {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
           </button>

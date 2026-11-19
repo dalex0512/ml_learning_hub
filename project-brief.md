@@ -390,3 +390,10 @@ không tự suy diễn danh sách bài. Báo cáo chuyển đổi ở lesson-res
   mục lục trái, mỗi loại khối có kiểu riêng (intro, worked, compare, pitfall, note, recap, next, formula, slides, quiz).
   Slide mở bằng lightbox sẵn có. Trang module (`/02-supervised-learning`…) cũng dùng chế độ đọc, hiện "Cần biết trước" dưới mỗi bài.
 - Mảnh dùng chung: `components/ReaderParts.tsx`. Nội dung markdown của bài lý thuyết không đổi.
+
+## 19. Đợt 12 — Kế hoạch thiết kế lại bài lý thuyết + trang chủ mới
+- `LESSON-REDESIGN-PLAN.md`: chẩn đoán, nguyên tắc (lõi/đào sâu, một nhịp một ý, đoán trước rồi mở, công cụ tương tác),
+  bảy kiểu bài, **thẻ thiết kế riêng cho từng bài trong 31 bài**, bộ công cụ cần xây, quy trình, lộ trình P0–P4.
+  Mọi bài lý thuyết viết lại sau này theo file này (và theo `PRACTICE-GUIDE.md` cho phần chung).
+- Trang chủ mới (`components/HomeRoadmap.tsx`): chế độ đọc, "Tiếp tục học", lộ trình sáu module có tiến độ, lối vào nhanh.
+  Đã xoá Hero, RoadmapZigzag, PaperCraftScene (three.js), NotebookHeroCard.

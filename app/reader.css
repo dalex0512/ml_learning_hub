@@ -136,3 +136,32 @@ html.reader-mode[data-reader-theme="dark"] .practice-prose img[src$="-light.png"
 .practice-prose img:not([src*="-light.png"]):not([src*="-dark.png"]) { background: #fff; padding: 10px; border-radius: 8px; border: 1px solid var(--r-line); }
 .practice-prose hr { border: none; border-top: 1px solid var(--r-line); margin: 2rem 0; }
 .practice-prose h4 { font-weight: 700; margin: 1.4em 0 0.5em; }
+
+/* ===== Trang chủ ===== */
+.home-steps { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 1rem; }
+.home-steps li { display: flex; gap: 0.8rem; font-size: 15px; line-height: 1.6; color: var(--r-muted); }
+.home-steps li strong { color: var(--r-fg); }
+.home-steps .n { flex-shrink: 0; width: 1.8rem; height: 1.8rem; border: 1px solid var(--r-line); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--r-accent); font-weight: 700; font-size: 14px; }
+.home-module { border-top: 1px solid var(--r-line); }
+.home-module:last-child { border-bottom: 1px solid var(--r-line); }
+.home-module summary { list-style: none; display: flex; gap: 1rem; align-items: flex-start; padding: 1.1rem 0; cursor: pointer; }
+.home-module summary::-webkit-details-marker { display: none; }
+.home-no { min-width: 2rem; font-weight: 700; color: var(--r-accent); line-height: 1.5; }
+.home-main { flex: 1; min-width: 0; display: block; }
+.home-name { display: block; font-weight: 600; font-size: 18px; line-height: 1.4; }
+.home-sub { display: block; color: var(--r-muted); font-size: 15px; }
+.home-bar { display: block; height: 3px; background: var(--r-line); border-radius: 2px; margin-top: 0.6rem; max-width: 14rem; overflow: hidden; }
+.home-bar span { display: block; height: 100%; background: var(--r-accent); }
+.home-meta { color: var(--r-muted); font-size: 14px; white-space: nowrap; padding-top: 0.2rem; }
+.home-module summary:hover .home-name { color: var(--r-accent); }
+.home-lessons { padding: 0 0 1.4rem 3rem; }
+.home-lesson { display: flex; gap: 0.9rem; padding: 0.6rem 0; text-decoration: none; color: inherit; border-top: 1px dashed var(--r-line); }
+.home-lesson:hover .home-lname { color: var(--r-accent); }
+.home-lno { min-width: 1.6rem; color: var(--r-muted); font-variant-numeric: tabular-nums; font-size: 14px; padding-top: 0.15rem; }
+.home-lname { display: block; font-weight: 600; line-height: 1.45; }
+.home-ldesc { display: block; color: var(--r-muted); font-size: 14.5px; line-height: 1.55; }
+.home-lprog { color: var(--r-muted); font-size: 13px; white-space: nowrap; padding-top: 0.2rem; }
+.home-quick { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 1rem; margin-top: 0.8rem; }
+.home-quick .reader-card strong { display: block; margin-bottom: 0.25rem; }
+.home-quick .reader-card span { display: block; color: var(--r-muted); font-size: 14.5px; line-height: 1.55; }
+@media (max-width: 640px) { .home-lessons { padding-left: 0; } }

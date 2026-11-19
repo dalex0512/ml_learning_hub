@@ -72,6 +72,10 @@ export default function PracticeLesson({
   }, [key]);
 
   useEffect(() => {
+    try { localStorage.setItem("ml-last", JSON.stringify({ href: `/${moduleId}/${topicData.topicId}`, title: topicData.title, where: partLabel })); } catch {}
+  }, [moduleId, topicData.topicId, topicData.title, partLabel]);
+
+  useEffect(() => {
     const hash = decodeURIComponent(window.location.hash.replace("#", ""));
     if (hash) window.setTimeout(() => document.getElementById(hash)?.scrollIntoView(), 50);
     const onScroll = () => {
